@@ -1,0 +1,51 @@
+{
+  "name": "renderer",
+  "version": "0.0.0",
+  "description": "Renders geo tiles",
+  "author": "damiankoper <kopernickk@gmail.com>",
+  "homepage": "https://github.com/damiankoper/histmap#readme",
+  "license": "ISC",
+  "main": "dist/main.js",
+  "types": "dist/main.d.ts",
+  "type": "commonjs",
+  "directories": {
+    "src": "src"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/damiankoper/js-acceleration.git"
+  },
+  "scripts": {
+    "build": "webpack --mode=production --node-env=production",
+    "build:dev": "webpack --mode=development",
+    "build:prod": "webpack --mode=production --node-env=production",
+    "watch": "webpack --watch",
+    "watch:generate": "nodemon test/generate.ts"
+  },
+  "bugs": {
+    "url": "https://github.com/damiankoper/js-acceleration/issues"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^4.31.1",
+    "@typescript-eslint/parser": "^4.31.1",
+    "clean-terminal-webpack-plugin": "^3.0.0",
+    "eslint": "^7.32.0",
+    "eslint-import-resolver-typescript": "^2.5.0",
+    "eslint-import-resolver-webpack": "^0.13.1",
+    "eslint-plugin-import": "^2.24.2",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "eslint-plugin-promise": "^5.1.0",
+    "fork-ts-checker-webpack-plugin": "^6.3.3",
+    "nodemon": "^2.0.13",
+    "prettier": "^2.3.2",
+    "ts-loader": "^9.2.5",
+    "ts-node": "^10.3.0",
+    "webpack": "^5.52.1",
+    "webpack-cli": "^4.8.0",
+    "webpack-dev-server": "^4.1.1"
+  }
+}

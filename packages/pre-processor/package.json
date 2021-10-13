@@ -1,0 +1,30 @@
+{
+  "name": "pre-processor",
+  "version": "0.0.0",
+  "description": "Static pre-processor of geo data into usable tiles",
+  "keywords": [
+    "pre",
+    "process"
+  ],
+  "author": "damiankoper <kopernickk@gmail.com>",
+  "homepage": "https://github.com/damiankoper/histmap#readme",
+  "license": "ISC",
+  "main": "lib/pre-processor.js",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/damiankoper/histmap.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  },
+  "bugs": {
+    "url": "https://github.com/damiankoper/histmap/issues"
+  }
+}
