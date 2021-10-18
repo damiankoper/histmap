@@ -8,55 +8,16 @@
       >Poniżej wyświetlono wyniki, znajdujące się na wybranym obszarze.</span
     >
     <!-- TODO make height somehow work -->
-    <el-scrollbar always height="50%" wrap-class="lol">
-      <el-card shadow="hover" class="card">
-        <h3>Architektura komputerów</h3>
-        <span class="card-info">Janusz Biernat</span>
-        <span class="card-info">Wrocław 1998</span>
-        <span class="card-info">ISBN 12389743829798234</span>
-      </el-card>
-      <el-card shadow="hover" class="card">
-        <h3>Architektura komputerów</h3>
-        <span class="card-info">Janusz Biernat</span>
-        <span class="card-info">Wrocław 1998</span>
-        <span class="card-info">ISBN 12389743829798234</span>
-      </el-card>
-      <el-card shadow="hover" class="card">
-        <h3>Architektura komputerów</h3>
-        <span class="card-info">Janusz Biernat</span>
-        <span class="card-info">Wrocław 1998</span>
-        <span class="card-info">ISBN 12389743829798234</span>
-      </el-card>
-      <el-card shadow="hover" class="card">
-        <h3>Architektura komputerów</h3>
-        <span class="card-info">Janusz Biernat</span>
-        <span class="card-info">Wrocław 1998</span>
-        <span class="card-info">ISBN 12389743829798234</span>
-      </el-card>
-      <el-card shadow="hover" class="card">
-        <h3>Architektura komputerów</h3>
-        <span class="card-info">Janusz Biernat</span>
-        <span class="card-info">Wrocław 1998</span>
-        <span class="card-info">ISBN 12389743829798234</span>
-      </el-card>
-      <el-card shadow="hover" class="card">
-        <h3>Architektura komputerów</h3>
-        <span class="card-info">Janusz Biernat</span>
-        <span class="card-info">Wrocław 1998</span>
-        <span class="card-info">ISBN 12389743829798234</span>
-      </el-card>
-      <el-card shadow="hover" class="card">
-        <h3>Architektura komputerów</h3>
-        <span class="card-info">Janusz Biernat</span>
-        <span class="card-info">Wrocław 1998</span>
-        <span class="card-info">ISBN 12389743829798234</span>
-      </el-card>
-      <el-card shadow="hover" class="card">
-        <h3>Architektura komputerów</h3>
-        <span class="card-info">Janusz Biernat</span>
-        <span class="card-info">Wrocław 1998</span>
-        <span class="card-info">ISBN 12389743829798234</span>
-      </el-card>
+    <el-scrollbar always height="50%">
+      <BookCard
+        v-for="n in 10"
+        :key="n"
+        title="Architektura komputerów"
+        author="Janusz Biernat"
+        city="Wrocław"
+        year="1998"
+        isbn="32198371928379812"
+      />
     </el-scrollbar>
   </el-drawer>
 </template>
@@ -64,8 +25,10 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import store from "../utils/store";
+import BookCard from "../components/BookCard.vue";
 
 export default defineComponent({
+  components: { BookCard },
   setup() {
     return {
       store,
@@ -75,15 +38,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-.card {
-  margin: 10px 10px 10px 0;
-}
 h3 {
   margin: 0;
-}
-.card-info {
-  display: block;
-  margin-top: 10px;
 }
 
 .subtitle {
