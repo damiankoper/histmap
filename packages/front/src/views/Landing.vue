@@ -2,12 +2,13 @@
   <div class="container">
     <div class="wrapper">
       <div class="logo">
+        <!-- unable to load it with el-image -->
         <img src="../assets/images/world_map.svg" alt="world map" />
         <h1>HISTmap</h1>
       </div>
-      <div class="button-wrapper">
-        <button @click="handleClick">Rozpocznij</button>
-      </div>
+      <el-row justify="center" class="custom-row">
+        <el-button round @click="handleClick">Rozpocznij</el-button>
+      </el-row>
     </div>
     <Footer />
   </div>
@@ -66,22 +67,7 @@ export default defineComponent({
   }
 }
 
-.button-wrapper {
-  text-align: center;
-  button {
-    background: rgba(170, 170, 170, 0.3);
-    cursor: pointer;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 10px;
-    border: none;
-    font-size: $big;
-    margin-top: 100px;
-    transition: 1s ease;
-
-    &:hover {
-      background: rgba(170, 170, 170, 0.6);
-    }
-  }
+.custom-row {
+  margin-top: 100px;
 }
 </style>
