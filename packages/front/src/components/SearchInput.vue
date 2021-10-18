@@ -1,20 +1,40 @@
 <template>
   <div class="search-container">
-    <img src="../assets/images/burger.svg" alt="burger menu" />
+    <img
+      src="../assets/images/burger.svg"
+      alt="burger menu"
+      @click="handleClick"
+    />
     <el-input
       v-model="input"
       placeholder="Szukaj miejsca"
       class="search-input"
+    />
+    <Drawer
+      :drawerVisible="{ drawerVisivle }"
+      :handleVisibility="handleClick"
     />
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref } from "vue";
+import Drawer from "./Drawer.vue";
+
 export default defineComponent({
+  components: { Drawer },
   setup() {
+    const input = ref("");
+    const drawerVisivle = ref(false);
+
+    const handleClick = () => {
+      drawerVisivle.value = !drawerVisivle.value;
+    };
+
     return {
-      input: ref(""),
+      input,
+      handleClick,
+      drawerVisivle,
     };
   },
 });
