@@ -10,31 +10,29 @@
       placeholder="Szukaj miejsca"
       class="search-input"
     />
-    <Drawer
-      :drawerVisible="{ drawerVisivle }"
-      :handleVisibility="handleClick"
-    />
+    <FormDrawer />
+    <ListDrawer />
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref } from "vue";
-import Drawer from "./Drawer.vue";
+import FormDrawer from "./FormDrawer.vue";
+import ListDrawer from "./ListDraver.vue";
+import store from "../utils/store";
 
 export default defineComponent({
-  components: { Drawer },
+  components: { FormDrawer, ListDrawer },
   setup() {
     const input = ref("");
-    const drawerVisivle = ref(false);
 
     const handleClick = () => {
-      drawerVisivle.value = !drawerVisivle.value;
+      store.toggleFormDialogAction();
     };
 
     return {
       input,
       handleClick,
-      drawerVisivle,
     };
   },
 });

@@ -2,7 +2,7 @@
   <div class="footer">
     Created by
     <a href="https://github.com/damiankoper" target="_blank">@damiankoper </a>
-    <a href="https://github.com/xksz_11" target="_blank">@xksz_11 </a>
+    <a href="https://github.com/iszn11" target="_blank">@iszn11 </a>
     <a href="https://github.com/hergerr" target="_blank">@hergerr </a>
     <a href="https://github.com/matgwi96" target="_blank">@matgwi96</a>. All
     rights resevered
