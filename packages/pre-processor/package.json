@@ -10,6 +10,7 @@
   "homepage": "https://github.com/damiankoper/histmap#readme",
   "license": "ISC",
   "main": "lib/pre-processor.js",
+  "types": "types/types.d.ts",
   "directories": {
     "lib": "lib",
     "test": "__tests__"
