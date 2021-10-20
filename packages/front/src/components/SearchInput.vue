@@ -39,17 +39,23 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-@import "../assets/css/_variables.scss";
-
 .search-container {
   display: flex;
+  -webkit-appearance: none;
   align-items: center;
   position: absolute;
   background-color: white;
-  border-radius: 10px;
+  border-radius: 4px;
   width: 300px;
-  border: 1px solid $a-grey;
-  padding: 2px 30px 2px 10px;
+  border: 1px solid #dcdfe6;
+  padding: 4px 32px 4px 8px;
+  height: 40px;
+  outline: none;
+  transition: border-color 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
+
+  &:hover {
+    border-color: #c0c4cc;
+  }
 
   img {
     width: 30px;

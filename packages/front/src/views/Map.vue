@@ -1,10 +1,10 @@
 <template>
-  <div class="container">
+  <el-container class="container">
     <div class="search-wrapper">
       <SearchInput />
     </div>
     <img src="../assets/images/map_placeholder.png" alt="placeholder" />
-  </div>
+  </el-container>
   <Footer />
 </template>
 
@@ -23,8 +23,7 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .container {
-  height: 100%;
-  width: 100%;
+  height: calc(100vh - 16px);
 
   img {
     width: 100%;
@@ -35,7 +34,7 @@ export default defineComponent({
 
 .search-wrapper {
   position: absolute;
-  top: 10px;
-  left: 10px;
+  top: 8px;
+  left: 8px;
 }
 </style>

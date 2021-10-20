@@ -1,12 +1,12 @@
 <template>
-  <div class="footer">
+  <el-footer class="footer" height="16px">
     Created by
     <a href="https://github.com/damiankoper" target="_blank">@damiankoper </a>
     <a href="https://github.com/iszn11" target="_blank">@iszn11 </a>
     <a href="https://github.com/hergerr" target="_blank">@hergerr </a>
     <a href="https://github.com/matgwi96" target="_blank">@matgwi96</a>. All
     rights resevered
-  </div>
+  </el-footer>
 </template>
 
 <script lang="ts">
@@ -16,17 +16,11 @@ export default defineComponent({});
 </script>
 
 <style lang="scss" scoped>
-@import "../assets/css/_variables.scss";
-
 .footer {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  background-color: white;
   text-align: center;
-  padding: 5px 0;
-  font-size: $very-small;
+  padding: 4px 0;
+  font-size: 8px;
+  background-color: white;
 
   a {
     text-decoration: none;

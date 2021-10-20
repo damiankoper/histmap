@@ -1,17 +1,21 @@
 <template>
-  <div class="container">
+  <el-container class="container">
+    <el-row />
     <div class="wrapper">
-      <div class="logo">
-        <!-- unable to load it with el-image -->
-        <img src="../assets/images/world_map.svg" alt="world map" />
+      <el-row justify="center">
+        <el-image
+          :src="require('../assets/images/world_map.svg')"
+          alt="world map"
+          class="world-map"
+        />
         <h1>HISTmap</h1>
-      </div>
+      </el-row>
       <el-row justify="center" class="custom-row">
         <el-button round @click="handleClick">Rozpocznij</el-button>
       </el-row>
     </div>
-    <Footer />
-  </div>
+  </el-container>
+  <Footer />
 </template>
 
 <script lang="ts">
@@ -33,38 +37,29 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import "../assets/css/_variables.scss";
-
 .container {
-  width: 100%;
+  height: calc(100vh - 16px);
   background-color: #5e7d9a;
-  height: 100%;
 }
+
+/* no justify/align for el-col */
 .wrapper {
-  max-width: 1200px;
-  height: 100%;
-  margin: 0 auto;
+  width: 100%;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  align-content: center;
 }
 
-.logo {
-  display: flex;
-
-  img {
-    flex: 1;
-    width: 200px;
-  }
-
-  h1 {
-    flex: 2;
-    letter-spacing: 40px;
-    font-size: 96px;
-    font-weight: 400;
-    margin-left: 120px;
-    color: white;
-  }
+.world-map {
+  width: 200px;
+}
+h1 {
+  letter-spacing: 40px;
+  font-size: 96px;
+  font-weight: 400;
+  margin-left: 120px;
+  color: white;
 }
 
 .custom-row {
