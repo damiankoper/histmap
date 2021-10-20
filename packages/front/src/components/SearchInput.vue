@@ -1,13 +1,21 @@
 <template>
   <div class="search-container">
-    <MenuBurger />
+    <MenuBurger :toggleFormDialog="toggleFormDialogAction" />
     <el-input
       v-model="input"
       placeholder="Szukaj miejsca"
       class="search-input"
     />
-    <FormDrawer />
-    <ListDrawer />
+    <FormDrawer
+      :toggleFormDialog="toggleFormDialogAction"
+      :toggleListDialog="toggleListDialogAction"
+      :drawerState="showFormDialog"
+    />
+    <ListDrawer
+      :toggleListDialog="toggleListDialogAction"
+      :drawerState="showListDialog"
+    />
+    <p>{{ showFormDialog }}</p>
   </div>
 </template>
 
@@ -21,10 +29,27 @@ export default defineComponent({
   components: { FormDrawer, ListDrawer, MenuBurger },
   setup() {
     const input = ref("");
+    const showFormDialog = ref(false);
+    const showListDialog = ref(false);
 
     return {
       input,
+      showFormDialog,
+      showListDialog,
     };
+  },
+  methods: {
+    toggleFormDialogAction() {
+      console.log("toggleFormDialogAction triggered");
+      this.showFormDialog = !this.showFormDialog;
+      console.log(this.showFormDialog);
+    },
+
+    toggleListDialogAction() {
+      console.log("toggleListDialogAction triggered");
+      this.showListDialog = !this.showListDialog;
+      console.log(this.showListDialog);
+    },
   },
 });
 </script>

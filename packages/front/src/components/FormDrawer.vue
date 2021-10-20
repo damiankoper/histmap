@@ -1,11 +1,8 @@
 <template>
-  <el-drawer
-    v-model="store.state.showFormDialog"
-    direction="ltr"
-    custom-class="drawer"
-  >
+  <el-drawer v-model="showDrawer" direction="ltr" custom-class="drawer">
     <template v-slot:title>
       <SmallTitle />
+      <p>{{ showDrawer }}</p>
     </template>
     <div>
       <el-form :model="form">
@@ -38,13 +35,26 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive, toRefs } from "vue";
+import { defineComponent, reactive, toRefs, PropType } from "vue";
 import SmallTitle from "./SmallTitle.vue";
-import store from "../utils/store";
 
 export default defineComponent({
   components: { SmallTitle },
-  setup() {
+  props: {
+    toggleFormDialog: {
+      type: Function as PropType<() => void>,
+      required: true,
+    },
+    toggleListDialog: {
+      type: Function as PropType<() => void>,
+      required: true,
+    },
+    drawerState: {
+      type: Boolean,
+      required: true,
+    },
+  },
+  setup(props) {
     const state = reactive({
       loading: false,
 
@@ -61,11 +71,16 @@ export default defineComponent({
     };
 
     const onSubmit = () => {
-      store.toggleFormDialogAction();
-      store.toggleListDialogAction();
+      props.toggleFormDialog();
+      props.toggleListDialog();
     };
 
-    return { ...toRefs(state), cancelForm, store, onSubmit };
+    return {
+      showDrawer: props.drawerState,
+      ...toRefs(state),
+      cancelForm,
+      onSubmit,
+    };
   },
 });
 </script>

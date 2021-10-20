@@ -1,9 +1,5 @@
 <template>
-  <el-drawer
-    v-model="store.state.showListDialog"
-    direction="ltr"
-    custom-class="drawer"
-  >
+  <el-drawer v-model="showDrawer" direction="ltr" custom-class="drawer">
     <template v-slot:title>
       <SmallTitle />
     </template>
@@ -23,14 +19,23 @@
 
 <script lang="ts">
 import Publication from "@/interfaces/Publication";
-import { defineComponent } from "vue";
-import store from "../utils/store";
+import { defineComponent, PropType } from "vue";
 import PublicationCard from "./PublicationCard.vue";
 import SmallTitle from "./SmallTitle.vue";
 
 export default defineComponent({
   components: { PublicationCard, SmallTitle },
-  setup() {
+  props: {
+    toggleListDialog: {
+      type: Function as PropType<() => void>,
+      required: true,
+    },
+    drawerState: {
+      type: Boolean,
+      required: true,
+    },
+  },
+  setup(props) {
     const examplePublication: Publication = {
       title: "Architektura komputerów",
       author: "Janusz Biernat",
@@ -39,7 +44,7 @@ export default defineComponent({
       isbn: "32198371928379812",
     };
     return {
-      store,
+      showDrawer: props.drawerState,
       examplePublication,
     };
   },

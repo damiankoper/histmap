@@ -7,13 +7,18 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
-import store from "../utils/store";
+import { defineComponent, PropType } from "vue";
 
 export default defineComponent({
-  setup() {
+  props: {
+    toggleFormDialog: {
+      type: Function as PropType<() => void>,
+      required: true,
+    },
+  },
+  setup(props) {
     const handleClick = () => {
-      store.toggleFormDialogAction();
+      props.toggleFormDialog();
     };
 
     return { handleClick };
