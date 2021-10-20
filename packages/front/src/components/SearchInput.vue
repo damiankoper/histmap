@@ -1,10 +1,6 @@
 <template>
   <div class="search-container">
-    <img
-      src="../assets/images/burger.svg"
-      alt="burger menu"
-      @click="handleClick"
-    />
+    <MenuBurger />
     <el-input
       v-model="input"
       placeholder="Szukaj miejsca"
@@ -19,20 +15,15 @@
 import { defineComponent, ref } from "vue";
 import FormDrawer from "./FormDrawer.vue";
 import ListDrawer from "./ListDraver.vue";
-import store from "../utils/store";
+import MenuBurger from "./MenuBurger.vue";
 
 export default defineComponent({
-  components: { FormDrawer, ListDrawer },
+  components: { FormDrawer, ListDrawer, MenuBurger },
   setup() {
     const input = ref("");
 
-    const handleClick = () => {
-      store.toggleFormDialogAction();
-    };
-
     return {
       input,
-      handleClick,
     };
   },
 });

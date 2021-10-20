@@ -54,6 +54,7 @@ export default defineComponent({
 .world-map {
   width: 200px;
 }
+
 h1 {
   letter-spacing: 40px;
   font-size: 96px;
