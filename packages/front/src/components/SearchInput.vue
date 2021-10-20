@@ -43,7 +43,6 @@ export default defineComponent({
   display: flex;
   -webkit-appearance: none;
   align-items: center;
-  position: absolute;
   background-color: white;
   border-radius: 4px;
   width: 300px;
