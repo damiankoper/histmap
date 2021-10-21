@@ -1,26 +1,20 @@
 <template>
-  <img
-    src="../assets/images/burger.svg"
+  <el-image
+    :src="require('../assets/images/burger.svg')"
     alt="burger menu"
     @click="handleClick"
   />
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from "vue";
+import { defineComponent } from "vue";
 
 export default defineComponent({
-  props: {
-    toggleFormDialog: {
-      type: Function as PropType<() => void>,
-      required: true,
-    },
-  },
-  setup(props) {
+  emits: ["formDrawerToggled"],
+  setup(props, { emit }) {
     const handleClick = () => {
-      props.toggleFormDialog();
+      emit("formDrawerToggled");
     };
-
     return { handleClick };
   },
 });

@@ -1,21 +1,17 @@
 <template>
   <div class="search-container">
-    <MenuBurger :toggleFormDialog="toggleFormDialogAction" />
+    <MenuBurger @formDrawerToggled="toggleFormDialogAction" />
     <el-input
       v-model="input"
       placeholder="Szukaj miejsca"
       class="search-input"
     />
     <FormDrawer
-      :toggleFormDialog="toggleFormDialogAction"
-      :toggleListDialog="toggleListDialogAction"
-      :drawerState="showFormDialog"
+      :visible="showFormDialog"
+      @formDrawerToggled="toggleFormDialogAction"
+      @listDrawerToggled="toggleListDialogAction"
     />
-    <ListDrawer
-      :toggleListDialog="toggleListDialogAction"
-      :drawerState="showListDialog"
-    />
-    <p>{{ showFormDialog }}</p>
+    <ListDrawer :visible="showListDialog" />
   </div>
 </template>
 

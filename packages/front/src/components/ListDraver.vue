@@ -19,18 +19,14 @@
 
 <script lang="ts">
 import Publication from "@/interfaces/Publication";
-import { defineComponent, PropType } from "vue";
+import { defineComponent, toRef } from "vue";
 import PublicationCard from "./PublicationCard.vue";
 import SmallTitle from "./SmallTitle.vue";
 
 export default defineComponent({
   components: { PublicationCard, SmallTitle },
   props: {
-    toggleListDialog: {
-      type: Function as PropType<() => void>,
-      required: true,
-    },
-    drawerState: {
+    visible: {
       type: Boolean,
       required: true,
     },
@@ -44,7 +40,7 @@ export default defineComponent({
       isbn: "32198371928379812",
     };
     return {
-      showDrawer: props.drawerState,
+      showDrawer: toRef(props, "visible"),
       examplePublication,
     };
   },

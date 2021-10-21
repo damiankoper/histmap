@@ -2,7 +2,6 @@
   <el-drawer v-model="showDrawer" direction="ltr" custom-class="drawer">
     <template v-slot:title>
       <SmallTitle />
-      <p>{{ showDrawer }}</p>
     </template>
     <div>
       <el-form :model="form">
@@ -35,26 +34,19 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive, toRefs, PropType } from "vue";
+import { computed, defineComponent, reactive, toRef, toRefs } from "vue";
 import SmallTitle from "./SmallTitle.vue";
 
 export default defineComponent({
   components: { SmallTitle },
   props: {
-    toggleFormDialog: {
-      type: Function as PropType<() => void>,
-      required: true,
-    },
-    toggleListDialog: {
-      type: Function as PropType<() => void>,
-      required: true,
-    },
-    drawerState: {
+    visible: {
       type: Boolean,
       required: true,
     },
   },
-  setup(props) {
+  emits: ["formDrawerToggled", "listDrawerToggled"],
+  setup(props, { emit }) {
     const state = reactive({
       loading: false,
 
@@ -71,12 +63,12 @@ export default defineComponent({
     };
 
     const onSubmit = () => {
-      props.toggleFormDialog();
-      props.toggleListDialog();
+      emit("formDrawerToggled");
+      emit("listDrawerToggled");
     };
 
     return {
-      showDrawer: props.drawerState,
+      showDrawer: toRef(props, "visible"),
       ...toRefs(state),
       cancelForm,
       onSubmit,
