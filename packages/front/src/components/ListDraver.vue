@@ -1,5 +1,10 @@
 <template>
-  <el-drawer v-model="showDrawer" direction="ltr" custom-class="drawer">
+  <el-drawer
+    :model-value="visible"
+    @close="$emit('update:visible', false)"
+    direction="ltr"
+    custom-class="drawer"
+  >
     <template v-slot:title>
       <SmallTitle />
     </template>
@@ -19,7 +24,7 @@
 
 <script lang="ts">
 import Publication from "@/interfaces/Publication";
-import { defineComponent, toRef } from "vue";
+import { defineComponent } from "vue";
 import PublicationCard from "./PublicationCard.vue";
 import SmallTitle from "./SmallTitle.vue";
 
@@ -31,7 +36,7 @@ export default defineComponent({
       required: true,
     },
   },
-  setup(props) {
+  setup() {
     const examplePublication: Publication = {
       title: "Architektura komputerów",
       author: "Janusz Biernat",
@@ -40,7 +45,6 @@ export default defineComponent({
       isbn: "32198371928379812",
     };
     return {
-      showDrawer: toRef(props, "visible"),
       examplePublication,
     };
   },

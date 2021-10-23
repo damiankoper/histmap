@@ -7,11 +7,10 @@
       class="search-input"
     />
     <FormDrawer
-      :visible="showFormDialog"
-      @formDrawerToggled="toggleFormDialogAction"
+      v-model:visible="formDialogVisible"
       @listDrawerToggled="toggleListDialogAction"
     />
-    <ListDrawer :visible="showListDialog" />
+    <ListDrawer v-model:visible="listDialogVisible" />
   </div>
 </template>
 
@@ -25,26 +24,26 @@ export default defineComponent({
   components: { FormDrawer, ListDrawer, MenuBurger },
   setup() {
     const input = ref("");
-    const showFormDialog = ref(false);
-    const showListDialog = ref(false);
+    const formDialogVisible = ref(false);
+    const listDialogVisible = ref(false);
 
     return {
       input,
-      showFormDialog,
-      showListDialog,
+      formDialogVisible,
+      listDialogVisible,
     };
   },
   methods: {
     toggleFormDialogAction() {
       console.log("toggleFormDialogAction triggered");
-      this.showFormDialog = !this.showFormDialog;
-      console.log(this.showFormDialog);
+      this.formDialogVisible = !this.formDialogVisible;
+      console.log(this.formDialogVisible);
     },
 
     toggleListDialogAction() {
       console.log("toggleListDialogAction triggered");
-      this.showListDialog = !this.showListDialog;
-      console.log(this.showListDialog);
+      this.listDialogVisible = !this.listDialogVisible;
+      console.log(this.listDialogVisible);
     },
   },
 });

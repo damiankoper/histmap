@@ -1,5 +1,10 @@
 <template>
-  <el-drawer v-model="showDrawer" direction="ltr" custom-class="drawer">
+  <el-drawer
+    :model-value="visible"
+    @close="$emit('update:visible', false)"
+    direction="ltr"
+    custom-class="drawer"
+  >
     <template v-slot:title>
       <SmallTitle />
     </template>
@@ -34,7 +39,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, reactive, toRef, toRefs } from "vue";
+import { defineComponent, reactive, ref, toRefs } from "vue";
 import SmallTitle from "./SmallTitle.vue";
 
 export default defineComponent({
@@ -45,11 +50,10 @@ export default defineComponent({
       required: true,
     },
   },
-  emits: ["formDrawerToggled", "listDrawerToggled"],
+  emits: ["formDrawerToggled", "listDrawerToggled", "update:visible"],
   setup(props, { emit }) {
-    const state = reactive({
-      loading: false,
-
+    const loading = ref(false);
+    const form = reactive({
       form: {
         place: "",
         author: "",
@@ -59,17 +63,17 @@ export default defineComponent({
     });
 
     const cancelForm = () => {
-      state.loading = false;
+      loading.value = false;
     };
 
     const onSubmit = () => {
-      emit("formDrawerToggled");
+      emit("update:visible", false);
       emit("listDrawerToggled");
     };
 
     return {
-      showDrawer: toRef(props, "visible"),
-      ...toRefs(state),
+      loading,
+      ...toRefs(form),
       cancelForm,
       onSubmit,
     };
