@@ -1,0 +1,25 @@
+{
+    "publications": [{
+        "id": 1,
+        "title": "Lorem ipsum",
+        "author": "Janusz Biernat",
+        "places": ["Polska"],
+        "year": 2000
+    }],
+    "preTiles": [{
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "t": 2000,
+        "points": [{
+            "x": 128,
+            "y": 128,
+            "publications": [1]
+        }]
+    }],
+    "stats": [{
+        "z": 0,
+        "t": 2000,
+        "max": 1
+    }]
+}
