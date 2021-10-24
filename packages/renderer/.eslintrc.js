@@ -22,6 +22,7 @@ module.exports = {
   rules: {
     "prettier/prettier": "warn",
     "@typescript-eslint/explicit-module-boundary-types": "off",
+    "@typescript-eslint/member-ordering": "warn",
   },
   ignorePatterns: ["node_modules", "dist"],
   settings: {
