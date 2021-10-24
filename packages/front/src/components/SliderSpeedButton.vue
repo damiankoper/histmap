@@ -25,26 +25,25 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from "vue";
+import { defineComponent, toRef } from "vue";
+import Speed from "../interfaces/Speed";
 
 export default defineComponent({
-  setup() {
-    type speed = "slow" | "normal" | "fast";
-    const currentSpeed = ref<speed>("slow");
-    console.log(currentSpeed.value);
-
-    const handleClick = (param: speed) => {
-      if (param === "slow") {
-        currentSpeed.value = "normal";
-      } else if (param === "normal") {
-        currentSpeed.value = "fast";
-      } else {
-        currentSpeed.value = "slow";
-      }
+  props: {
+    speed: {
+      type: String,
+      required: true,
+    },
+  },
+  emits: ["changeSpeed"],
+  setup(props, { emit }) {
+    const handleClick = (param: Speed) => {
+      emit("changeSpeed", param);
     };
+
     return {
-      currentSpeed,
       handleClick,
+      currentSpeed: toRef(props, "speed"),
     };
   },
 });

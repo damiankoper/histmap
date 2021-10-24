@@ -1,6 +1,6 @@
 <template>
   <div class="slider-button-wrapper" @click="handleClick">
-    <div v-if="isPlaying">
+    <div v-if="showRunningIcon">
       <el-image
         class="icon-img"
         :src="require('../assets/images/pause.svg')"
@@ -18,19 +18,24 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from "vue";
+import { defineComponent, toRef } from "vue";
 
 export default defineComponent({
-  setup() {
-    const isPlaying = ref(false);
-
+  props: {
+    isRunning: {
+      type: Boolean,
+      required: true,
+    },
+  },
+  emits: ["negateIsRunning"],
+  setup(props, { emit }) {
     const handleClick = () => {
-      isPlaying.value = !isPlaying.value;
+      emit("negateIsRunning");
     };
 
     return {
-      isPlaying,
       handleClick,
+      showRunningIcon: toRef(props, "isRunning"),
     };
   },
 });
