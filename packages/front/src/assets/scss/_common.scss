@@ -1,0 +1,37 @@
+.slider-button-wrapper {
+  cursor: pointer;
+  border: 1px solid #dcdfe6;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: border-color 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
+  margin-right: 20px;
+
+  /* centering stuff - el-img is inline-block */
+  /* https://stackoverflow.com/a/8262649 */
+  font-size: 0px;
+  letter-spacing: 0px;
+  word-spacing: 0px;
+
+  &:hover {
+    border-color: #c0c4cc;
+  }
+}
+
+.icon-img {
+  width: 80%;
+  // no selection
+  -khtml-user-select: none;
+  -o-user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.icon-wrapper {
+  display: flex;
+  justify-content: center;
+}

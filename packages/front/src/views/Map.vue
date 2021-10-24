@@ -5,6 +5,9 @@
     </div>
     <img src="../assets/images/map_placeholder.png" alt="placeholder" />
   </el-container>
+  <div class="slider-wrapper">
+    <TimelineSlider />
+  </div>
   <Footer />
 </template>
 
@@ -12,9 +15,10 @@
 import { defineComponent } from "vue";
 import Footer from "../components/Footer.vue";
 import SearchInput from "../components/SearchInput.vue";
+import TimelineSlider from "../components/TimelineSlider.vue";
 
 export default defineComponent({
-  components: { Footer, SearchInput },
+  components: { Footer, SearchInput, TimelineSlider },
   setup() {
     return {};
   },
@@ -36,5 +40,12 @@ export default defineComponent({
   position: absolute;
   top: 8px;
   left: 8px;
+}
+
+.slider-wrapper {
+  position: absolute;
+  width: 100%;
+  bottom: 30px;
+  z-index: 2;
 }
 </style>
