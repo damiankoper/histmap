@@ -1,13 +1,19 @@
 <template>
   <div class="slider-button-wrapper" @click="handleClick(currentSpeed)">
-    <div v-if="currentSpeed === 'slow'" class="icon-wrapper">
+    <div
+      v-if="currentSpeed.description === SlowSpeed.description"
+      class="icon-wrapper"
+    >
       <el-image
         class="icon-img"
         :src="require('../assets/images/snail.png')"
         alt="play icon"
       />
     </div>
-    <div v-else-if="currentSpeed === 'normal'" class="icon-wrapper">
+    <div
+      v-else-if="currentSpeed.description === NormalSpeed.description"
+      class="icon-wrapper"
+    >
       <el-image
         class="icon-img"
         :src="require('../assets/images/human.png')"
@@ -26,12 +32,12 @@
 
 <script lang="ts">
 import { defineComponent, PropType, toRef } from "vue";
-import Speed from "../interfaces/Speed";
+import { Speed, SlowSpeed, NormalSpeed } from "../interfaces/Speed";
 
 export default defineComponent({
   props: {
     speed: {
-      type: String as PropType<Speed>,
+      type: Object as PropType<Speed>,
       required: true,
     },
   },
@@ -44,6 +50,8 @@ export default defineComponent({
     return {
       handleClick,
       currentSpeed: toRef(props, "speed"),
+      SlowSpeed,
+      NormalSpeed,
     };
   },
 });

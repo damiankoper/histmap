@@ -10,8 +10,9 @@
     <el-slider
       v-model="year"
       show-stops
-      :min="1900"
-      :max="2021"
+      :min="YEARN_MIN"
+      :max="YEAR_MAX"
+      :show-tooltip="false"
       :step="1"
       class="slider"
     />
@@ -25,43 +26,54 @@
 import { defineComponent, ref, watchEffect } from "vue";
 import SliderPlayButton from "./SliderPlayButton.vue";
 import SliderSpeedButton from "./SliderSpeedButton.vue";
-import Speed from "../interfaces/Speed";
+import { Speed, SlowSpeed, NormalSpeed, FastSpeed } from "../interfaces/Speed";
 
 export default defineComponent({
   components: { SliderPlayButton, SliderSpeedButton },
   setup() {
+    const YEARN_MIN = 1900;
+    const YEAR_MAX = 2021;
+
     const year = ref(1900);
     const isRunning = ref(false);
-    const speed = ref<Speed>("slow");
-    const delay = ref(1000);
+    const speed = ref<Speed>(SlowSpeed);
 
     const toggleIsRunning = () => {
       isRunning.value = !isRunning.value;
     };
 
     const changeSpeed = (currentSpeed: Speed) => {
-      if (currentSpeed === "slow") {
-        speed.value = "normal";
-        delay.value = 500;
-      } else if (currentSpeed === "normal") {
-        speed.value = "fast";
-        delay.value = 300;
+      if (currentSpeed.description === SlowSpeed.description) {
+        speed.value = NormalSpeed;
+      } else if (currentSpeed.description === NormalSpeed.description) {
+        speed.value = FastSpeed;
       } else {
-        speed.value = "slow";
-        delay.value = 1000;
+        speed.value = SlowSpeed;
       }
     };
 
+    // really dunno if it is legal to change timeout on the fly
+    // it behaves diffrent, when speed is changed, when paused
+    // and when speed is changed during sliding
+    // console logs warnings, dunno if relevant, rather yes
     watchEffect(() => {
-      // year not needed in condition, but otherwise is not deteted as dependency
-      if (isRunning.value && year.value) {
+      if (isRunning.value && year.value < YEAR_MAX) {
         setTimeout(() => {
           year.value += 1;
-        }, delay.value);
+        }, speed.value.delay);
+      }
+      if (isRunning.value && year.value === YEAR_MAX) {
+        // stop running, change icon, go to start
+        setTimeout(() => {
+          toggleIsRunning();
+          year.value = 1900;
+        }, 3000);
       }
     });
 
     return {
+      YEARN_MIN,
+      YEAR_MAX,
       year,
       speed,
       isRunning,
