@@ -25,13 +25,13 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, toRef } from "vue";
+import { defineComponent, PropType, toRef } from "vue";
 import Speed from "../interfaces/Speed";
 
 export default defineComponent({
   props: {
     speed: {
-      type: String,
+      type: String as PropType<Speed>,
       required: true,
     },
   },
