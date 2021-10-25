@@ -35,15 +35,11 @@ export default defineComponent({
   },
   methods: {
     toggleFormDialogAction() {
-      console.log("toggleFormDialogAction triggered");
       this.formDialogVisible = !this.formDialogVisible;
-      console.log(this.formDialogVisible);
     },
 
     toggleListDialogAction() {
-      console.log("toggleListDialogAction triggered");
       this.listDialogVisible = !this.listDialogVisible;
-      console.log(this.listDialogVisible);
     },
   },
 });
