@@ -1,7 +1,7 @@
-export type Speed = {
+export interface Speed {
   description: string;
   delay: number;
-};
+}
 
 export const SlowSpeed: Speed = {
   description: "slow",
