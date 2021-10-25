@@ -88,7 +88,7 @@ export default defineComponent({
   background-color: white;
 
   span {
-    margin-left: 30px;
+    margin-left: 32px;
   }
 }
 .slider {
