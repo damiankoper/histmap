@@ -34,7 +34,7 @@ export default defineComponent({
     const YEARN_MIN = 1900;
     const YEAR_MAX = 2021;
 
-    const year = ref(1900);
+    const year = ref(YEARN_MIN);
     const isRunning = ref(false);
     const speed = ref<Speed>(SlowSpeed);
 
@@ -66,7 +66,7 @@ export default defineComponent({
         // stop running, change icon, go to start
         setTimeout(() => {
           toggleIsRunning();
-          year.value = 1900;
+          year.value = YEARN_MIN;
         }, 3000);
       }
     });
