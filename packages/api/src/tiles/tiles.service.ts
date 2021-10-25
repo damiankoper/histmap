@@ -1,20 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { Data } from 'pre-processor/types/types';
+import { PreTileSet } from 'src/interfaces/pre-tile-set.interface';
+import { Blob } from 'buffer';
 
 @Injectable()
 export class TilesService {
-  calculateTile(preTileDataDto: Data) {
-    const informationBlob: Blob = new Blob();
+  calculateTile(preTileDataDto: PreTileSet) {
+    const informationBlob: Blob = new Blob(['test']);
 
-    const mainX = preTileDataDto.preTiles[4].x;
-    const mainY = preTileDataDto.preTiles[4].y;
-
-    preTileDataDto.preTiles.forEach((preTile) => {
-      preTile.points.forEach((point) => {
-        const relativeX = (preTile.x - mainX) * 256 + point.x;
-        const relativeY = (preTile.y - mainY) * 256 + point.y;
-      });
-    });
+    // preTileDataDto.getPreTileSet().forEach((preTile) => {
+    //   preTile.forEach((point) => {
+    //     const relativeX = (preTile.x - mainX) * 256 + point.x;
+    //     const relativeY = (preTile.y - mainY) * 256 + point.y;
+    //   });
+    // });
 
     const blob = new Blob([JSON.stringify(informationBlob, null, 2)], {
       type: 'application/json',
