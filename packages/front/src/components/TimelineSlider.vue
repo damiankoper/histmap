@@ -61,8 +61,7 @@ export default defineComponent({
         setTimeout(() => {
           year.value += 1;
         }, speed.value.delay);
-      }
-      if (isRunning.value && year.value === YEAR_MAX) {
+      } else if (isRunning.value && year.value === YEAR_MAX) {
         // stop running, change icon, go to start
         setTimeout(() => {
           toggleIsRunning();
