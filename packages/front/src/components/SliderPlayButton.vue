@@ -1,46 +1,32 @@
 <template>
-  <div class="slider-button-wrapper" @click="handleClick">
-    <div v-if="showRunningIcon">
+  <div class="slider-button-wrapper" @click="$emit('click')">
+    <el-button type="primary" circle>
       <el-image
+        v-if="isPlaying"
         class="icon-img"
         :src="require('../assets/images/pause.svg')"
         alt="play icon"
       />
-    </div>
-    <div v-else>
       <el-image
+        v-else
         class="icon-img"
         :src="require('../assets/images/play.svg')"
         alt="pause icon"
       />
-    </div>
+    </el-button>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, toRef } from "vue";
+import { defineComponent } from "vue";
 
 export default defineComponent({
   props: {
-    isRunning: {
+    isPlaying: {
       type: Boolean,
       required: true,
     },
   },
-  emits: ["negateIsRunning"],
-  setup(props, { emit }) {
-    const handleClick = () => {
-      emit("negateIsRunning");
-    };
-
-    return {
-      handleClick,
-      showRunningIcon: toRef(props, "isRunning"),
-    };
-  },
+  emits: ["click"],
 });
 </script>
-
-<style lang="scss">
-@import "../assets/scss/common.scss";
-</style>

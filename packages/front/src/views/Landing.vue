@@ -1,19 +1,27 @@
 <template>
-  <el-container class="container">
-    <el-row />
-    <div class="wrapper">
-      <el-row justify="center">
-        <el-image
-          :src="require('../assets/images/world_map.svg')"
-          alt="world map"
-          class="world-map"
-        />
-        <h1>HISTmap</h1>
+  <el-container class="container" direction="vertical">
+    <el-main style="flex-direction: column">
+      <el-row :gutter="48" justify="center" align="middle">
+        <el-col :span="18" :sm="12">
+          <el-image
+            fit="scale-down"
+            :src="require('../assets/images/world_map.svg')"
+            alt="World map"
+          />
+        </el-col>
+        <el-col :sm="12">
+          <h1>
+            <span>HIST</span>
+            <span>map</span>
+          </h1>
+        </el-col>
+        <el-col :sm="24">
+          <el-row justify="center" align="middle">
+            <el-button round @click="handleClick">Rozpocznij</el-button>
+          </el-row>
+        </el-col>
       </el-row>
-      <el-row justify="center" class="custom-row">
-        <el-button round @click="handleClick">Rozpocznij</el-button>
-      </el-row>
-    </div>
+    </el-main>
   </el-container>
   <Footer />
 </template>
@@ -38,32 +46,36 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .container {
-  height: calc(100vh - 16px);
+  height: calc(100vh - 32px);
   background-color: #5e7d9a;
-}
-
-/* no justify/align for el-col */
-.wrapper {
-  width: 100%;
   display: flex;
-  flex-direction: column;
   justify-content: center;
-  align-content: center;
+  align-items: center;
 }
 
-.world-map {
-  width: 200px;
+.el-main {
+  min-width: 400px;
+  max-width: 1000px;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.el-col {
+  margin: 8px 0;
 }
 
 h1 {
-  letter-spacing: 40px;
-  font-size: 96px;
-  font-weight: 400;
-  margin-left: 120px;
+  margin: 0;
+  font-size: 5rem;
   color: white;
-}
+  span:last-child {
+    font-weight: 300;
+  }
 
-.custom-row {
-  margin-top: 100px;
+  @media (max-width: 768px) {
+    text-align: center;
+  }
 }
 </style>

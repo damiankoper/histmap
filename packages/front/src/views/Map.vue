@@ -27,7 +27,7 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .container {
-  height: calc(100vh - 16px);
+  height: calc(100vh - 32px);
 
   img {
     width: 100%;

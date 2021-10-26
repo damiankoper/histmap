@@ -2,15 +2,12 @@
   <el-row class="timeline-bg" justify="center" align="middle">
     <el-row class="buttons-wrapper">
       <SliderSpeedButton :speed="speed" @changeSpeed="changeSpeed" />
-      <SliderPlayButton
-        :isRunning="isRunning"
-        @negateIsRunning="toggleIsRunning"
-      />
+      <SliderPlayButton :isPlaying="isPlaying" @click="toggleIsPlaying" />
     </el-row>
     <el-slider
       v-model="year"
       show-stops
-      :min="YEARN_MIN"
+      :min="YEAR_MIN"
       :max="YEAR_MAX"
       :show-tooltip="false"
       :step="1"
@@ -23,7 +20,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watchEffect } from "vue";
+import { defineComponent, ref } from "vue";
 import SliderPlayButton from "./SliderPlayButton.vue";
 import SliderSpeedButton from "./SliderSpeedButton.vue";
 import { Speed, SlowSpeed, NormalSpeed, FastSpeed } from "../interfaces/Speed";
@@ -31,18 +28,31 @@ import { Speed, SlowSpeed, NormalSpeed, FastSpeed } from "../interfaces/Speed";
 export default defineComponent({
   components: { SliderPlayButton, SliderSpeedButton },
   setup() {
-    const YEARN_MIN = 1900;
+    const YEAR_MIN = 1900;
     const YEAR_MAX = 2021;
 
-    const year = ref(YEARN_MIN);
-    const isRunning = ref(false);
+    const year = ref(YEAR_MIN);
+    const isPlaying = ref(false);
     const speed = ref<Speed>(SlowSpeed);
+    let playInterval: ReturnType<typeof setInterval>;
 
-    const toggleIsRunning = () => {
-      isRunning.value = !isRunning.value;
-    };
+    function setPlayingInterval() {
+      clearInterval(playInterval);
+      playInterval = setInterval(() => {
+        year.value = year.value < YEAR_MAX ? year.value + 1 : YEAR_MIN;
+      }, speed.value.delay);
+    }
 
-    const changeSpeed = (currentSpeed: Speed) => {
+    function toggleIsPlaying() {
+      isPlaying.value = !isPlaying.value;
+      if (isPlaying.value) {
+        setPlayingInterval();
+      } else {
+        clearInterval(playInterval);
+      }
+    }
+
+    function changeSpeed(currentSpeed: Speed) {
       if (currentSpeed.description === SlowSpeed.description) {
         speed.value = NormalSpeed;
       } else if (currentSpeed.description === NormalSpeed.description) {
@@ -50,34 +60,19 @@ export default defineComponent({
       } else {
         speed.value = SlowSpeed;
       }
-    };
-
-    // really dunno if it is legal to change timeout on the fly
-    // it behaves diffrent, when speed is changed, when paused
-    // and when speed is changed during sliding
-    // console logs warnings, dunno if relevant, rather yes
-    watchEffect(() => {
-      if (isRunning.value && year.value < YEAR_MAX) {
-        setTimeout(() => {
-          year.value += 1;
-        }, speed.value.delay);
-      } else if (isRunning.value && year.value === YEAR_MAX) {
-        // stop running, change icon, go to start
-        setTimeout(() => {
-          toggleIsRunning();
-          year.value = YEARN_MIN;
-        }, 3000);
+      if (isPlaying.value) {
+        setPlayingInterval();
       }
-    });
+    }
 
     return {
-      YEARN_MIN,
+      YEAR_MIN,
       YEAR_MAX,
       year,
       speed,
-      isRunning,
+      isPlaying,
       changeSpeed,
-      toggleIsRunning,
+      toggleIsPlaying,
     };
   },
 });
@@ -85,7 +80,7 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .timeline-bg {
-  background-color: white;
+  background-color: #ffffffbb;
 
   span {
     margin-left: 32px;

@@ -1,11 +1,8 @@
 module.exports = {
-  css: {
-    loaderOptions: {
-      scss: {
-        prependData: `
-            @import "@/assets/scss/global.scss";
-          `,
-      },
+  pages: {
+    index: {
+      entry: "src/main.ts",
+      title: "HISTmap",
     },
   },
 };
