@@ -1,10 +1,13 @@
 <template>
-  <el-row align="middle">
+  <el-row align="middle" justify="start" :gutter="8">
     <el-image
-      :src="require('../assets/images/world_map.svg')"
-      alt="world map"
+      :src="require('../assets/images/world_map_dark.svg')"
+      alt="World map"
     />
-    <p>HISTmap</p>
+    <p>
+      <span>HIST</span>
+      <span>map</span>
+    </p>
   </el-row>
 </template>
 
@@ -19,8 +22,17 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
+.el-image {
+  height: 2.5rem;
+}
 p {
-  letter-spacing: 8px;
-  margin: 0 0 0 16px;
+  margin: 0 0 0 4px;
+  font-size: 2rem;
+  span:first-child {
+    font-weight: 700;
+  }
+  span:last-child {
+    font-weight: 300;
+  }
 }
 </style>

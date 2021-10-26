@@ -1,6 +1,6 @@
 <template>
   <div class="search-container">
-    <MenuBurger @formDrawerToggled="toggleFormDialogAction" />
+    <MenuBurger @click="this.formDialogVisible = !this.formDialogVisible" />
     <el-input
       v-model="input"
       placeholder="Szukaj miejsca"
@@ -17,7 +17,7 @@
 <script lang="ts">
 import { defineComponent, ref } from "vue";
 import FormDrawer from "./FormDrawer.vue";
-import ListDrawer from "./ListDraver.vue";
+import ListDrawer from "./ListDrawer.vue";
 import MenuBurger from "./MenuBurger.vue";
 
 export default defineComponent({
@@ -45,35 +45,19 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .search-container {
   display: flex;
-  -webkit-appearance: none;
   align-items: center;
   background-color: white;
-  border-radius: 4px;
   width: 300px;
-  border: 1px solid #dcdfe6;
-  padding: 4px 32px 4px 8px;
-  height: 40px;
-  outline: none;
-  transition: border-color 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
-
-  &:hover {
-    border-color: #c0c4cc;
-  }
-
-  img {
-    width: 30px;
-    height: 30px;
-    cursor: pointer;
-  }
+  border-radius: 999px;
+  padding: 4px 8px 4px 12px;
+  box-shadow: 0 2px 4px rgb(0 0 0 / 30%);
 }
 
 .search-input {
-  margin-left: 10px;
-  input {
-    height: 30px;
+  :deep(input) {
     border: none;
   }
 }

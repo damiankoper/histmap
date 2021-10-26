@@ -1,23 +1,15 @@
 <template>
-  <el-image
-    :src="require('../assets/images/burger.svg')"
-    alt="burger menu"
-    @click="handleClick"
-  />
+  <i
+    class="mdi-set mdi-menu"
+    style="font-size: 2rem; cursor: pointer"
+    @click="$emit('click')"
+  ></i>
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
 
 export default defineComponent({
-  emits: ["formDrawerToggled"],
-  setup(props, { emit }) {
-    const handleClick = () => {
-      emit("formDrawerToggled");
-    };
-    return { handleClick };
-  },
+  emits: ["click"],
 });
 </script>
-
-<style lang="scss" scoped></style>

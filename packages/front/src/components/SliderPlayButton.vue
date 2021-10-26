@@ -1,20 +1,14 @@
 <template>
-  <div class="slider-button-wrapper" @click="$emit('click')">
-    <el-button type="primary" circle>
-      <el-image
-        v-if="isPlaying"
-        class="icon-img"
-        :src="require('../assets/images/pause.svg')"
-        alt="play icon"
-      />
-      <el-image
-        v-else
-        class="icon-img"
-        :src="require('../assets/images/play.svg')"
-        alt="pause icon"
-      />
-    </el-button>
-  </div>
+  <el-button
+    @click="$emit('click')"
+    type="primary"
+    circle
+    style="font-size: 2rem; padding: 8px"
+    title="Odtwarzaj w czasie"
+  >
+    <i class="mdi-set mdi-pause" v-if="isPlaying"></i>
+    <i class="mdi-set mdi-play" v-else></i>
+  </el-button>
 </template>
 
 <script lang="ts">

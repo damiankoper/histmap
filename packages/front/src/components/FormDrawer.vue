@@ -1,49 +1,57 @@
 <template>
-  <el-drawer
-    :model-value="visible"
-    @close="$emit('update:visible', false)"
-    direction="ltr"
-    custom-class="drawer"
-  >
-    <template v-slot:title>
-      <SmallTitle />
-    </template>
-    <div>
-      <el-form :model="form">
-        <el-form-item>
-          <el-input v-model="form.place" placeholder="miejsce" />
-        </el-form-item>
-        <el-form-item>
-          <el-input v-model="form.author" placeholder="autor" />
-        </el-form-item>
-        <el-form-item>
-          <el-input
-            v-model="form.year"
-            type="number"
-            min="0"
-            placeholder="rok"
-          />
-        </el-form-item>
-        <el-form-item>
-          <el-input v-model="form.title" placeholder="tytuł lub jego część" />
-        </el-form-item>
-      </el-form>
+  <div>
+    <el-drawer
+      :model-value="visible"
+      @close="$emit('update:visible', false)"
+      direction="ltr"
+      custom-class="drawer"
+      :size="336"
+    >
+      <template v-slot:title>
+        <SmallTitle />
+      </template>
+      <div>
+        <h2 style="margin-top: 0">Filtracja</h2>
+        <el-form :model="form">
+          <el-form-item>
+            <el-input v-model="form.place" placeholder="Miejsce" />
+          </el-form-item>
+          <el-form-item>
+            <el-input v-model="form.author" placeholder="Autor" />
+          </el-form-item>
+          <el-form-item>
+            <el-input v-model="form.title" placeholder="Tytuł lub jego część" />
+          </el-form-item>
+        </el-form>
 
+        <el-row justify="end">
+          <el-button round :loading="loading" @click="onSubmit">
+            {{ loading ? "Ładowanie..." : "Filtruj" }}
+          </el-button>
+        </el-row>
+      </div>
       <el-row justify="end">
-        <el-button round :loading="loading" @click="onSubmit"
-          >{{ loading ? "Przetwarzanie..." : "Filtruj" }}
+        <el-button
+          @click="helpVisible = true"
+          circle
+          type="primary"
+          title="Pokaż pomoc"
+        >
+          <i class="mdi-set mdi-help"></i>
         </el-button>
+        <help v-model="helpVisible" />
       </el-row>
-    </div>
-  </el-drawer>
+    </el-drawer>
+  </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, reactive, ref, toRefs } from "vue";
+import Help from "./Help.vue";
 import SmallTitle from "./SmallTitle.vue";
 
 export default defineComponent({
-  components: { SmallTitle },
+  components: { SmallTitle, Help },
   props: {
     visible: {
       type: Boolean,
@@ -53,11 +61,11 @@ export default defineComponent({
   emits: ["formDrawerToggled", "listDrawerToggled", "update:visible"],
   setup(props, { emit }) {
     const loading = ref(false);
+    const helpVisible = ref(false);
     const form = reactive({
       form: {
         place: "",
         author: "",
-        year: "",
         title: "",
       },
     });
@@ -76,14 +84,17 @@ export default defineComponent({
       ...toRefs(form),
       cancelForm,
       onSubmit,
+      helpVisible,
     };
   },
 });
 </script>
-
-<style lang="scss">
-/* for both drawers */
-.drawer {
-  max-width: 500px;
+<style lang="scss" scoped>
+:deep(.el-drawer) {
+  .el-drawer__body {
+    flex-direction: column;
+    display: flex;
+    justify-content: space-between;
+  }
 }
 </style>

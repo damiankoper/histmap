@@ -1,9 +1,7 @@
 <template>
-  <el-row class="timeline-bg" justify="center" align="middle">
-    <el-row class="buttons-wrapper">
-      <SliderSpeedButton :speed="speed" @changeSpeed="changeSpeed" />
-      <SliderPlayButton :isPlaying="isPlaying" @click="toggleIsPlaying" />
-    </el-row>
+  <div class="timeline" justify="center" align="middle">
+    <SliderSpeedButton :speed="speed" @click="onSpeedButtonClick" />
+    <SliderPlayButton :isPlaying="isPlaying" @click="toggleIsPlaying" />
     <el-slider
       v-model="year"
       show-stops
@@ -11,19 +9,20 @@
       :max="YEAR_MAX"
       :show-tooltip="false"
       :step="1"
+      height="80"
       class="slider"
     />
     <span>
       {{ year }}
     </span>
-  </el-row>
+  </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from "vue";
+import { computed, defineComponent, ref } from "vue";
 import SliderPlayButton from "./SliderPlayButton.vue";
 import SliderSpeedButton from "./SliderSpeedButton.vue";
-import { Speed, SlowSpeed, NormalSpeed, FastSpeed } from "../interfaces/Speed";
+import { Speed, delaySettings } from "../interfaces/Speed";
 
 export default defineComponent({
   components: { SliderPlayButton, SliderSpeedButton },
@@ -33,14 +32,15 @@ export default defineComponent({
 
     const year = ref(YEAR_MIN);
     const isPlaying = ref(false);
-    const speed = ref<Speed>(SlowSpeed);
+    const speed = ref<Speed>(Speed.SLOW);
+    const delay = ref(delaySettings[Speed.SLOW]);
     let playInterval: ReturnType<typeof setInterval>;
 
     function setPlayingInterval() {
       clearInterval(playInterval);
       playInterval = setInterval(() => {
         year.value = year.value < YEAR_MAX ? year.value + 1 : YEAR_MIN;
-      }, speed.value.delay);
+      }, delay.value);
     }
 
     function toggleIsPlaying() {
@@ -52,14 +52,21 @@ export default defineComponent({
       }
     }
 
-    function changeSpeed(currentSpeed: Speed) {
-      if (currentSpeed.description === SlowSpeed.description) {
-        speed.value = NormalSpeed;
-      } else if (currentSpeed.description === NormalSpeed.description) {
-        speed.value = FastSpeed;
-      } else {
-        speed.value = SlowSpeed;
+    const nextSpeed = computed(() => {
+      switch (speed.value) {
+        default:
+        case Speed.SLOW:
+          return Speed.NORMAL;
+        case Speed.NORMAL:
+          return Speed.FAST;
+        case Speed.FAST:
+          return Speed.SLOW;
       }
+    });
+
+    function onSpeedButtonClick() {
+      speed.value = nextSpeed.value;
+      delay.value = delaySettings[speed.value];
       if (isPlaying.value) {
         setPlayingInterval();
       }
@@ -71,7 +78,7 @@ export default defineComponent({
       year,
       speed,
       isPlaying,
-      changeSpeed,
+      onSpeedButtonClick,
       toggleIsPlaying,
     };
   },
@@ -79,14 +86,24 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-.timeline-bg {
-  background-color: #ffffffbb;
+.timeline {
+  background-color: white;
+  box-shadow: 0 2px 4px rgb(0 0 0 / 30%);
 
-  span {
-    margin-left: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 8px 48px;
+  z-index: 1;
+  position: relative;
+
+  .slider {
+    flex: 1;
+    margin: 0 48px;
   }
-}
-.slider {
-  width: 50%;
+  span {
+    font-size: 2rem;
+    font-weight: 700;
+  }
 }
 </style>

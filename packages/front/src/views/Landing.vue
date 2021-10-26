@@ -1,24 +1,21 @@
 <template>
-  <el-container class="container" direction="vertical">
-    <el-main style="flex-direction: column">
-      <el-row :gutter="48" justify="center" align="middle">
-        <el-col :span="18" :sm="12">
+  <el-container class="container">
+    <el-main>
+      <el-row :gutter="0" justify="center" align="middle">
+        <el-col :span="24" :sm="12">
           <el-image
-            fit="scale-down"
-            :src="require('../assets/images/world_map.svg')"
+            :src="require('../assets/images/world_map_light.svg')"
             alt="World map"
           />
         </el-col>
-        <el-col :sm="12">
+        <el-col :span="24" :sm="12">
           <h1>
             <span>HIST</span>
             <span>map</span>
           </h1>
-        </el-col>
-        <el-col :sm="24">
-          <el-row justify="center" align="middle">
-            <el-button round @click="handleClick">Rozpocznij</el-button>
-          </el-row>
+          <el-button type="default" round @click="handleClick">
+            Rozpocznij
+          </el-button>
         </el-col>
       </el-row>
     </el-main>
@@ -47,23 +44,33 @@ export default defineComponent({
 <style lang="scss" scoped>
 .container {
   height: calc(100vh - 32px);
-  background-color: #5e7d9a;
+  background: rgb(110, 226, 245);
+  background: linear-gradient(
+    147deg,
+    rgba(110, 226, 245, 1) 0%,
+    rgba(102, 68, 240, 1) 100%
+  );
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
+.el-image {
+  width: 256px;
+}
+
 .el-main {
-  min-width: 400px;
-  max-width: 1000px;
   overflow: hidden;
   display: flex;
   justify-content: center;
-  align-items: center;
+  flex: 1;
 }
 
 .el-col {
   margin: 8px 0;
+  @media (max-width: 768px) {
+    text-align: center;
+  }
 }
 
 h1 {
@@ -72,10 +79,6 @@ h1 {
   color: white;
   span:last-child {
     font-weight: 300;
-  }
-
-  @media (max-width: 768px) {
-    text-align: center;
   }
 }
 </style>
