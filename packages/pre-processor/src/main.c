@@ -190,11 +190,11 @@ static int64_t GetOrInsertTile(int x, int y, int z, int t)
 
 static void Init(const char *dbFilename)
 {
-#ifdef _WIN32
-	DeleteFileA(dbFilename);
-#else
-	remove(dbFilename);
-#endif
+	#ifdef _WIN32
+		DeleteFileA(dbFilename);
+	#else
+		remove(dbFilename);
+	#endif
 	sqlite3_open(dbFilename, &out_db);
 
 	printf("Executing init query...\n");
@@ -536,15 +536,15 @@ static void Dump(const char *dbFilename)
 
 int main(int argc, char *argv[])
 {
-#ifdef _WIN32
-	int64_t counterFreq, counterStart;
-	QueryPerformanceFrequency(&counterFreq);
-	QueryPerformanceCounter(&counterStart);
-	SetConsoleOutputCP(65001);
-#else
-	struct timespec counterStart;
-	clock_gettime(CLOCK_MONOTONIC_RAW, &counterStart);
-#endif
+	#ifdef _WIN32
+		int64_t counterFreq, counterStart;
+		QueryPerformanceFrequency(&counterFreq);
+		QueryPerformanceCounter(&counterStart);
+		SetConsoleOutputCP(65001);
+	#else
+		struct timespec counterStart;
+		clock_gettime(CLOCK_MONOTONIC_RAW, &counterStart);
+	#endif
 	srand((unsigned int)time(NULL));
 
 	if (argc < 2)
@@ -593,16 +593,16 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-#ifdef _WIN32
-	int64_t counterEnd;
-	QueryPerformanceCounter(&counterEnd);
-	double dt = (double)(counterEnd - counterStart) / counterFreq;
-#else
-	struct timespec counterEnd, counterDiff;
-	clock_gettime(CLOCK_MONOTONIC_RAW, &counterEnd);
-	timespec_diff(&counterEnd, &counterStart, &counterDiff);
-	double dt = counterDiff.tv_sec + 0.000000001 * counterDiff.tv_nsec;
-#endif
+	#ifdef _WIN32
+		int64_t counterEnd;
+		QueryPerformanceCounter(&counterEnd);
+		double dt = (double)(counterEnd - counterStart) / counterFreq;
+	#else
+		struct timespec counterEnd, counterDiff;
+		clock_gettime(CLOCK_MONOTONIC_RAW, &counterEnd);
+		timespec_diff(&counterEnd, &counterStart, &counterDiff);
+		double dt = counterDiff.tv_sec + 0.000000001 * counterDiff.tv_nsec;
+	#endif
 	fprintf(stderr, "Time: %.3f ms\n", 1000.0 * dt);
 	return 0;
 }
