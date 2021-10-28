@@ -1,3 +1,4 @@
+#include <inttypes.h>
 #include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -215,7 +216,7 @@ static void Extract(const char *intputDbFilename, const char *outputDbFilename)
 
 	printf("Counting books...\n");
 	int64_t bookCount = GetInt64(in_db, "SELECT COUNT(*) FROM BOOKS WHERE GEOGRAPHIC_NAMES != ''");
-	printf("There are %lld books with geographic names.\n", bookCount);
+	printf("There are %" PRId64 " books with geographic names.\n", bookCount);
 
 	sqlite3_stmt *stmt_select;
 	sqlite3_stmt *stmt_insert_publication;
@@ -241,7 +242,7 @@ static void Extract(const char *intputDbFilename, const char *outputDbFilename)
 		iBook += 1;
 		if (iBook % 10000 == 0)
 		{
-			printf("Book %lld/%lld (%.2f%%)\n", iBook, bookCount, 100.0 * (iBook - 1) / bookCount);
+			printf("Book %" PRId64 "/%" PRId64 " (%.2f%%)\n", iBook, bookCount, 100.0 * (iBook - 1) / bookCount);
 		}
 
 		// --- INSERT BOOK ---
@@ -294,7 +295,7 @@ static void Precalculate(const char *dbFilename)
 
 	printf("Counting publication-place entries...\n");
 	int64_t pulicationPlaceCount = GetInt64(out_db, "SELECT COUNT(*) FROM publication_places");
-	printf("There are %lld publication-place entries.\n", pulicationPlaceCount);
+	printf("There are %" PRId64 " publication-place entries.\n", pulicationPlaceCount);
 
 	sqlite3_stmt *stmt_query;
 	sqlite3_stmt *stmt_insert;
@@ -315,7 +316,7 @@ static void Precalculate(const char *dbFilename)
 		iPublicationPlace += 1;
 		if (iPublicationPlace % 10000 == 0)
 		{
-			printf("Entry %lld/%lld (%.2f%%)\n", iPublicationPlace, pulicationPlaceCount, 100.0 * (iPublicationPlace - 1) / pulicationPlaceCount);
+			printf("Entry %" PRId64 "/%" PRId64 " (%.2f%%)\n", iPublicationPlace, pulicationPlaceCount, 100.0 * (iPublicationPlace - 1) / pulicationPlaceCount);
 		}
 
 		int64_t publicationID = sqlite3_column_int64(stmt_query, 0);
@@ -452,7 +453,7 @@ static void Dump(const char *dbFilename)
 		iPublication += 1;
 		if (iPublication % 10000 == 0)
 		{
-			fprintf(stderr, "Book %lld/%lld (%.2f%%)\n", iPublication, publicationCount, 100.0 * (iPublication - 1) / publicationCount);
+			fprintf(stderr, "Book %" PRId64 "/%" PRId64 " (%.2f%%)\n", iPublication, publicationCount, 100.0 * (iPublication - 1) / publicationCount);
 		}
 
 		if (firstPublication) firstPublication = false;
@@ -463,7 +464,7 @@ static void Dump(const char *dbFilename)
 		const char *author = (const char*)sqlite3_column_text(stmt, 2);
 		int year = sqlite3_column_int(stmt, 3);
 
-		printf("{\"id\":%lld,\"title\":", publicationID);
+		printf("{\"id\":%" PRId64 ",\"title\":", publicationID);
 		PrintJsonString(title);
 		printf(",\"author\":");
 		PrintJsonString(author);
@@ -476,7 +477,7 @@ static void Dump(const char *dbFilename)
 	// --- DUMPING TILES ---
 	fprintf(stderr, "Counting tiles...\n");
 	int64_t tileCount = GetInt64(out_db, "SELECT COUNT(*) FROM tiles");
-	fprintf(stderr, "There are %lld tiles.\n", tileCount);
+	fprintf(stderr, "There are %" PRId64 " tiles.\n", tileCount);
 	int64_t iTile = 0;
 
 	sqlite3_stmt *stmt_points;
@@ -491,7 +492,7 @@ static void Dump(const char *dbFilename)
 		iTile += 1;
 		if (iTile % 10000 == 0)
 		{
-			fprintf(stderr, "Tile %lld/%lld (%.2f%%)\n", iTile, tileCount, 100.0 * (iTile - 1) / tileCount);
+			fprintf(stderr, "Tile %" PRId64 "/%" PRId64 " (%.2f%%)\n", iTile, tileCount, 100.0 * (iTile - 1) / tileCount);
 		}
 
 		if (firstTile) firstTile = false;
@@ -549,11 +550,12 @@ int main(int argc, char *argv[])
 	if (argc < 2)
 	{
 		printf("commands:\n"
-			   "\tinit DB\n"
-			   "\textract SOURCE_DB DB\n"
-			   "\tprecalculate DB\n"
-			   "\tget DB X Y Z T\n"
-			   "\tdump DB\n");
+			"\tinit DB\n"
+			"\textract SOURCE_DB DB\n"
+			"\tprecalculate DB\n"
+			"\tget DB X Y Z T\n"
+			"\tdump DB\n"
+		);
 		return 1;
 	}
 
@@ -598,7 +600,7 @@ int main(int argc, char *argv[])
 #else
 	struct timespec counterEnd, counterDiff;
 	clock_gettime(CLOCK_MONOTONIC_RAW, &counterEnd);
-	timespec_diff(&counterStart, &counterEnd, &counterDiff);
+	timespec_diff(&counterEnd, &counterStart, &counterDiff);
 	double dt = counterDiff.tv_sec + 0.000000001 * counterDiff.tv_nsec;
 #endif
 	fprintf(stderr, "Time: %.3f ms\n", 1000.0 * dt);
