@@ -4,7 +4,7 @@ project(pre-processor)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
 
-add_executable(db src/main.c src/sqlite3.c)
+add_executable(db src/main.c src/sqlite3.c src/data.c)
 set_property(TARGET db PROPERTY C_STANDARD 99)
 if(UNIX)
     target_link_libraries(db m dl pthread)
