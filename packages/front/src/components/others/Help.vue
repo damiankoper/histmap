@@ -12,7 +12,7 @@
 import { defineComponent } from "vue";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-import help from "../assets/md/help.md";
+import help from "@/assets/md/help.md";
 
 export default defineComponent({
   props: {

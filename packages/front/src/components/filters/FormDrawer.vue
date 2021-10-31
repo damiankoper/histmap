@@ -47,8 +47,8 @@
 
 <script lang="ts">
 import { defineComponent, reactive, ref, toRefs } from "vue";
-import Help from "./Help.vue";
-import SmallTitle from "./SmallTitle.vue";
+import Help from "../others/Help.vue";
+import SmallTitle from "../layout/SmallTitle.vue";
 
 export default defineComponent({
   components: { SmallTitle, Help },

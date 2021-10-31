@@ -12,7 +12,7 @@
 
 <script lang="ts">
 import { computed, defineComponent, PropType } from "vue";
-import { Speed } from "../interfaces/Speed";
+import { Speed } from "../../interfaces/Speed";
 
 export default defineComponent({
   props: {

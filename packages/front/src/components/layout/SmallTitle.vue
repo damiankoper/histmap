@@ -1,7 +1,7 @@
 <template>
   <el-row align="middle" justify="start" :gutter="8">
     <el-image
-      :src="require('../assets/images/world_map_dark.svg')"
+      :src="require('@/assets/images/world_map_dark.svg')"
       alt="World map"
     />
     <p>

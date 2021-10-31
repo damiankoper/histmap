@@ -4,7 +4,7 @@
       <el-row :gutter="0" justify="center" align="middle">
         <el-col :span="24" :sm="12">
           <el-image
-            :src="require('../assets/images/world_map_light.svg')"
+            :src="require('@/assets/images/world_map_light.svg')"
             alt="World map"
           />
         </el-col>
@@ -26,7 +26,7 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import { useRouter } from "vue-router";
-import Footer from "../components/Footer.vue";
+import Footer from "../components/layout/Footer.vue";
 
 export default defineComponent({
   components: { Footer },

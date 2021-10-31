@@ -27,7 +27,7 @@
 import Publication from "@/interfaces/Publication";
 import { defineComponent } from "vue";
 import PublicationCard from "./PublicationCard.vue";
-import SmallTitle from "./SmallTitle.vue";
+import SmallTitle from "../layout/SmallTitle.vue";
 
 export default defineComponent({
   components: { PublicationCard, SmallTitle },

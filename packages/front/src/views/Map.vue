@@ -3,7 +3,7 @@
     <div class="search-wrapper">
       <SearchInput />
     </div>
-    <img src="../assets/images/map_placeholder.png" alt="placeholder" />
+    <img src="@/assets/images/map_placeholder.png" alt="placeholder" />
   </el-container>
   <div class="slider-wrapper">
     <TimelineSlider />
@@ -13,9 +13,9 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import Footer from "../components/Footer.vue";
-import SearchInput from "../components/SearchInput.vue";
-import TimelineSlider from "../components/TimelineSlider.vue";
+import Footer from "../components/layout/Footer.vue";
+import SearchInput from "../components/map/SearchInput.vue";
+import TimelineSlider from "../components/slider/TimelineSlider.vue";
 
 export default defineComponent({
   components: { Footer, SearchInput, TimelineSlider },

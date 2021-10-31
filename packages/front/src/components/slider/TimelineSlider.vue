@@ -20,9 +20,9 @@
 
 <script lang="ts">
 import { computed, defineComponent, ref } from "vue";
-import SliderPlayButton from "./SliderPlayButton.vue";
-import SliderSpeedButton from "./SliderSpeedButton.vue";
-import { Speed, delaySettings } from "../interfaces/Speed";
+import SliderPlayButton from "../slider/SliderPlayButton.vue";
+import SliderSpeedButton from "../slider/SliderSpeedButton.vue";
+import { Speed, delaySettings } from "../../interfaces/Speed";
 
 export default defineComponent({
   components: { SliderPlayButton, SliderSpeedButton },

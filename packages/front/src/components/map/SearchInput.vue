@@ -16,9 +16,9 @@
 
 <script lang="ts">
 import { defineComponent, ref } from "vue";
-import FormDrawer from "./FormDrawer.vue";
-import ListDrawer from "./ListDrawer.vue";
-import MenuBurger from "./MenuBurger.vue";
+import FormDrawer from "../filters/FormDrawer.vue";
+import ListDrawer from "../publications/ListDrawer.vue";
+import MenuBurger from "../layout/MenuBurger.vue";
 
 export default defineComponent({
   components: { FormDrawer, ListDrawer, MenuBurger },
