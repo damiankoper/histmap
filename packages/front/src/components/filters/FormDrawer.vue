@@ -12,15 +12,18 @@
       </template>
       <div>
         <h2 style="margin-top: 0">Filtracja</h2>
-        <el-form :model="form">
-          <el-form-item>
-            <el-input v-model="form.place" placeholder="Miejsce" />
+        <el-form :model="form" label-width="70px">
+          <el-form-item label="Tytul">
+            <el-input
+              v-model="form.title"
+              placeholder="Tytuł publikacji lub jego część"
+            />
           </el-form-item>
-          <el-form-item>
-            <el-input v-model="form.author" placeholder="Autor" />
+          <el-form-item label="Miejsce">
+            <el-input v-model="form.place" placeholder="Miejsce publikacji" />
           </el-form-item>
-          <el-form-item>
-            <el-input v-model="form.title" placeholder="Tytuł lub jego część" />
+          <el-form-item label="Autor">
+            <el-input v-model="form.author" placeholder="Autor publikacji" />
           </el-form-item>
         </el-form>
 

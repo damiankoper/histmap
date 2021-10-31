@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     title="Pomoc"
-    :model-value="visible"
+    :model-value="modelValue"
     @close="$emit('update:modelValue', false)"
   >
     <div class="markdown-body" v-html="help"></div>
@@ -16,7 +16,7 @@ import help from "@/assets/md/help.md";
 
 export default defineComponent({
   props: {
-    visible: {
+    modelValue: {
       type: Boolean,
       required: true,
     },

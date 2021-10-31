@@ -2,7 +2,7 @@
   <el-button
     type="primary"
     circle
-    style="font-size: 1.5rem; padding: 8px; min-height: initial"
+    style="font-size: 1rem; padding: 8px; min-height: initial"
     @click="$emit('click')"
     title="Zmień prędkość"
   >
@@ -17,7 +17,7 @@ import { Speed } from "../../interfaces/Speed";
 export default defineComponent({
   props: {
     speed: {
-      type: Object as PropType<Speed>,
+      type: String as PropType<Speed>,
       required: true,
     },
   },

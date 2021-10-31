@@ -3,7 +3,7 @@
     <SliderSpeedButton :speed="speed" @click="onSpeedButtonClick" />
     <SliderPlayButton :isPlaying="isPlaying" @click="toggleIsPlaying" />
     <el-slider
-      v-model="year"
+      v-model="yearInner"
       show-stops
       :min="YEAR_MIN"
       :max="YEAR_MAX"
@@ -19,18 +19,33 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, ref } from "vue";
+import { computed, defineComponent, ref, watchEffect } from "vue";
 import SliderPlayButton from "../slider/SliderPlayButton.vue";
 import SliderSpeedButton from "../slider/SliderSpeedButton.vue";
 import { Speed, delaySettings } from "../../interfaces/Speed";
 
+const YEAR_MIN = 1900;
+const YEAR_MAX = 2021;
+
 export default defineComponent({
   components: { SliderPlayButton, SliderSpeedButton },
-  setup() {
-    const YEAR_MIN = 1900;
-    const YEAR_MAX = 2021;
 
-    const year = ref(YEAR_MIN);
+  props: {
+    yearMin: { type: Number, default: YEAR_MIN },
+    yearMax: { type: Number, default: YEAR_MAX },
+    year: { type: Number, default: YEAR_MIN },
+  },
+  setup(props, { emit }) {
+    const yearInner = ref(props.yearMin);
+
+    watchEffect(() => {
+      yearInner.value = props.year;
+    });
+
+    watchEffect(() => {
+      emit("update:year", yearInner.value);
+    });
+
     const isPlaying = ref(false);
     const speed = ref<Speed>(Speed.SLOW);
     const delay = ref(delaySettings[Speed.SLOW]);
@@ -39,7 +54,8 @@ export default defineComponent({
     function setPlayingInterval() {
       clearInterval(playInterval);
       playInterval = setInterval(() => {
-        year.value = year.value < YEAR_MAX ? year.value + 1 : YEAR_MIN;
+        yearInner.value =
+          yearInner.value < props.yearMax ? yearInner.value + 1 : props.yearMin;
       }, delay.value);
     }
 
@@ -75,7 +91,7 @@ export default defineComponent({
     return {
       YEAR_MIN,
       YEAR_MAX,
-      year,
+      yearInner,
       speed,
       isPlaying,
       onSpeedButtonClick,
@@ -88,13 +104,13 @@ export default defineComponent({
 <style lang="scss" scoped>
 .timeline {
   background-color: white;
-  box-shadow: 0 2px 4px rgb(0 0 0 / 30%);
+  box-shadow: 0 -2px 4px rgb(0 0 0 / 30%);
 
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 8px 48px;
-  z-index: 1;
+  z-index: 2;
   position: relative;
 
   .slider {

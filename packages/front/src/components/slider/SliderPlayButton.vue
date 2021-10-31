@@ -3,7 +3,7 @@
     @click="$emit('click')"
     type="primary"
     circle
-    style="font-size: 2rem; padding: 8px"
+    style="font-size: 1.5rem; padding: 8px"
     title="Odtwarzaj w czasie"
   >
     <i class="mdi-set mdi-pause" v-if="isPlaying"></i>
