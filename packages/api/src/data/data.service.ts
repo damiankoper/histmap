@@ -1,8 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 import { Data, PreTile } from 'pre-processor';
-import { isNullOrUndefined } from 'util';
 
 @Injectable()
 export class DataService {
@@ -29,8 +28,18 @@ export class DataService {
 
   public getPreTile(tileKey: string): PreTile {
     try {
-      return this.preTileMap.get(tileKey);
-    } catch (error) {}
+      const requestedPreTile: PreTile = this.preTileMap.get(tileKey);
+
+      if (!requestedPreTile) {
+        throw new NotFoundException(
+          `Requested (${tileKey}) preTile not found.`,
+        );
+      } else {
+        return requestedPreTile;
+      }
+    } catch (error) {
+      throw error;
+    }
   }
 
   public buildNeighbourPreTileKey(
@@ -38,9 +47,25 @@ export class DataService {
     offsetX: number,
     offsetY: number,
   ): string {
-    if (!isNullOrUndefined(mainPreTile))
-      return `${mainPreTile.t}.${mainPreTile.t}.${mainPreTile.x + offsetX}.${
-        mainPreTile.y + offsetY
-      }`;
+    const maxCoord = Math.pow(2, mainPreTile.z);
+    let neigbourTileX = mainPreTile.x + offsetX;
+    let neigbourTileY = mainPreTile.y + offsetY;
+
+    if (neigbourTileX >= maxCoord) {
+      neigbourTileX = neigbourTileX - maxCoord;
+    }
+    if (neigbourTileX < 0) {
+      neigbourTileX = neigbourTileX + maxCoord;
+    }
+
+    if (neigbourTileY >= maxCoord) {
+      neigbourTileY = neigbourTileY - maxCoord;
+    }
+    if (neigbourTileY < 0) {
+      neigbourTileY = neigbourTileY + maxCoord;
+    }
+
+    if (mainPreTile)
+      return `${mainPreTile.t}.${mainPreTile.z}.${neigbourTileX}.${neigbourTileY}`;
   }
 }

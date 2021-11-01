@@ -1,10 +1,15 @@
-import { Controller, Get } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpException,
+  HttpStatus,
+  Param,
+} from '@nestjs/common';
 import { TilesService } from './tiles.service';
-import { Data, PreTile } from 'pre-processor/types/types';
+import { PreTile } from 'pre-processor/types/types';
 import { FilterService } from '../filter/filter.service';
 import { DataService } from 'src/data/data.service';
-import _ from 'lodash';
-import { PreTileSet } from 'src/interfaces/pre-tile-set.interface';
+import { PreTileSet } from 'src/interfaces/pre-tile-set.class';
 
 @Controller('tiles')
 export class TilesController {
@@ -14,17 +19,26 @@ export class TilesController {
     private dataService: DataService,
   ) {}
 
-  @Get('getTile')
-  async getTile(preTileKey: string): Promise<Blob> {
-    const mainPreTile = this.dataService.getPreTile(preTileKey);
-    const mainPreTileNeighbors = new PreTileSet(this.dataService, mainPreTile);
+  @Get('getTile/:preTileKey')
+  async getTile(@Param('preTileKey') preTileKey: string): Promise<Blob> {
+    let mainPreTile: PreTile;
 
-    // mainPreTileNeighbors[0] = this.filterService.filterPublications(
-    //   preTileDataDto.publications,
-    // );
+    try {
+      mainPreTile = this.dataService.getPreTile(preTileKey);
+    } catch (NotFoundException) {
+      throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
+    }
 
-    // const c: PreTile = _.cloneDeep(p); // zrobić kopię pretile'ów
+    const mainPreTileAndNeighbours = new PreTileSet( //środkowy element to main
+      this.dataService,
+      mainPreTile,
+    );
 
-    return this.tilesService.calculateTile(mainPreTileNeighbors);
+    const preparedTile = this.tilesService.calculateTile(
+      mainPreTileAndNeighbours,
+    );
+
+    // TODO: create blob contain preparedTile
+    return new Blob();
   }
 }
