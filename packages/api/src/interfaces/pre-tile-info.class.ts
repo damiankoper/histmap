@@ -6,24 +6,6 @@ export class preTileInfo {
   private offsetY: number;
 
   constructor(preTile: PreTile, offsetX: number, offsetY: number) {
-    const maxCoord = Math.pow(2, preTile.z);
-    let neigbourTileX = preTile.x + offsetX;
-    let neigbourTileY = preTile.y + offsetY;
-
-    if (neigbourTileX >= maxCoord) {
-      neigbourTileX = preTile.x - maxCoord;
-    }
-    if (neigbourTileX < 0) {
-      neigbourTileX = preTile.x + maxCoord;
-    }
-
-    if (neigbourTileY >= maxCoord) {
-      neigbourTileY = preTile.y - maxCoord;
-    }
-    if (neigbourTileY < 0) {
-      neigbourTileY = preTile.y + maxCoord;
-    }
-
     this.offsetX = offsetX;
     this.offsetY = offsetY;
     this.preTile = preTile;
