@@ -41,7 +41,6 @@ export default defineComponent({
   setup() {
     const year = ref(1990);
     const zoom = ref(1);
-    const searchString = ref("");
 
     const formDialogVisible = ref(false);
     const listDialogVisible = ref(false);
@@ -67,7 +66,6 @@ export default defineComponent({
 
     return {
       year,
-      searchString,
       mapSearch,
       mapArea,
       formDialogVisible,
