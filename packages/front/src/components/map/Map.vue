@@ -14,12 +14,29 @@ export default defineComponent({
     search: {
       type: Object as PropType<MapSearchResult | null>,
     },
+    year: {
+      type: Number,
+      default: 0,
+    },
   },
   emits: ["click", "zoom"],
   setup(props, { emit }) {
     const container = ref<HTMLElement | null>(null);
-    const { map, setArea, clearArea, setSearchResult, clearSearchResult } =
-      useMap(container);
+    const {
+      map,
+      setArea,
+      clearArea,
+      setSearchResult,
+      clearSearchResult,
+      redrawHeatMap,
+    } = useMap(container);
+
+    watch(
+      () => props.year,
+      () => {
+        redrawHeatMap();
+      }
+    );
 
     onMounted(() => {
       watch(
