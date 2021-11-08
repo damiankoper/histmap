@@ -12,6 +12,7 @@ export interface MapSearchResult {
   point: L.LatLngExpression;
   bounds: L.LatLngBoundsExpression;
   label: string;
+  id?: string;
 }
 
 export interface MapArea {

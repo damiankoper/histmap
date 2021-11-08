@@ -2,48 +2,98 @@
   <div class="search-container">
     <div class="search-input">
       <MenuBurger @click="$emit('click')" />
-      <el-input v-model="input" placeholder="Szukaj miejsca" />
+      <el-input v-model="input" :placeholder="placeholder" />
+      <i
+        v-if="placeholder !== 'Szukaj miejsca'"
+        class="mdi-set mdi-close"
+        style="font-size: 1.5rem; cursor: pointer"
+        @click="cancelClicked"
+      ></i>
     </div>
-    <!-- TODO: 
-      when location is emitted next to input appears circle button with X icon
-      when clicked location = null is emited and input is cleared 
-    -->
 
-    <!-- TODO: v-for for reults -->
-    <div>Result 1</div>
-    <div>Result 2</div>
-    <div>Result 3</div>
+    <LocationCard
+      v-for="location in locationsList"
+      :key="location.id"
+      :location="location"
+      @click="locationClicked(location)"
+    />
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref, watch } from "vue";
 import MenuBurger from "../layout/MenuBurger.vue";
+import LocationCard from "./LocationCard.vue";
 import _ from "lodash";
 import { MapSearchResult } from "@/composables/useMap";
+import * as L from "leaflet";
+
 export default defineComponent({
-  components: { MenuBurger },
+  components: { MenuBurger, LocationCard },
   props: {
     modelValue: { type: String, default: "" },
   },
   emits: ["location", "click"],
   setup(props, { emit }) {
+    const DEFAULT_PLACEHOLDER = "Szukaj miejsca";
     const input = ref("");
+    const locationsList = ref<MapSearchResult[]>([]);
+    const placeholder = ref<string>(DEFAULT_PLACEHOLDER);
+
+    const locationClicked = (location: MapSearchResult) => {
+      emit("location", location);
+      input.value = "";
+      placeholder.value = location.label;
+      locationsList.value = [];
+    };
+
+    const cancelClicked = () => {
+      emit("location", null);
+      placeholder.value = DEFAULT_PLACEHOLDER;
+    };
 
     watch(
       input,
       _.debounce(async () => {
-        /**
-         * TODO: geocoding entrypoint
-         * 1. request to geocoding API e.g. https://docs.mapbox.com/playground/geocoding/?search_text=wroclaw
-         * 2. get results and display list below input for user to select
-         * 3. when input selected emit 'location' event with payload of MapSearchResults interface from useMap
-         */
+        await fetch(
+          encodeURI(
+            `https://api.mapbox.com/geocoding/v5/mapbox.places/${input.value}.json?access_token=pk.eyJ1IjoiaGVycmdlcnIiLCJhIjoiY2t2cWwyOHhpMjQ1bTJ4b3U5cjBzem10NSJ9.biRPWndoVnsjQDiNDTssSQ`
+          )
+        )
+          .then((response) => response.json())
+          .then((data) => {
+            locationsList.value = data.features.map((item: any) => {
+              const point: L.LatLngTuple = [item.center[1], item.center[0]];
+
+              let bounds: L.LatLngBoundsLiteral;
+              if (item.bbox) {
+                const southWest: L.LatLngTuple = [item.bbox[1], item.bbox[0]];
+                const northEast: L.LatLngTuple = [item.bbox[3], item.bbox[2]];
+                bounds = [southWest, northEast];
+              } else {
+                bounds = [point, point];
+              }
+
+              const splittedLocation = item.place_name.split(",");
+              const location: MapSearchResult = {
+                id: item.id,
+                point: point,
+                bounds: bounds,
+                label: `${splittedLocation[0]}, ${splittedLocation[1]}`,
+              };
+              return location;
+            });
+          })
+          .catch((err) => console.log(err));
       }, 500)
     );
 
     return {
       input,
+      locationsList,
+      locationClicked,
+      cancelClicked,
+      placeholder,
     };
   },
 });
@@ -54,6 +104,8 @@ export default defineComponent({
   background-color: white;
   border-radius: 24px;
   box-shadow: 0 2px 4px rgb(0 0 0 / 15%);
+  /* https://stackoverflow.com/a/3724210 */
+  overflow: hidden;
 
   .search-input {
     display: flex;
