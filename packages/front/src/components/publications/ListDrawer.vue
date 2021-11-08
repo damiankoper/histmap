@@ -10,12 +10,12 @@
         <SmallTitle />
       </template>
       <h3>Wyniki wyszukiwania dla zaznaczonego obszaru:</h3>
-      <div style="height: calc(100% - 48px)">
+      <div style="height: calc(100% - 48px)" v-loading="loading">
         <el-scrollbar always>
           <PublicationCard
-            v-for="n in 10"
-            :key="n"
-            :publication="examplePublication"
+            v-for="publication in publications"
+            :key="publication.isbn"
+            :publication="publication"
           />
         </el-scrollbar>
       </div>
@@ -25,7 +25,7 @@
 
 <script lang="ts">
 import Publication from "@/interfaces/Publication";
-import { defineComponent } from "vue";
+import { defineComponent, PropType } from "vue";
 import PublicationCard from "./PublicationCard.vue";
 import SmallTitle from "../layout/SmallTitle.vue";
 
@@ -36,18 +36,17 @@ export default defineComponent({
       type: Boolean,
       required: true,
     },
+    loading: {
+      type: Boolean,
+      required: true,
+    },
+    publications: {
+      type: Array as PropType<Array<Publication>>,
+      required: true,
+    },
   },
   setup() {
-    const examplePublication: Publication = {
-      title: "Architektura komputerów",
-      author: "Janusz Biernat",
-      city: "Wrocław",
-      year: 1998,
-      isbn: "32198371928379812",
-    };
-    return {
-      examplePublication,
-    };
+    return {};
   },
 });
 </script>

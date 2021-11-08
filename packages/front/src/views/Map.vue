@@ -14,7 +14,11 @@
     <TimelineSlider v-model:year="year" />
   </el-container>
   <FormDrawer v-model:visible="formDialogVisible" />
-  <ListDrawer v-model:visible="listDialogVisible" />
+  <ListDrawer
+    v-model:visible="listDialogVisible"
+    :loading="loading"
+    :publications="result"
+  />
   <Footer />
 </template>
 
@@ -25,6 +29,7 @@ import SearchInput from "../components/map/SearchInput.vue";
 import Map from "../components/map/Map.vue";
 import TimelineSlider from "../components/slider/TimelineSlider.vue";
 import { MapArea, MapSearchResult } from "@/composables/useMap";
+import { usePromise } from "vue-composable";
 import * as L from "leaflet";
 
 import FormDrawer from "../components/filters/FormDrawer.vue";
@@ -65,8 +70,14 @@ export default defineComponent({
       }, 2000);
     });
 
+    const { exec, loading, result } = usePromise(() =>
+      fetch(`http://127.0.0.1:3000/publications`).then((r) => r.json())
+    );
+
     return {
       year,
+      loading,
+      result,
       mapSearch,
       mapArea,
       formDialogVisible,
@@ -77,17 +88,9 @@ export default defineComponent({
           point: e.latlng,
           radius: r,
         };
-        /* 
-        TODO: entrypoint for areaSearch
-        1.1 open ListDrawer in loading state (:isLoading)
-        1.2 send request with {point: e.latlng, radius: r}
-        !e.g. GET /area?lat=12.123&lng=12.123&r=123123
-        2. Pass result list to ListDrawer via props
-        ! "r" is in meters
-        For api call build new composable:
-        * https://vuedose.tips/use-composition-api-to-easily-handle-api-requests-in-vue-js
-        * https://github.com/damiankoper/hhapp/blob/faa27f94c240cbac5b8f6581b3f6c43815f0e4a9/packages/frontend/composables/useApi.ts
-        */
+        listDialogVisible.value = true;
+        // TODO params to be added when API will be ready ({point: e.latlng, radius: r})
+        exec();
       },
       onZoomChange(z: number) {
         zoom.value = z;
