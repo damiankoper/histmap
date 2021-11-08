@@ -3,6 +3,7 @@ import { onMounted, onUnmounted, Ref, ref } from "vue";
 
 import icon from "leaflet/dist/images/marker-icon.png";
 import iconShadow from "leaflet/dist/images/marker-shadow.png";
+import _ from "lodash";
 
 const osmTileURL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 const osmTileAttr =
@@ -23,14 +24,16 @@ export interface MapArea {
 const DefaultIcon = L.icon({
   iconUrl: icon,
   shadowUrl: iconShadow,
+  iconAnchor: [12, 41],
 });
 
 L.Marker.prototype.options.icon = DefaultIcon;
 
 export function useMap(container: Ref<HTMLElement | null>) {
   const map: Ref<L.Map | null> = ref(null);
-  const circle: Ref<L.Circle | null> = ref(null);
-  const marker: Ref<L.Marker | null> = ref(null);
+  let circle: L.Circle | null = null;
+  let marker: L.Marker | null = null;
+  let heatMapLayer: L.TileLayer | null = null;
 
   onMounted(() => {
     if (!container.value) throw new Error("Invalid map container!");
@@ -45,8 +48,8 @@ export function useMap(container: Ref<HTMLElement | null>) {
       maxZoom: 10,
     });
 
-    const rainLayer = L.tileLayer(
-      "https://tilecache.rainviewer.com/v2/radar/1635693000/256/{z}/{x}/{y}/1/1_1.png",
+    heatMapLayer = L.tileLayer(
+      "https://tilecache.rainviewer.com/v2/radar/1636324200/256/{z}/{x}/{y}/1/1_1.png",
       {
         attribution: "&copy; Rainviewer",
         maxZoom: 10,
@@ -56,7 +59,7 @@ export function useMap(container: Ref<HTMLElement | null>) {
     const zoom = new L.Control.Zoom({ position: "bottomright" });
 
     map.value.addLayer(osmLayer);
-    map.value.addLayer(rainLayer);
+    map.value.addLayer(heatMapLayer);
     map.value.addControl(zoom);
   });
 
@@ -67,31 +70,42 @@ export function useMap(container: Ref<HTMLElement | null>) {
 
   function setArea(area: MapArea) {
     if (map.value) {
-      circle.value = new L.Circle(area.point, { radius: area.radius });
-      map.value.addLayer(circle.value);
+      circle = new L.Circle(area.point, { radius: area.radius });
+      map.value.addLayer(circle);
     }
   }
   function clearArea() {
-    if (map.value && circle.value) {
-      map.value.removeLayer(circle.value);
-      circle.value = null;
+    if (map.value && circle) {
+      map.value.removeLayer(circle);
+      circle = null;
     }
   }
 
   function setSearchResult(search: MapSearchResult) {
     if (map.value) {
-      marker.value = new L.Marker(search.point, { title: search.label });
-      map.value.addLayer(marker.value);
+      marker = new L.Marker(search.point, { title: search.label });
+      map.value.addLayer(marker);
       map.value.flyToBounds(search.bounds);
     }
   }
 
   function clearSearchResult() {
-    if (map.value && marker.value) {
-      map.value.removeLayer(marker.value);
-      marker.value = null;
+    if (map.value && marker) {
+      map.value.removeLayer(marker);
+      marker = null;
     }
   }
 
-  return { map, setArea, clearArea, setSearchResult, clearSearchResult };
+  function redrawHeatMap() {
+    heatMapLayer?.redraw();
+  }
+
+  return {
+    map,
+    setArea,
+    clearArea,
+    setSearchResult,
+    clearSearchResult,
+    redrawHeatMap: _.debounce(redrawHeatMap, 100),
+  };
 }

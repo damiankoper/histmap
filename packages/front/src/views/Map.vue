@@ -7,6 +7,7 @@
       class="map"
       :area="mapArea"
       :search="mapSearch"
+      :year="year"
       @click="onMapClick"
       @zoom="onZoomChange"
     />
