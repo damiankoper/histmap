@@ -9,7 +9,7 @@ import { TilesService } from './tiles.service';
 import { PreTile } from 'pre-processor/types/types';
 import { FilterService } from '../filter/filter.service';
 import { DataService } from 'src/data/data.service';
-import { PreTileSet } from 'src/interfaces/pre-tile-set.class';
+import { PreTileSet } from 'src/models/pre-tile-set.model';
 
 @Controller('tiles')
 export class TilesController {
@@ -19,9 +19,16 @@ export class TilesController {
     private dataService: DataService,
   ) {}
 
-  @Get('getTile/:preTileKey')
-  async getTile(@Param('preTileKey') preTileKey: string): Promise<Blob> {
+  @Get(':t/:z/:x/:y.png')
+  async getTile(
+    @Param('t') t: number,
+    @Param('z') z: number,
+    @Param('x') x: number,
+    @Param('y') y: number,
+  ): Promise<Blob> {
     let mainPreTile: PreTile;
+
+    const preTileKey = this.dataService.getPreTileKey(t, z, x, y);
 
     try {
       mainPreTile = this.dataService.getPreTile(preTileKey);
@@ -38,7 +45,7 @@ export class TilesController {
       mainPreTileAndNeighbours,
     );
 
-    // TODO: create blob contain preparedTile
+    // TODO: create and return blob containing preparedTile
     return new Blob();
   }
 }

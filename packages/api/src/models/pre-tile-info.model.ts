@@ -1,6 +1,7 @@
 import { PreTile } from 'pre-processor';
 
-export class preTileInfo {
+export class PreTileInfo {
+  // model zamiast klasy w nazwie
   private preTile: PreTile;
   private offsetX: number;
   private offsetY: number;

@@ -17,13 +17,18 @@ export class DataService {
     );
 
     preData.preTiles.forEach((preTile) => {
-      const key = this.getPreTileKey(preTile);
+      const key = this.getPreTileKey(
+        preTile.t,
+        preTile.z,
+        preTile.x,
+        preTile.y,
+      );
       this.preTileMap.set(key, preTile);
     });
   }
 
-  public getPreTileKey(preTile: PreTile): string {
-    return `${preTile.t}.${preTile.z}.${preTile.x}.${preTile.y}`;
+  public getPreTileKey(t: number, z: number, x: number, y: number): string {
+    return `${t}.${z}.${x}.${y}`;
   }
 
   public getPreTile(tileKey: string): PreTile {
@@ -66,6 +71,11 @@ export class DataService {
     }
 
     if (mainPreTile)
-      return `${mainPreTile.t}.${mainPreTile.z}.${neigbourTileX}.${neigbourTileY}`;
+      return this.getPreTileKey(
+        mainPreTile.t,
+        mainPreTile.z,
+        neigbourTileX,
+        neigbourTileY,
+      );
   }
 }

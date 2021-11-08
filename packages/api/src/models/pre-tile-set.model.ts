@@ -1,11 +1,14 @@
 import { PreTile } from 'pre-processor';
 import { DataService } from 'src/data/data.service';
-import { preTileInfo } from './pre-tile-info.class';
+import { PreTileInfo } from './pre-tile-info.model';
 
 export class PreTileSet {
-  private preTileSet: preTileInfo[] = [];
+  readonly preTiles: PreTileInfo[] = [];
 
-  constructor(private dataService: DataService, mainPreTile: PreTile) {
+  constructor(
+    private dataService: DataService, // wydzielić
+    public readonly mainPreTile: PreTile,
+  ) {
     for (let indexY = -1; indexY <= 1; indexY++) {
       for (let indexX = -1; indexX <= 1; indexX++) {
         const neighbourKey = dataService.buildNeighbourPreTileKey(
@@ -15,13 +18,9 @@ export class PreTileSet {
         );
 
         const neighbourPreTile = dataService.getPreTile(neighbourKey);
-        const preInfo = new preTileInfo(neighbourPreTile, indexX, indexY);
-        this.preTileSet.push(preInfo);
+        const preInfo = new PreTileInfo(neighbourPreTile, indexX, indexY);
+        this.preTiles.push(preInfo);
       }
     }
-  }
-
-  public getPreTileSet() {
-    return this.preTileSet;
   }
 }

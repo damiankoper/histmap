@@ -1,23 +1,20 @@
 import { Injectable } from '@nestjs/common';
-import { PreTileSet } from 'src/interfaces/pre-tile-set.class';
-import { Tile } from 'src/interfaces/tile.class';
+import { PreTileSet } from 'src/models/pre-tile-set.model';
+import { Tile } from 'src/models/tile.model';
 import * as _ from 'lodash';
 import { Point } from 'pre-processor';
 
 @Injectable()
 export class TilesService {
   calculateTile(preTileDataDto: PreTileSet) {
-    const tileSize = 255;
-    const gradientRadius = 64;
-    const mainPreTile = preTileDataDto.getPreTileSet()[4];
+    const tileSize = 256;
+    const gradientRadius = 100;
+    const mainPreTile = preTileDataDto.preTiles[4];
     const finalTile = new Tile();
 
-    finalTile.t = mainPreTile.getPreTile().t;
-    finalTile.z = mainPreTile.getPreTile().z;
-    finalTile.x = mainPreTile.getPreTile().x;
-    finalTile.y = mainPreTile.getPreTile().y;
+    Object.assign(finalTile, mainPreTile);
 
-    preTileDataDto.getPreTileSet().forEach((preTile) => {
+    preTileDataDto.preTiles.forEach((preTile) => {
       preTile.getPreTile().points.forEach((point) => {
         const relativeX = preTile.getOffsetX() * tileSize + point.x;
         const relativeY = preTile.getOffsetY() * tileSize + point.y;
@@ -36,35 +33,31 @@ export class TilesService {
 
   //https://stackoverflow.com/questions/401847/circle-rectangle-collision-detection-intersection
   private checkIntersection(x: number, y: number, radius: number): boolean {
-    const middleOfTile = 128;
     const maxOfTile = 256;
+    const middleOfTile = maxOfTile / 2;
 
     const circleDistanceX = Math.abs(x - middleOfTile);
     const circleDistanceY = Math.abs(y - middleOfTile);
 
-    if (circleDistanceX > maxOfTile / 2 + radius) {
+    if (circleDistanceX > middleOfTile + radius) {
       return false;
     }
-    if (circleDistanceY > maxOfTile / 2 + radius) {
+    if (circleDistanceY > middleOfTile + radius) {
       return false;
     }
 
-    if (circleDistanceX <= maxOfTile / 2) {
+    if (circleDistanceX <= middleOfTile) {
       return true;
     }
-    if (circleDistanceY <= maxOfTile / 2) {
+    if (circleDistanceY <= middleOfTile) {
       return true;
     }
 
-    const cornerDistance_sq = Math.pow(
-      Math.pow(
-        circleDistanceX - maxOfTile / 2,
-        2 + (circleDistanceY - maxOfTile / 2),
-      ),
-      2,
-    );
+    const cornerDistance_sq =
+      Math.pow(circleDistanceX - middleOfTile, 2) +
+      Math.pow(circleDistanceY - middleOfTile, 2);
 
-    return cornerDistance_sq <= (radius ^ 2);
+    return cornerDistance_sq <= Math.pow(radius, 2);
   }
 
   // wzory z miro, prawdopodobnie do wywalenia
