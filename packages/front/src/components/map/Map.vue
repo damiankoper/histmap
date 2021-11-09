@@ -19,7 +19,7 @@ export default defineComponent({
       default: 0,
     },
   },
-  emits: ["click", "zoom"],
+  emits: ["click", "dblclick", "zoom"],
   setup(props, { emit }) {
     const container = ref<HTMLElement | null>(null);
     const {
@@ -58,6 +58,7 @@ export default defineComponent({
       );
 
       if (map.value) {
+        map.value.on("dblclick", (e) => emit("dblclick", e));
         map.value.on("click", (e) => emit("click", e));
         emit("zoom", map.value.getZoom());
         map.value.on("zoom", () => emit("zoom", map.value?.getZoom() || 0));

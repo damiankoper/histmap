@@ -5,7 +5,7 @@
       @close="$emit('update:visible', false)"
       direction="ltr"
       custom-class="drawer"
-      :size="336"
+      :size="386"
     >
       <template v-slot:title>
         <SmallTitle />

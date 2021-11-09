@@ -1,14 +1,22 @@
 <template>
-  <div class="search-container">
+  <div class="search-container" ref="searchContainer">
     <div class="search-input">
       <MenuBurger @click="$emit('click')" />
-      <el-input v-model="input" :placeholder="placeholder" />
+      <el-input
+        v-model="input"
+        :placeholder="selected ? placeholder : 'Szukaj miejsca'"
+      />
       <i
-        v-if="placeholder !== 'Szukaj miejsca'"
+        v-if="selected"
         class="mdi-set mdi-close"
-        style="font-size: 1.5rem; cursor: pointer"
+        style="
+          font-size: 1.5rem;
+          cursor: pointer;
+          text-align: center;
+          width: 32px;
+        "
         @click="cancelClicked"
-      ></i>
+      />
     </div>
 
     <LocationCard
@@ -17,19 +25,33 @@
       :location="location"
       @click="locationClicked(location)"
     />
+    <LocationCard
+      v-if="displayEmpty"
+      :location="{ label: 'Brak wyników wyszukiwania' }"
+      :error="!!err"
+      :loading="loading"
+      empty-results
+    />
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watch } from "vue";
+import {
+  computed,
+  defineComponent,
+  onMounted,
+  onUnmounted,
+  ref,
+  watch,
+} from "vue";
 import MenuBurger from "../layout/MenuBurger.vue";
 import LocationCard from "./LocationCard.vue";
 import ApiLocation from "../../interfaces/ApiLocation";
 import ApiLocationDetails from "../../interfaces/ApiLocationDetails";
 import useApi from "../../composables/useApi";
-import _ from "lodash";
 import { MapSearchResult } from "@/composables/useMap";
 import * as L from "leaflet";
+import _ from "lodash";
 
 export default defineComponent({
   components: { MenuBurger, LocationCard },
@@ -38,70 +60,115 @@ export default defineComponent({
   },
   emits: ["location", "click"],
   setup(props, { emit }) {
-    const DEFAULT_PLACEHOLDER = "Szukaj miejsca";
+    const searchContainer = ref<HTMLElement | null>(null);
     const input = ref("");
-    const locationsList = ref<MapSearchResult[]>([]);
-    const placeholder = ref<string>(DEFAULT_PLACEHOLDER);
+    const initialSearch = ref(false);
+    const selected = ref(false);
+    const placeholder = ref("");
 
     const locationClicked = (location: MapSearchResult) => {
       emit("location", location);
       input.value = "";
+
       placeholder.value = location.label;
-      locationsList.value = [];
+      selected.value = true;
+      data.value = null;
     };
 
     const cancelClicked = () => {
       emit("location", null);
-      placeholder.value = DEFAULT_PLACEHOLDER;
+      selected.value = false;
+      initialSearch.value = false;
     };
+
+    const token =
+      "pk.eyJ1IjoiaGVycmdlcnIiLCJhIjoiY2t2cWwyOHhpMjQ1bTJ4b3U5cjBzem10NSJ9.biRPWndoVnsjQDiNDTssSQ";
+    const { fetch, data, err, loading } = useApi<ApiLocation>(() =>
+      encodeURI(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${input.value}.json?access_token=${token}`
+      )
+    );
+    function clickAwayHandler(event: MouseEvent) {
+      if (event.target) {
+        const target = event.target as Node;
+        const el = searchContainer.value;
+        var isClickInside = !el || el == target || el.contains(target);
+        if (!isClickInside) {
+          input.value = "";
+          data.value = null;
+          if (selected.value) {
+            //
+          } else {
+            initialSearch.value = false;
+          }
+        }
+      }
+    }
+    onMounted(() => {
+      document.addEventListener("click", clickAwayHandler);
+    });
+    onUnmounted(() => {
+      document.removeEventListener("click", clickAwayHandler);
+    });
+
+    const locationsList = computed<MapSearchResult[]>(() => {
+      return (
+        data.value?.features.map((item: ApiLocationDetails) => {
+          const point: L.LatLngTuple = [item.center[1], item.center[0]];
+
+          let bounds: L.LatLngBoundsLiteral;
+          if (item.bbox) {
+            const southWest: L.LatLngTuple = [item.bbox[1], item.bbox[0]];
+            const northEast: L.LatLngTuple = [item.bbox[3], item.bbox[2]];
+            bounds = [southWest, northEast];
+          } else {
+            bounds = [point, point];
+          }
+
+          const location: MapSearchResult = {
+            id: item.id,
+            point: point,
+            bounds: bounds,
+            label: item.place_name,
+          };
+          return location;
+        }) || []
+      );
+    });
+
+    const displayEmpty = computed(() => {
+      return (
+        (err.value || loading.value || !locationsList.value.length) &&
+        initialSearch.value &&
+        !selected.value
+      );
+    });
 
     watch(
       input,
       _.debounce(async () => {
-        const { fetch, data } = useApi<ApiLocation>(
-          encodeURI(
-            `https://api.mapbox.com/geocoding/v5/mapbox.places/${input.value}.json?access_token=pk.eyJ1IjoiaGVycmdlcnIiLCJhIjoiY2t2cWwyOHhpMjQ1bTJ4b3U5cjBzem10NSJ9.biRPWndoVnsjQDiNDTssSQ`
-          )
-        );
-
         try {
-          await fetch();
-          if (data.value !== null) {
-            locationsList.value = data.value.features.map(
-              (item: ApiLocationDetails) => {
-                const point: L.LatLngTuple = [item.center[1], item.center[0]];
-
-                let bounds: L.LatLngBoundsLiteral;
-                if (item.bbox) {
-                  const southWest: L.LatLngTuple = [item.bbox[1], item.bbox[0]];
-                  const northEast: L.LatLngTuple = [item.bbox[3], item.bbox[2]];
-                  bounds = [southWest, northEast];
-                } else {
-                  bounds = [point, point];
-                }
-
-                const location: MapSearchResult = {
-                  id: item.id,
-                  point: point,
-                  bounds: bounds,
-                  label: item.place_name,
-                };
-                return location;
-              }
-            );
+          if (input.value.length >= 3) {
+            initialSearch.value = true;
+            await fetch();
           }
         } catch (error) {
-          console.log(error);
+          console.error(error);
         }
       }, 500)
     );
 
     return {
+      searchContainer,
+      err,
+      selected,
+      loading,
       input,
       locationsList,
       locationClicked,
       cancelClicked,
       placeholder,
+      displayEmpty,
     };
   },
 });
@@ -114,11 +181,11 @@ export default defineComponent({
   box-shadow: 0 2px 4px rgb(0 0 0 / 15%);
   /* https://stackoverflow.com/a/3724210 */
   overflow: hidden;
+  width: 350px;
 
   .search-input {
     display: flex;
     align-items: center;
-    width: 300px;
     border-radius: 24px;
     padding: 4px 8px 4px 12px;
     box-shadow: 0 2px 4px rgb(0 0 0 / 30%);
@@ -127,6 +194,7 @@ export default defineComponent({
 .el-input {
   :deep(input) {
     border: none;
+    text-overflow: ellipsis;
   }
 }
 </style>

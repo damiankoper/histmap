@@ -1,5 +1,5 @@
 import * as L from "leaflet";
-import { onMounted, onUnmounted, Ref, ref } from "vue";
+import { onMounted, onUnmounted, Ref, shallowRef } from "vue";
 
 import icon from "leaflet/dist/images/marker-icon.png";
 import iconShadow from "leaflet/dist/images/marker-shadow.png";
@@ -30,7 +30,7 @@ const DefaultIcon = L.icon({
 L.Marker.prototype.options.icon = DefaultIcon;
 
 export function useMap(container: Ref<HTMLElement | null>) {
-  const map: Ref<L.Map | null> = ref(null);
+  const map: Ref<L.Map | null> = shallowRef(null);
   let circle: L.Circle | null = null;
   let marker: L.Marker | null = null;
   let heatMapLayer: L.TileLayer | null = null;

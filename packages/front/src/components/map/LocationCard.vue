@@ -1,9 +1,19 @@
 <template>
-  <el-row align="middle" class="location-row">
+  <el-row
+    v-loading="loading"
+    align="middle"
+    class="location-row"
+    justify="start"
+  >
     <i
-      class="location-icon mdi-set mdi-map-marker-outline"
-      style="font-size: 1.5rem; cursor: pointer"
-    ></i>
+      v-if="emptyResults"
+      class="location-icon mdi-set mdi-map-marker-question-outline"
+    />
+    <i
+      v-else-if="error"
+      class="location-icon mdi-set mdi-map-marker-alert-outline"
+    />
+    <i v-else class="location-icon mdi-set mdi-map-marker-outline" />
     <p>{{ location.label }}</p>
   </el-row>
 </template>
@@ -18,6 +28,18 @@ export default defineComponent({
       type: Object as PropType<MapSearchResult>,
       required: true,
     },
+    error: {
+      type: Boolean,
+      default: false,
+    },
+    emptyResults: {
+      type: Boolean,
+      default: false,
+    },
+    loading: {
+      type: Boolean,
+      default: false,
+    },
   },
   setup() {
     return {};
@@ -29,19 +51,25 @@ export default defineComponent({
 .location-row {
   cursor: pointer;
   transition: background 0.3s ease;
-  margin: 8px 0;
+  padding: 0 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  flex-wrap: nowrap;
   &:hover {
     background: #ebeef5;
   }
   p {
-    font-size: 12px;
-    width: 220px;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+    font-size: 14px;
+    padding: 0 15px;
   }
 }
 .location-icon {
-  margin: 0 20px;
+  min-width: 32px;
+  text-align: center;
+  font-size: 1.5rem;
+  cursor: pointer;
 }
 </style>

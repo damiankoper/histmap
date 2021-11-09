@@ -1,16 +1,22 @@
 <template>
   <el-container class="container" direction="vertical">
-    <div class="search-wrapper">
-      <SearchInput @location="onLocation" @click="formDialogVisible = true" />
+    <div style="position: relative; height: 100%">
+      <div class="search-wrapper">
+        <SearchInput @location="onLocation" @click="formDialogVisible = true" />
+      </div>
+      <div class="legend-wrapper">
+        <Legend :year="year" />
+      </div>
+      <Map
+        class="map"
+        :area="mapArea"
+        :search="mapSearch"
+        :year="year"
+        @dblclick="onMapDblClick"
+        @click="onMapClick"
+        @zoom="onZoomChange"
+      />
     </div>
-    <Map
-      class="map"
-      :area="mapArea"
-      :search="mapSearch"
-      :year="year"
-      @click="onMapClick"
-      @zoom="onZoomChange"
-    />
     <TimelineSlider v-model:year="year" />
   </el-container>
   <FormDrawer v-model:visible="formDialogVisible" />
@@ -35,6 +41,7 @@ import * as L from "leaflet";
 import FormDrawer from "../components/filters/FormDrawer.vue";
 import ListDrawer from "../components/publications/ListDrawer.vue";
 import Publication from "@/interfaces/Publication";
+import Legend from "@/components/map/Legend.vue";
 
 export default defineComponent({
   components: {
@@ -44,6 +51,7 @@ export default defineComponent({
     Map,
     FormDrawer,
     ListDrawer,
+    Legend,
   },
   setup() {
     const year = ref(1990);
@@ -83,7 +91,10 @@ export default defineComponent({
       mapArea,
       formDialogVisible,
       listDialogVisible,
-      onMapClick(e: L.LeafletMouseEvent) {
+      onMapClick(_e: L.LeafletMouseEvent) {
+        mapArea.value = null;
+      },
+      onMapDblClick(e: L.LeafletMouseEvent) {
         const r = 20000000 / 2 ** Math.max(zoom.value, 0);
         mapArea.value = {
           point: e.latlng,
@@ -121,7 +132,12 @@ export default defineComponent({
   left: 8px;
   z-index: 3;
 }
-
+.legend-wrapper {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 3;
+}
 .map {
   z-index: 2;
 }
