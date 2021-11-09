@@ -17,7 +17,7 @@
   <ListDrawer
     v-model:visible="listDialogVisible"
     :loading="loading"
-    :publications="result"
+    :publications="data"
   />
   <Footer />
 </template>
@@ -28,12 +28,13 @@ import Footer from "../components/layout/Footer.vue";
 import SearchInput from "../components/map/SearchInput.vue";
 import Map from "../components/map/Map.vue";
 import TimelineSlider from "../components/slider/TimelineSlider.vue";
+import useApi from "../composables/useApi";
 import { MapArea, MapSearchResult } from "@/composables/useMap";
-import { usePromise } from "vue-composable";
 import * as L from "leaflet";
 
 import FormDrawer from "../components/filters/FormDrawer.vue";
 import ListDrawer from "../components/publications/ListDrawer.vue";
+import Publication from "@/interfaces/Publication";
 
 export default defineComponent({
   components: {
@@ -70,14 +71,14 @@ export default defineComponent({
       }, 2000);
     });
 
-    const { exec, loading, result } = usePromise(() =>
-      fetch(`http://127.0.0.1:3000/publications`).then((r) => r.json())
+    const { fetch, data, loading } = useApi<Publication>(
+      "http://127.0.0.1:3000/publications"
     );
 
     return {
       year,
       loading,
-      result,
+      data,
       mapSearch,
       mapArea,
       formDialogVisible,
@@ -90,7 +91,7 @@ export default defineComponent({
         };
         listDialogVisible.value = true;
         // TODO params to be added when API will be ready ({point: e.latlng, radius: r})
-        exec();
+        fetch();
       },
       onZoomChange(z: number) {
         zoom.value = z;

@@ -25,6 +25,8 @@ import { defineComponent, ref, watch } from "vue";
 import MenuBurger from "../layout/MenuBurger.vue";
 import LocationCard from "./LocationCard.vue";
 import ApiLocation from "../../interfaces/ApiLocation";
+import ApiLocationDetails from "../../interfaces/ApiLocationDetails";
+import useApi from "../../composables/useApi";
 import _ from "lodash";
 import { MapSearchResult } from "@/composables/useMap";
 import * as L from "leaflet";
@@ -56,35 +58,41 @@ export default defineComponent({
     watch(
       input,
       _.debounce(async () => {
-        await fetch(
+        const { fetch, data } = useApi<ApiLocation>(
           encodeURI(
             `https://api.mapbox.com/geocoding/v5/mapbox.places/${input.value}.json?access_token=pk.eyJ1IjoiaGVycmdlcnIiLCJhIjoiY2t2cWwyOHhpMjQ1bTJ4b3U5cjBzem10NSJ9.biRPWndoVnsjQDiNDTssSQ`
           )
-        )
-          .then((response) => response.json())
-          .then((data) => {
-            locationsList.value = data.features.map((item: ApiLocation) => {
-              const point: L.LatLngTuple = [item.center[1], item.center[0]];
+        );
 
-              let bounds: L.LatLngBoundsLiteral;
-              if (item.bbox) {
-                const southWest: L.LatLngTuple = [item.bbox[1], item.bbox[0]];
-                const northEast: L.LatLngTuple = [item.bbox[3], item.bbox[2]];
-                bounds = [southWest, northEast];
-              } else {
-                bounds = [point, point];
+        try {
+          await fetch();
+          if (data.value !== null) {
+            locationsList.value = data.value.features.map(
+              (item: ApiLocationDetails) => {
+                const point: L.LatLngTuple = [item.center[1], item.center[0]];
+
+                let bounds: L.LatLngBoundsLiteral;
+                if (item.bbox) {
+                  const southWest: L.LatLngTuple = [item.bbox[1], item.bbox[0]];
+                  const northEast: L.LatLngTuple = [item.bbox[3], item.bbox[2]];
+                  bounds = [southWest, northEast];
+                } else {
+                  bounds = [point, point];
+                }
+
+                const location: MapSearchResult = {
+                  id: item.id,
+                  point: point,
+                  bounds: bounds,
+                  label: item.place_name,
+                };
+                return location;
               }
-
-              const location: MapSearchResult = {
-                id: item.id,
-                point: point,
-                bounds: bounds,
-                label: item.place_name,
-              };
-              return location;
-            });
-          })
-          .catch((err) => console.log(err));
+            );
+          }
+        } catch (error) {
+          console.log(error);
+        }
       }, 500)
     );
 
