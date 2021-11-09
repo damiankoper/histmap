@@ -24,6 +24,7 @@
 import { defineComponent, ref, watch } from "vue";
 import MenuBurger from "../layout/MenuBurger.vue";
 import LocationCard from "./LocationCard.vue";
+import ApiLocation from "../../interfaces/ApiLocation";
 import _ from "lodash";
 import { MapSearchResult } from "@/composables/useMap";
 import * as L from "leaflet";
@@ -62,7 +63,7 @@ export default defineComponent({
         )
           .then((response) => response.json())
           .then((data) => {
-            locationsList.value = data.features.map((item: any) => {
+            locationsList.value = data.features.map((item: ApiLocation) => {
               const point: L.LatLngTuple = [item.center[1], item.center[0]];
 
               let bounds: L.LatLngBoundsLiteral;
@@ -74,12 +75,11 @@ export default defineComponent({
                 bounds = [point, point];
               }
 
-              const splittedLocation = item.place_name.split(",");
               const location: MapSearchResult = {
                 id: item.id,
                 point: point,
                 bounds: bounds,
-                label: `${splittedLocation[0]}, ${splittedLocation[1]}`,
+                label: item.place_name,
               };
               return location;
             });

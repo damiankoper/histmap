@@ -35,6 +35,10 @@ export default defineComponent({
   }
   p {
     font-size: 12px;
+    width: 220px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 }
 .location-icon {
