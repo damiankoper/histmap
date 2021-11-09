@@ -11,7 +11,7 @@ export default function useApi<T>(
 
   async function fetch() {
     loading.value = true;
-    err.value = null
+    err.value = null;
     try {
       const _params = params instanceof Function ? params() : params;
       const _url = url instanceof Function ? url() : url;

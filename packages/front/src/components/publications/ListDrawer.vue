@@ -11,7 +11,12 @@
       </template>
       <h3>Wyniki wyszukiwania dla zaznaczonego obszaru:</h3>
       <div style="height: calc(100% - 48px)" v-loading="loading">
-        <el-scrollbar always>
+        <div v-if="error" class="error-msg">
+          Brak wyników wyszukiwania. Proszę wybrać inny obszar, a jeśli problem
+          będzie występował w miejscach z publikacjami, proszę skontaktować się
+          z pomocą techniczną.
+        </div>
+        <el-scrollbar always v-else>
           <PublicationCard
             v-for="publication in publications"
             :key="publication.isbn"
@@ -44,6 +49,10 @@ export default defineComponent({
       type: Array as PropType<Array<Publication>>,
       required: true,
     },
+    error: {
+      type: Boolean,
+      default: false,
+    },
   },
   setup() {
     return {};
@@ -54,6 +63,11 @@ export default defineComponent({
 <style lang="scss" scoped>
 h3 {
   margin-top: 0;
+}
+.error-msg {
+  width: 90%;
+  text-align: justify;
+  line-height: 1.5;
 }
 :deep(.el-drawer) {
   .el-drawer__body {

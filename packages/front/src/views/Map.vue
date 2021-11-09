@@ -24,12 +24,13 @@
     v-model:visible="listDialogVisible"
     :loading="loading"
     :publications="data"
+    :error="!!err"
   />
   <Footer />
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref } from "vue";
+import { defineComponent, onMounted, ref, watchEffect } from "vue";
 import Footer from "../components/layout/Footer.vue";
 import SearchInput from "../components/map/SearchInput.vue";
 import Map from "../components/map/Map.vue";
@@ -79,14 +80,22 @@ export default defineComponent({
       }, 2000);
     });
 
-    const { fetch, data, loading } = useApi<Publication>(
+    const { fetch, data, loading, err } = useApi<Publication[]>(
       "http://127.0.0.1:3000/publications"
     );
+
+    // cleaning previously fetched poblications
+    watchEffect(() => {
+      if (!listDialogVisible.value) {
+        data.value = [];
+      }
+    });
 
     return {
       year,
       loading,
       data,
+      err,
       mapSearch,
       mapArea,
       formDialogVisible,

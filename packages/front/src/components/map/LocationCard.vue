@@ -55,6 +55,10 @@ export default defineComponent({
   white-space: nowrap;
   overflow: hidden;
   flex-wrap: nowrap;
+  margin: 12px 0;
+  /* without margin first element overlaps shadow of search input */
+  /* &:first-child does not work somehow in this case */
+  /* but such margin is also nice */
   &:hover {
     background: #ebeef5;
   }

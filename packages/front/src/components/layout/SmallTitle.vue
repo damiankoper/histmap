@@ -1,5 +1,5 @@
 <template>
-  <el-row align="middle" justify="start" :gutter="8">
+  <el-row align="middle" justify="start" :gutter="8" class="title-wrapper">
     <el-image
       :src="require('@/assets/images/world_map_dark.svg')"
       alt="World map"
@@ -22,6 +22,13 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
+.title-wrapper {
+  -khtml-user-select: none;
+  -o-user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
 .el-image {
   height: 2.5rem;
 }
