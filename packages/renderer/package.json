@@ -29,6 +29,7 @@
     "url": "https://github.com/damiankoper/js-acceleration/issues"
   },
   "devDependencies": {
+    "@types/node": "^16.11.4",
     "@typescript-eslint/eslint-plugin": "^4.31.1",
     "@typescript-eslint/parser": "^4.31.1",
     "clean-terminal-webpack-plugin": "^3.0.0",
@@ -47,5 +48,9 @@
     "webpack": "^5.52.1",
     "webpack-cli": "^4.8.0",
     "webpack-dev-server": "^4.1.1"
+  },
+  "dependencies": {
+    "canvas": "^2.8.0",
+    "tinygradient": "^1.1.5"
   }
 }

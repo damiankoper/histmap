@@ -5,7 +5,6 @@ export interface Point {
 }
 
 export interface Tile {
-  size: number;
   max: number;
   points: Point[];
 }

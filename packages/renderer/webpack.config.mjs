@@ -19,6 +19,7 @@ const config = {
       type: "commonjs",
     },
   },
+  externals: ["canvas", "tinygradient", "tinycolor2"],
   plugins: [
     new CleanTerminalPlugin(),
     new ForkTsCheckerWebpackPlugin({
