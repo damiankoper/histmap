@@ -1,0 +1,200 @@
+<template>
+  <div class="search-container" ref="searchContainer">
+    <div class="search-input">
+      <MenuBurger @click="$emit('click')" />
+      <el-input
+        v-model="input"
+        :placeholder="selected ? placeholder : 'Szukaj miejsca'"
+      />
+      <i
+        v-if="selected"
+        class="mdi-set mdi-close"
+        style="
+          font-size: 1.5rem;
+          cursor: pointer;
+          text-align: center;
+          width: 32px;
+        "
+        @click="cancelClicked"
+      />
+    </div>
+
+    <LocationCard
+      v-for="location in locationsList"
+      :key="location.id"
+      :location="location"
+      @click="locationClicked(location)"
+    />
+    <LocationCard
+      v-if="displayEmpty"
+      :location="{ label: 'Brak wyników wyszukiwania' }"
+      :error="!!err"
+      :loading="loading"
+      empty-results
+    />
+  </div>
+</template>
+
+<script lang="ts">
+import {
+  computed,
+  defineComponent,
+  onMounted,
+  onUnmounted,
+  ref,
+  watch,
+} from "vue";
+import MenuBurger from "../layout/MenuBurger.vue";
+import LocationCard from "./LocationCard.vue";
+import ApiLocation from "../../interfaces/ApiLocation";
+import ApiLocationDetails from "../../interfaces/ApiLocationDetails";
+import useApi from "../../composables/useApi";
+import { MapSearchResult } from "@/composables/useMap";
+import * as L from "leaflet";
+import _ from "lodash";
+
+export default defineComponent({
+  components: { MenuBurger, LocationCard },
+  props: {
+    modelValue: { type: String, default: "" },
+  },
+  emits: ["location", "click"],
+  setup(props, { emit }) {
+    const searchContainer = ref<HTMLElement | null>(null);
+    const input = ref("");
+    const initialSearch = ref(false);
+    const selected = ref(false);
+    const placeholder = ref("");
+
+    const locationClicked = (location: MapSearchResult) => {
+      emit("location", location);
+      input.value = "";
+
+      placeholder.value = location.label;
+      selected.value = true;
+      data.value = null;
+    };
+
+    const cancelClicked = () => {
+      emit("location", null);
+      selected.value = false;
+      initialSearch.value = false;
+    };
+
+    const token =
+      "pk.eyJ1IjoiaGVycmdlcnIiLCJhIjoiY2t2cWwyOHhpMjQ1bTJ4b3U5cjBzem10NSJ9.biRPWndoVnsjQDiNDTssSQ";
+    const { fetch, data, err, loading } = useApi<ApiLocation>(() =>
+      encodeURI(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${input.value}.json?access_token=${token}`
+      )
+    );
+    function clickAwayHandler(event: MouseEvent) {
+      if (event.target) {
+        const target = event.target as Node;
+        const el = searchContainer.value;
+        var isClickInside = !el || el == target || el.contains(target);
+        if (!isClickInside) {
+          input.value = "";
+          data.value = null;
+          if (selected.value) {
+            //
+          } else {
+            initialSearch.value = false;
+          }
+        }
+      }
+    }
+    onMounted(() => {
+      document.addEventListener("click", clickAwayHandler);
+    });
+    onUnmounted(() => {
+      document.removeEventListener("click", clickAwayHandler);
+    });
+
+    const locationsList = computed<MapSearchResult[]>(() => {
+      return (
+        data.value?.features.map((item: ApiLocationDetails) => {
+          const point: L.LatLngTuple = [item.center[1], item.center[0]];
+
+          let bounds: L.LatLngBoundsLiteral;
+          if (item.bbox) {
+            const southWest: L.LatLngTuple = [item.bbox[1], item.bbox[0]];
+            const northEast: L.LatLngTuple = [item.bbox[3], item.bbox[2]];
+            bounds = [southWest, northEast];
+          } else {
+            bounds = [point, point];
+          }
+
+          const location: MapSearchResult = {
+            id: item.id,
+            point: point,
+            bounds: bounds,
+            label: item.place_name,
+          };
+          return location;
+        }) || []
+      );
+    });
+
+    const displayEmpty = computed(() => {
+      return (
+        (err.value || loading.value || !locationsList.value.length) &&
+        initialSearch.value &&
+        !selected.value
+      );
+    });
+
+    watch(
+      input,
+      _.debounce(async () => {
+        try {
+          if (input.value.length >= 3) {
+            initialSearch.value = true;
+            await fetch();
+          }
+        } catch (error) {
+          console.error(error);
+        }
+      }, 500)
+    );
+
+    return {
+      searchContainer,
+      err,
+      selected,
+      loading,
+      input,
+      locationsList,
+      locationClicked,
+      cancelClicked,
+      placeholder,
+      displayEmpty,
+    };
+  },
+});
+</script>
+
+<style lang="scss" scoped>
+.search-container {
+  background-color: white;
+  border-radius: 24px;
+  box-shadow: 0 2px 4px rgb(0 0 0 / 15%);
+  /* https://stackoverflow.com/a/3724210 */
+  overflow: hidden;
+  width: 350px;
+
+  .search-input {
+    display: flex;
+    align-items: center;
+    border-radius: 24px;
+    padding: 4px 8px 4px 12px;
+    box-shadow: 0 2px 4px rgb(0 0 0 / 30%);
+  }
+}
+.el-input {
+  :deep(input) {
+    border: none;
+    text-overflow: ellipsis;
+  }
+}
+</style>

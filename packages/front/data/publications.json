@@ -1,0 +1,25 @@
+{
+  "publications": [
+    {
+      "title": "Lorem Ipsum",
+      "author": "John Doe",
+      "city": "Basel",
+      "year": "1999",
+      "isbn": "31322132131293"
+    },
+    {
+      "title": "Zur Elektrodynamik bewegter Körper",
+      "author": "Albert Einstein",
+      "city": "Zürich",
+      "year": "1881",
+      "isbn": "47457987451293"
+    },
+    {
+      "title": "Godfather",
+      "author": "Mario Puzo",
+      "city": "New York",
+      "year": "1963",
+      "isbn": "988562132131293"
+    }
+  ]
+}

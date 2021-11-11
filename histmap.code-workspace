@@ -29,7 +29,7 @@
         "editor.defaultFormatter": "dbaeumer.vscode-eslint"
       },
       "[vue]": {
-        "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+        "editor.defaultFormatter": "octref.vetur"
       },
       "editor.formatOnSave": true,
       "editor.rulers": [80, 120],
