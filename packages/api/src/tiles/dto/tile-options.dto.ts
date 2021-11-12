@@ -1,2 +1,2 @@
-// TODO: Tile drawing options to be passed to renderer
+// TODO: Tile drawing + filter options to be passed to renderer
 export class TileOptionsDto {}
