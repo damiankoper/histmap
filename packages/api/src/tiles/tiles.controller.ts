@@ -1,15 +1,11 @@
-import {
-  Controller,
-  Get,
-  HttpException,
-  HttpStatus,
-  Param,
-} from '@nestjs/common';
+import { Controller, Get, Header, Param, Query, Res } from '@nestjs/common';
 import { TilesService } from './tiles.service';
-import { PreTile } from 'pre-processor/types/types';
 import { FilterService } from '../filter/filter.service';
 import { DataService } from 'src/data/data.service';
-import { PreTileSet } from 'src/models/pre-tile-set.model';
+import { TileCoordsDto } from './dto/tile-coords.dto';
+import { TileOptionsDto } from './dto/tile-options.dto';
+import { Response } from 'express';
+import { TileRendererService } from './tile-renderer.service';
 
 @Controller('tiles')
 export class TilesController {
@@ -17,35 +13,20 @@ export class TilesController {
     private tilesService: TilesService,
     private filterService: FilterService,
     private dataService: DataService,
+    private tileRendererService: TileRendererService,
   ) {}
 
   @Get(':t/:z/:x/:y.png')
+  @Header('Content-Type', 'image/png')
   async getTile(
-    @Param('t') t: number,
-    @Param('z') z: number,
-    @Param('x') x: number,
-    @Param('y') y: number,
-  ): Promise<Blob> {
-    let mainPreTile: PreTile;
-
-    const preTileKey = this.dataService.getPreTileKey(t, z, x, y);
-
-    try {
-      mainPreTile = this.dataService.getPreTile(preTileKey);
-    } catch (NotFoundException) {
-      throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
-    }
-
-    const mainPreTileAndNeighbours = new PreTileSet( //środkowy element to main
-      this.dataService,
-      mainPreTile,
-    );
-
-    const preparedTile = this.tilesService.calculateTile(
-      mainPreTileAndNeighbours,
-    );
-
-    // TODO: create and return blob containing preparedTile
-    return new Blob();
+    @Param() coords: TileCoordsDto,
+    @Query() options: TileOptionsDto,
+    @Res() response: Response,
+  ): Promise<void> {
+    const mainPreTile = this.dataService.getPreTile(coords);
+    const tile = this.tilesService.calculateTile(mainPreTile);
+    const stats = this.dataService.getTileStats(coords);
+    const render = this.tileRendererService.render(tile, stats);
+    response.send(render);
   }
 }

@@ -1,57 +1,68 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
-import { Data, PreTile } from 'pre-processor';
+import {
+  Data,
+  PreTile,
+  TileCoords,
+  TileMetaCoords,
+  TileStats,
+} from 'pre-processor';
+import * as _ from 'lodash';
 
 @Injectable()
 export class DataService {
+  private readonly logger = new Logger(DataService.name);
   private preTileMap: Map<string, PreTile> = new Map();
+  private statsMap: Map<string, TileStats> = new Map();
 
   constructor() {
     this.initJsonData();
   }
 
   initJsonData(): void {
+    this.logger.log('Loading JSON Tiles file');
     const preData: Data = JSON.parse(
       readFileSync(resolve(__dirname, '../../../../data/data.json'), 'utf-8'),
     );
+    this.logger.log('JSON Tiles file loaded');
 
     preData.preTiles.forEach((preTile) => {
-      const key = this.getPreTileKey(
-        preTile.t,
-        preTile.z,
-        preTile.x,
-        preTile.y,
-      );
+      const key = this.getPreTileKey(preTile);
       this.preTileMap.set(key, preTile);
+    });
+
+    preData.stats.forEach((tileStats) => {
+      const key = this.getTileStatsKey(tileStats);
+      this.statsMap.set(key, tileStats);
     });
   }
 
-  public getPreTileKey(t: number, z: number, x: number, y: number): string {
-    return `${t}.${z}.${x}.${y}`;
+  public getEmptyTile(coords: TileCoords): PreTile {
+    return { ...coords, points: [] };
   }
 
-  public getPreTile(tileKey: string): PreTile {
-    try {
-      const requestedPreTile: PreTile = this.preTileMap.get(tileKey);
-
-      if (!requestedPreTile) {
-        throw new NotFoundException(
-          `Requested (${tileKey}) preTile not found.`,
-        );
-      } else {
-        return requestedPreTile;
-      }
-    } catch (error) {
-      throw error;
-    }
+  public getPreTile(coords: TileCoords): PreTile {
+    const key = this.getPreTileKey(coords);
+    const preTile = this.preTileMap.get(key);
+    return preTile ? _.cloneDeep(preTile) : this.getEmptyTile(coords);
   }
 
-  public buildNeighbourPreTileKey(
+  public getEmptyTileStats(coords: TileMetaCoords): TileStats {
+    return { t: coords.t, z: coords.z, max: 0 };
+  }
+
+  public getTileStats(coords: TileMetaCoords): TileStats {
+    const key = this.getTileStatsKey(coords);
+    const stats = this.statsMap.get(key);
+    return stats || this.getEmptyTileStats(coords);
+  }
+
+  public getNeighbourPreTile(
     mainPreTile: PreTile,
     offsetX: number,
     offsetY: number,
-  ): string {
+  ): PreTile {
     const maxCoord = Math.pow(2, mainPreTile.z);
     let neigbourTileX = mainPreTile.x + offsetX;
     let neigbourTileY = mainPreTile.y + offsetY;
@@ -63,6 +74,9 @@ export class DataService {
       neigbourTileX = neigbourTileX + maxCoord;
     }
 
+    /**
+     * TODO(to discuss): Virtual tiles on max/min Y axis
+     */
     if (neigbourTileY >= maxCoord) {
       neigbourTileY = neigbourTileY - maxCoord;
     }
@@ -70,12 +84,19 @@ export class DataService {
       neigbourTileY = neigbourTileY + maxCoord;
     }
 
-    if (mainPreTile)
-      return this.getPreTileKey(
-        mainPreTile.t,
-        mainPreTile.z,
-        neigbourTileX,
-        neigbourTileY,
-      );
+    return this.getPreTile({
+      t: mainPreTile.t,
+      z: mainPreTile.z,
+      x: neigbourTileX,
+      y: neigbourTileY,
+    });
+  }
+
+  private getPreTileKey(coords: TileCoords): string {
+    return `${coords.t}.${coords.z}.${coords.x}.${coords.y}`;
+  }
+
+  private getTileStatsKey(coords: TileMetaCoords): string {
+    return `${coords.t}.${coords.z}`;
   }
 }

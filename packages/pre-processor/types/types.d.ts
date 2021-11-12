@@ -4,11 +4,6 @@ export interface Data {
     stats: TileStats[]
 }
 
-export interface TileStats {
-    t: number
-    z: number
-    max: number
-}
 
 export interface Publication {
     id: number
@@ -18,11 +13,23 @@ export interface Publication {
     year: number
 }
 
-export interface PreTile {
-    x: number
-    y: number
-    z: number
-    t: number
+export interface TilePositionCoords{
+  x: number
+  y: number
+}
+export interface TileMetaCoords{
+  z: number
+  t: number
+}
+
+export interface TileCoords extends TileMetaCoords, TilePositionCoords{}
+
+export interface TileStats extends TileMetaCoords {
+  max: number
+}
+
+
+export interface PreTile extends TileCoords{
     points: Point[]
 }
 

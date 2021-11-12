@@ -1,63 +1,81 @@
 import { Injectable } from '@nestjs/common';
-import { PreTileSet } from 'src/models/pre-tile-set.model';
-import { Tile } from 'src/models/tile.model';
-import * as _ from 'lodash';
-import { Point } from 'pre-processor';
+import { PreTileSet } from 'src/tiles/models/pre-tile-set.model';
+import { Tile } from 'src/tiles/models/tile.model';
+import { PreTile } from 'pre-processor';
+import { DataService } from 'src/data/data.service';
+import { PreTileSetItem } from './models/pre-tile-set-item.model';
 
 @Injectable()
 export class TilesService {
-  calculateTile(preTileDataDto: PreTileSet) {
+  constructor(private dataService: DataService) {}
+
+  public calculateTile(mainPreTile: PreTile): Tile {
+    const set = this.getPreTileSet(mainPreTile);
+
     const tileSize = 256;
     const gradientRadius = 100;
-    const mainPreTile = preTileDataDto.preTiles[4];
-    const finalTile = new Tile();
+    const tile = new Tile();
 
-    Object.assign(finalTile, mainPreTile);
+    Object.assign(tile, mainPreTile);
 
-    preTileDataDto.preTiles.forEach((preTile) => {
-      preTile.getPreTile().points.forEach((point) => {
-        const relativeX = preTile.getOffsetX() * tileSize + point.x;
-        const relativeY = preTile.getOffsetY() * tileSize + point.y;
+    set.preTiles.forEach((setItem) => {
+      setItem.preTile.points.forEach((point) => {
+        const relativeX = setItem.offsetX * tileSize + point.x;
+        const relativeY = setItem.offsetY * tileSize + point.y;
 
-        if (this.checkIntersection(relativeX, relativeY, gradientRadius)) {
-          const c: Point = _.cloneDeep(point);
-          c.x = relativeX;
-          c.y = relativeY;
-          finalTile.points.push(c);
+        if (this.intersects(relativeX, relativeY, gradientRadius)) {
+          point.x = relativeX;
+          point.y = relativeY;
+          tile.points.push(point);
         }
       });
     });
 
-    return finalTile;
+    return tile;
   }
 
-  //https://stackoverflow.com/questions/401847/circle-rectangle-collision-detection-intersection
-  private checkIntersection(x: number, y: number, radius: number): boolean {
+  private getPreTileSet(mainPreTile: PreTile): PreTileSet {
+    const set = new PreTileSet(mainPreTile);
+
+    for (let indexY = -1; indexY <= 1; indexY++) {
+      for (let indexX = -1; indexX <= 1; indexX++) {
+        const neighbourPreTile = this.dataService.getNeighbourPreTile(
+          mainPreTile,
+          indexX,
+          indexY,
+        );
+
+        const preInfo = new PreTileSetItem(neighbourPreTile, indexX, indexY);
+        set.preTiles.push(preInfo);
+      }
+    }
+
+    return set;
+  }
+
+  /**
+   * @see https://stackoverflow.com/questions/401847/circle-rectangle-collision-detection-intersection
+   */
+  private intersects(x: number, y: number, radius: number): boolean {
     const maxOfTile = 256;
     const middleOfTile = maxOfTile / 2;
 
     const circleDistanceX = Math.abs(x - middleOfTile);
     const circleDistanceY = Math.abs(y - middleOfTile);
+    const maxDistance = middleOfTile + radius;
 
-    if (circleDistanceX > middleOfTile + radius) {
+    if (circleDistanceX > maxDistance || circleDistanceY > maxDistance) {
       return false;
     }
-    if (circleDistanceY > middleOfTile + radius) {
-      return false;
-    }
-
-    if (circleDistanceX <= middleOfTile) {
-      return true;
-    }
-    if (circleDistanceY <= middleOfTile) {
+    if (circleDistanceX <= middleOfTile || circleDistanceY <= middleOfTile) {
       return true;
     }
 
-    const cornerDistance_sq =
+    const cornerDistanceSq =
       Math.pow(circleDistanceX - middleOfTile, 2) +
       Math.pow(circleDistanceY - middleOfTile, 2);
 
-    return cornerDistance_sq <= Math.pow(radius, 2);
+    return cornerDistanceSq <= Math.pow(radius, 2);
   }
 
   // wzory z miro, prawdopodobnie do wywalenia
