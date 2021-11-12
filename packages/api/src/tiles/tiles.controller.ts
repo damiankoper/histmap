@@ -20,11 +20,14 @@ export class TilesController {
   @Header('Content-Type', 'image/png')
   async getTile(
     @Param() coords: TileCoordsDto,
-    @Query() options: TileOptionsDto,
+    @Query() options: TileOptionsDto, // TODO: future options
     @Res() response: Response,
   ): Promise<void> {
     const mainPreTile = this.dataService.getPreTile(coords);
     const tile = this.tilesService.calculateTile(mainPreTile);
+
+    // TODO: filters entrypoint: filterService.filter(tile, options)
+
     const stats = this.dataService.getTileStats(coords);
     const render = this.tileRendererService.render(tile, stats);
     response.send(render);

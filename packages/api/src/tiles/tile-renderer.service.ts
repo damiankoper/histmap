@@ -8,7 +8,7 @@ export class TileRendererService {
   private renderer: RendererService;
 
   constructor() {
-    this.renderer = new RendererService({ blur: 30 });
+    this.renderer = new RendererService({ blur: 20, radius: 30 });
   }
 
   public render(tile: Tile, stats: TileStats) {

@@ -49,7 +49,8 @@ export function useMap(container: Ref<HTMLElement | null>) {
     });
 
     heatMapLayer = L.tileLayer(
-      "https://tilecache.rainviewer.com/v2/radar/1636324200/256/{z}/{x}/{y}/1/1_1.png",
+      "http://localhost:3000/tiles/2000/{z}/{x}/{y}.png",
+      ///"https://tilecache.rainviewer.com/v2/radar/1636324200/256/{z}/{x}/{y}/1/1_1.png",
       {
         attribution: "&copy; Rainviewer",
         maxZoom: 10,

@@ -19,16 +19,17 @@ export class TilesService {
     Object.assign(tile, mainPreTile);
 
     set.preTiles.forEach((setItem) => {
-      setItem.preTile.points.forEach((point) => {
-        const relativeX = setItem.offsetX * tileSize + point.x;
-        const relativeY = setItem.offsetY * tileSize + point.y;
+      if (setItem.preTile !== mainPreTile)
+        setItem.preTile.points.forEach((point) => {
+          const relativeX = setItem.offsetX * tileSize + point.x;
+          const relativeY = setItem.offsetY * tileSize + point.y;
 
-        if (this.intersects(relativeX, relativeY, gradientRadius)) {
-          point.x = relativeX;
-          point.y = relativeY;
-          tile.points.push(point);
-        }
-      });
+          if (this.intersects(relativeX, relativeY, gradientRadius)) {
+            point.x = relativeX;
+            point.y = relativeY;
+            tile.points.push(point);
+          }
+        });
     });
 
     return tile;
@@ -39,14 +40,16 @@ export class TilesService {
 
     for (let indexY = -1; indexY <= 1; indexY++) {
       for (let indexX = -1; indexX <= 1; indexX++) {
-        const neighbourPreTile = this.dataService.getNeighbourPreTile(
-          mainPreTile,
-          indexX,
-          indexY,
-        );
+        if (indexX !== 0 || indexY !== 0) {
+          const neighbourPreTile = this.dataService.getNeighbourPreTile(
+            mainPreTile,
+            indexX,
+            indexY,
+          );
 
-        const preInfo = new PreTileSetItem(neighbourPreTile, indexX, indexY);
-        set.preTiles.push(preInfo);
+          const preInfo = new PreTileSetItem(neighbourPreTile, indexX, indexY);
+          set.preTiles.push(preInfo);
+        }
       }
     }
 
@@ -78,7 +81,7 @@ export class TilesService {
     return cornerDistanceSq <= Math.pow(radius, 2);
   }
 
-  // wzory z miro, prawdopodobnie do wywalenia
+  // wzory z miro, prawdopodobnie do wywalenia - przydadzą się do filtrowania obszarowego
   // private lon2tile(lon, zoom) {
   //   return Math.floor(((lon + 180) / 360) * Math.pow(2, zoom));
   // }
