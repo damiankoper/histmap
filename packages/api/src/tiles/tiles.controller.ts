@@ -6,6 +6,7 @@ import { TileCoordsDto } from './dto/tile-coords.dto';
 import { TileOptionsDto } from './dto/tile-options.dto';
 import { Response } from 'express';
 import { TileRendererService } from './tile-renderer.service';
+import * as _ from 'lodash';
 
 @Controller('tiles')
 export class TilesController {
@@ -26,10 +27,10 @@ export class TilesController {
     const mainPreTile = this.dataService.getPreTile(coords);
     const tile = this.tilesService.calculateTile(mainPreTile);
 
-    // TODO: filters entrypoint: filterService.filter(tile, options)
+    const filteredTile = this.filterService.filter(_.cloneDeep(tile), options);
 
     const stats = this.dataService.getTileStats(coords);
-    const render = this.tileRendererService.render(tile, stats);
+    const render = this.tileRendererService.render(filteredTile, stats);
     response.send(render);
   }
 }

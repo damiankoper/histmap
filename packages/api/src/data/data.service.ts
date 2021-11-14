@@ -4,6 +4,7 @@ import { resolve } from 'path';
 import {
   Data,
   PreTile,
+  Publication,
   TileCoords,
   TileMetaCoords,
   TileStats,
@@ -15,6 +16,7 @@ export class DataService {
   private readonly logger = new Logger(DataService.name);
   private preTileMap: Map<string, PreTile> = new Map();
   private statsMap: Map<string, TileStats> = new Map();
+  private publications: Map<number, Publication> = new Map();
 
   constructor() {
     this.initJsonData();
@@ -36,6 +38,14 @@ export class DataService {
       const key = this.getTileStatsKey(tileStats);
       this.statsMap.set(key, tileStats);
     });
+
+    preData.publications.forEach((publication) => {
+      this.publications.set(publication.id, publication);
+    });
+  }
+
+  public getPublication(id: number): Publication {
+    return this.publications.get(id);
   }
 
   public getEmptyTile(coords: TileCoords): PreTile {
