@@ -101,13 +101,9 @@ export default defineComponent({
       }
     );
 
-    /*   watch(
-      () => props.year,
-      () => {
-        TODO: if Szukaj w całym zakresie czasowym
-        fetch();
-      }
-    ); */
+    watch([() => props.year, byYear], () => {
+      if (byYear.value) fetch();
+    });
 
     return { data, loading, err, byYear };
   },
