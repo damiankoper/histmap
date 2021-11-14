@@ -6,6 +6,8 @@ import { TileCoordsDto } from './dto/tile-coords.dto';
 import { TileOptionsDto } from './dto/tile-options.dto';
 import { Response } from 'express';
 import { TileRendererService } from './tile-renderer.service';
+import { TileMetaCoords, TileStats } from 'pre-processor';
+import { GlobalStats } from 'src/data/interfaces/global-stats.interface';
 
 @Controller('tiles')
 export class TilesController {
@@ -15,6 +17,16 @@ export class TilesController {
     private dataService: DataService,
     private tileRendererService: TileRendererService,
   ) {}
+
+  @Get('/stats/global')
+  async getGlobalStats(): Promise<GlobalStats> {
+    return this.dataService.globalStats;
+  }
+
+  @Get('/stats/:t/:z/')
+  async getTileStats(@Param() coords: TileMetaCoords): Promise<TileStats> {
+    return this.dataService.getTileStats(coords);
+  }
 
   @Get(':t/:z/:x/:y.png')
   @Header('Content-Type', 'image/png')
@@ -30,6 +42,9 @@ export class TilesController {
 
     const stats = this.dataService.getTileStats(coords);
     const render = this.tileRendererService.render(tile, stats);
+
+    // TODO: cache render here in CacheService with key built from coords and options
+
     response.send(render);
   }
 }

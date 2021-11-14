@@ -1,9 +1,9 @@
 import * as L from "leaflet";
-import { onMounted, onUnmounted, Ref, shallowRef } from "vue";
+import { onMounted, onUnmounted, Ref, shallowRef, watch } from "vue";
 
 import icon from "leaflet/dist/images/marker-icon.png";
 import iconShadow from "leaflet/dist/images/marker-shadow.png";
-import _ from "lodash";
+import { GlobalStats } from "@/interfaces/GlobalStats";
 
 const osmTileURL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 const osmTileAttr =
@@ -29,11 +29,21 @@ const DefaultIcon = L.icon({
 
 L.Marker.prototype.options.icon = DefaultIcon;
 
-export function useMap(container: Ref<HTMLElement | null>) {
+export function useMap(container: Ref<HTMLElement | null>, year: Ref<number>) {
   const map: Ref<L.Map | null> = shallowRef(null);
   let circle: L.Circle | null = null;
   let marker: L.Marker | null = null;
   let heatMapLayer: L.TileLayer | null = null;
+
+  function setUrl(heatMapLayer: L.TileLayer) {
+    heatMapLayer.setUrl(
+      `${process.env.VUE_APP_API_URL}/tiles/${year.value}/{z}/{x}/{y}.png`
+    );
+  }
+
+  watch(year, () => {
+    if (heatMapLayer) setUrl(heatMapLayer);
+  });
 
   onMounted(() => {
     if (!container.value) throw new Error("Invalid map container!");
@@ -42,20 +52,18 @@ export function useMap(container: Ref<HTMLElement | null>) {
       [52, 20],
       6
     );
+    map.value.doubleClickZoom.disable();
 
     const osmLayer = L.tileLayer(osmTileURL, {
       attribution: osmTileAttr,
       maxZoom: 10,
     });
 
-    heatMapLayer = L.tileLayer(
-      "http://localhost:3000/tiles/2000/{z}/{x}/{y}.png",
-      ///"https://tilecache.rainviewer.com/v2/radar/1636324200/256/{z}/{x}/{y}/1/1_1.png",
-      {
-        attribution: "&copy; Rainviewer",
-        maxZoom: 10,
-      }
-    );
+    heatMapLayer = L.tileLayer("", {
+      attribution: "&copy; Rainviewer",
+      maxZoom: 10,
+    });
+    setUrl(heatMapLayer);
 
     const zoom = new L.Control.Zoom({ position: "bottomright" });
 
@@ -97,8 +105,11 @@ export function useMap(container: Ref<HTMLElement | null>) {
     }
   }
 
-  function redrawHeatMap() {
-    heatMapLayer?.redraw();
+  function setZoomRange(stats: GlobalStats) {
+    if (map.value) {
+      map.value.setMinZoom(stats.zMin);
+      map.value.setMaxZoom(stats.zMax);
+    }
   }
 
   return {
@@ -107,6 +118,6 @@ export function useMap(container: Ref<HTMLElement | null>) {
     clearArea,
     setSearchResult,
     clearSearchResult,
-    redrawHeatMap: _.debounce(redrawHeatMap, 100),
+    setZoomRange,
   };
 }

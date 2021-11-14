@@ -9,12 +9,19 @@ import {
   TileStats,
 } from 'pre-processor';
 import * as _ from 'lodash';
+import { GlobalStats } from './interfaces/global-stats.interface';
 
 @Injectable()
 export class DataService {
   private readonly logger = new Logger(DataService.name);
   private preTileMap: Map<string, PreTile> = new Map();
   private statsMap: Map<string, TileStats> = new Map();
+  public readonly globalStats: GlobalStats = {
+    tMin: Infinity,
+    tMax: -Infinity,
+    zMin: Infinity,
+    zMax: -Infinity,
+  };
 
   constructor() {
     this.initJsonData();
@@ -35,7 +42,15 @@ export class DataService {
     preData.stats.forEach((tileStats) => {
       const key = this.getTileStatsKey(tileStats);
       this.statsMap.set(key, tileStats);
+      this.computeGlobalStats(tileStats);
     });
+  }
+
+  computeGlobalStats(tileStats: TileStats): void {
+    this.globalStats.tMax = Math.max(this.globalStats.tMax, tileStats.t);
+    this.globalStats.tMin = Math.min(this.globalStats.tMin, tileStats.t);
+    this.globalStats.zMax = Math.max(this.globalStats.zMax, tileStats.z);
+    this.globalStats.zMin = Math.min(this.globalStats.zMin, tileStats.z);
   }
 
   public getEmptyTile(coords: TileCoords): PreTile {

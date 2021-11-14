@@ -19,6 +19,7 @@
     "lodash": "^4.17.21",
     "markdown-loader": "^6.0.0",
     "nuxt": "^2.15.8",
+    "pre-processor": "^0.0.0",
     "vue": "^3.2.20",
     "vue-router": "^4.0.12"
   },
