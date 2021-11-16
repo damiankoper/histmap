@@ -9,6 +9,9 @@ import { TileRendererService } from './tile-renderer.service';
 import * as _ from 'lodash';
 import { ApiTags } from '@nestjs/swagger';
 
+import { TileMetaCoords, TileStats } from 'pre-processor';
+import { GlobalStats } from 'src/data/interfaces/global-stats.interface';
+
 @ApiTags('tiles')
 @Controller('tiles')
 export class TilesController {
@@ -18,6 +21,16 @@ export class TilesController {
     private dataService: DataService,
     private tileRendererService: TileRendererService,
   ) {}
+
+  @Get('/stats/global')
+  async getGlobalStats(): Promise<GlobalStats> {
+    return this.dataService.globalStats;
+  }
+
+  @Get('/stats/:t/:z/')
+  async getTileStats(@Param() coords: TileMetaCoords): Promise<TileStats> {
+    return this.dataService.getTileStats(coords);
+  }
 
   @Get(':t/:z/:x/:y.png')
   @Header('Content-Type', 'image/png')
@@ -33,6 +46,9 @@ export class TilesController {
 
     const stats = this.dataService.getTileStats(coords);
     const render = this.tileRendererService.render(filteredTile, stats);
+
+    // TODO: cache render here in CacheService with key built from coords and options
+
     response.send(render);
   }
 }

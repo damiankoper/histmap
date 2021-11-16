@@ -10,6 +10,7 @@ import {
   TileStats,
 } from 'pre-processor';
 import * as _ from 'lodash';
+import { GlobalStats } from './interfaces/global-stats.interface';
 
 @Injectable()
 export class DataService {
@@ -17,6 +18,12 @@ export class DataService {
   private preTileMap: Map<string, PreTile> = new Map();
   private statsMap: Map<string, TileStats> = new Map();
   private publications: Map<number, Publication> = new Map();
+  public readonly globalStats: GlobalStats = {
+    tMin: Infinity,
+    tMax: -Infinity,
+    zMin: Infinity,
+    zMax: -Infinity,
+  };
 
   constructor() {
     this.initJsonData();
@@ -37,6 +44,7 @@ export class DataService {
     preData.stats.forEach((tileStats) => {
       const key = this.getTileStatsKey(tileStats);
       this.statsMap.set(key, tileStats);
+      this.computeGlobalStats(tileStats);
     });
 
     preData.publications.forEach((publication) => {
@@ -46,6 +54,13 @@ export class DataService {
 
   public getPublication(id: number): Publication {
     return this.publications.get(id);
+  }
+
+  computeGlobalStats(tileStats: TileStats): void {
+    this.globalStats.tMax = Math.max(this.globalStats.tMax, tileStats.t);
+    this.globalStats.tMin = Math.min(this.globalStats.tMin, tileStats.t);
+    this.globalStats.zMax = Math.max(this.globalStats.zMax, tileStats.z);
+    this.globalStats.zMin = Math.min(this.globalStats.zMin, tileStats.z);
   }
 
   public getEmptyTile(coords: TileCoords): PreTile {

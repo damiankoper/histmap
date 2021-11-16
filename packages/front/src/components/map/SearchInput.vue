@@ -177,7 +177,7 @@ export default defineComponent({
 <style lang="scss" scoped>
 .search-container {
   background-color: white;
-  border-radius: 24px;
+  border-radius: 4px;
   box-shadow: 0 2px 4px rgb(0 0 0 / 15%);
   /* https://stackoverflow.com/a/3724210 */
   overflow: hidden;
@@ -186,7 +186,7 @@ export default defineComponent({
   .search-input {
     display: flex;
     align-items: center;
-    border-radius: 24px;
+    border-radius: 4px;
     padding: 4px 8px 4px 12px;
     box-shadow: 0 2px 4px rgb(0 0 0 / 30%);
   }

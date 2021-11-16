@@ -1,42 +1,47 @@
 <template>
-  <div class="timeline" justify="center" align="middle">
+  <div
+    class="timeline"
+    justify="center"
+    align="middle"
+    v-loading="!globalStats"
+  >
     <SliderSpeedButton :speed="speed" @click="onSpeedButtonClick" />
     <SliderPlayButton :isPlaying="isPlaying" @click="toggleIsPlaying" />
     <el-slider
       v-model="yearInner"
       show-stops
-      :min="YEAR_MIN"
-      :max="YEAR_MAX"
+      :min="globalStats?.tMin || 0"
+      :max="globalStats?.tMax || 0"
       :show-tooltip="false"
       :step="1"
       height="80"
       class="slider"
     />
-    <span>
+    <span v-if="globalStats">
       {{ year }}
     </span>
+    <span v-else> --- </span>
   </div>
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, ref, watchEffect } from "vue";
+import { computed, defineComponent, PropType, ref, watchEffect } from "vue";
 import SliderPlayButton from "../slider/SliderPlayButton.vue";
 import SliderSpeedButton from "../slider/SliderSpeedButton.vue";
 import { Speed, delaySettings } from "../../interfaces/Speed";
-
-const YEAR_MIN = 1900;
-const YEAR_MAX = 2021;
+import { GlobalStats } from "@/interfaces/GlobalStats";
 
 export default defineComponent({
   components: { SliderPlayButton, SliderSpeedButton },
 
   props: {
-    yearMin: { type: Number, default: YEAR_MIN },
-    yearMax: { type: Number, default: YEAR_MAX },
-    year: { type: Number, default: YEAR_MIN },
+    globalStats: {
+      type: Object as PropType<GlobalStats | null>,
+    },
+    year: { type: Number, default: 0 },
   },
   setup(props, { emit }) {
-    const yearInner = ref(props.yearMin);
+    const yearInner = ref(0);
 
     watchEffect(() => {
       yearInner.value = props.year;
@@ -54,8 +59,11 @@ export default defineComponent({
     function setPlayingInterval() {
       clearInterval(playInterval);
       playInterval = setInterval(() => {
-        yearInner.value =
-          yearInner.value < props.yearMax ? yearInner.value + 1 : props.yearMin;
+        if (props.globalStats)
+          yearInner.value =
+            yearInner.value < props.globalStats.tMax
+              ? yearInner.value + 1
+              : props.globalStats.tMin;
       }, delay.value);
     }
 
@@ -89,8 +97,6 @@ export default defineComponent({
     }
 
     return {
-      YEAR_MIN,
-      YEAR_MAX,
       yearInner,
       speed,
       isPlaying,

@@ -3,8 +3,9 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, PropType, ref, watch } from "vue";
+import { defineComponent, onMounted, PropType, ref, toRef, watch } from "vue";
 import { MapArea, MapSearchResult, useMap } from "@/composables/useMap";
+import { GlobalStats } from "@/interfaces/GlobalStats";
 
 export default defineComponent({
   props: {
@@ -18,6 +19,9 @@ export default defineComponent({
       type: Number,
       default: 0,
     },
+    globalStats: {
+      type: Object as PropType<GlobalStats | null>,
+    },
   },
   emits: ["click", "dblclick", "zoom"],
   setup(props, { emit }) {
@@ -28,15 +32,8 @@ export default defineComponent({
       clearArea,
       setSearchResult,
       clearSearchResult,
-      redrawHeatMap,
-    } = useMap(container);
-
-    watch(
-      () => props.year,
-      () => {
-        redrawHeatMap();
-      }
-    );
+      setZoomRange,
+    } = useMap(container, toRef(props, "year"));
 
     onMounted(() => {
       watch(
@@ -55,6 +52,13 @@ export default defineComponent({
           if (props.search) setSearchResult(props.search);
         },
         { immediate: true }
+      );
+
+      watch(
+        () => props.globalStats,
+        () => {
+          if (props.globalStats) setZoomRange(props.globalStats);
+        }
       );
 
       if (map.value) {

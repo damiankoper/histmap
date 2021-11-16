@@ -5,44 +5,44 @@
         <SearchInput @location="onLocation" @click="formDialogVisible = true" />
       </div>
       <div class="legend-wrapper">
-        <Legend :year="year" />
+        <Legend :year="year" :zoom="zoom" />
       </div>
       <Map
         class="map"
         :area="mapArea"
         :search="mapSearch"
         :year="year"
+        :global-stats="globalStats"
         @dblclick="onMapDblClick"
         @click="onMapClick"
         @zoom="onZoomChange"
       />
     </div>
-    <TimelineSlider v-model:year="year" />
+    <TimelineSlider v-model:year="year" :global-stats="globalStats" />
   </el-container>
+  <!-- TODO:  -->
   <FormDrawer v-model:visible="formDialogVisible" />
   <ListDrawer
     v-model:visible="listDialogVisible"
-    :loading="loading"
-    :publications="data"
-    :error="!!err"
+    :map-area="mapArea"
+    :year="year"
   />
   <Footer />
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref, watchEffect } from "vue";
+import { defineComponent, onMounted, ref } from "vue";
 import Footer from "../components/layout/Footer.vue";
 import SearchInput from "../components/map/SearchInput.vue";
 import Map from "../components/map/Map.vue";
 import TimelineSlider from "../components/slider/TimelineSlider.vue";
-import useApi from "../composables/useApi";
 import { MapArea, MapSearchResult } from "@/composables/useMap";
 import * as L from "leaflet";
-
 import FormDrawer from "../components/filters/FormDrawer.vue";
 import ListDrawer from "../components/publications/ListDrawer.vue";
-import Publication from "@/interfaces/Publication";
 import Legend from "@/components/map/Legend.vue";
+import useApi from "@/composables/useApi";
+import { GlobalStats } from "@/interfaces/GlobalStats";
 
 export default defineComponent({
   components: {
@@ -64,40 +64,17 @@ export default defineComponent({
     const mapSearch = ref<MapSearchResult | null>(null);
     const mapArea = ref<MapArea | null>(null);
 
-    /**
-     * ! Example - real antrypoint in onMapClick function
-     */
-    onMounted(() => {
-      setTimeout(() => {
-        mapSearch.value = {
-          point: [51.10773, 17.03533],
-          bounds: [
-            [51.042675448, 16.807383846],
-            [51.210053, 17.176219176],
-          ],
-          label: "Wrocław, Lower Silesian Voivodeship, Poland",
-        };
-      }, 2000);
-    });
+    const { data: globalStats, fetch } =
+      useApi<GlobalStats>("tiles/stats/global");
 
-    const { fetch, data, loading, err } = useApi<Publication[]>(
-      "http://127.0.0.1:3000/publications"
-    );
-
-    // cleaning previously fetched poblications
-    watchEffect(() => {
-      if (!listDialogVisible.value) {
-        data.value = [];
-      }
-    });
+    onMounted(fetch);
 
     return {
       year,
-      loading,
-      data,
-      err,
+      zoom,
       mapSearch,
       mapArea,
+      globalStats,
       formDialogVisible,
       listDialogVisible,
       onMapClick(_e: L.LeafletMouseEvent) {
@@ -110,8 +87,6 @@ export default defineComponent({
           radius: r,
         };
         listDialogVisible.value = true;
-        // TODO params to be added when API will be ready ({point: e.latlng, radius: r})
-        fetch();
       },
       onZoomChange(z: number) {
         zoom.value = z;
@@ -143,8 +118,8 @@ export default defineComponent({
 }
 .legend-wrapper {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  bottom: 8px;
+  left: 8px;
   z-index: 3;
 }
 .map {

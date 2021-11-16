@@ -11,7 +11,12 @@
         <SmallTitle />
       </template>
       <div>
-        <h2 style="margin-top: 0">Filtracja</h2>
+        <h2>
+          <span class="mdi-set mdi-book-search-outline"></span>
+          Filtracja
+        </h2>
+        <hr style="margin: 12px 0" />
+
         <el-form :model="form" label-width="70px">
           <el-form-item label="Tytul">
             <el-input
@@ -28,7 +33,7 @@
         </el-form>
 
         <el-row justify="end">
-          <el-button round :loading="loading" @click="onSubmit">
+          <el-button :loading="loading" @click="onSubmit">
             {{ loading ? "Ładowanie..." : "Filtruj" }}
           </el-button>
         </el-row>
@@ -93,11 +98,16 @@ export default defineComponent({
 });
 </script>
 <style lang="scss" scoped>
+h2 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
 :deep(.el-drawer) {
   .el-drawer__body {
     flex-direction: column;
     display: flex;
     justify-content: space-between;
+    padding-top: 0;
   }
 }
 </style>
