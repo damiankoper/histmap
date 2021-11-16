@@ -7,7 +7,9 @@ import { TileOptionsDto } from './dto/tile-options.dto';
 import { Response } from 'express';
 import { TileRendererService } from './tile-renderer.service';
 import * as _ from 'lodash';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('tiles')
 @Controller('tiles')
 export class TilesController {
   constructor(
