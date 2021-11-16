@@ -80,23 +80,13 @@ export class DataService {
   ): PreTile {
     const maxCoord = Math.pow(2, mainPreTile.z);
     let neigbourTileX = mainPreTile.x + offsetX;
-    let neigbourTileY = mainPreTile.y + offsetY;
+    const neigbourTileY = mainPreTile.y + offsetY;
 
     if (neigbourTileX >= maxCoord) {
       neigbourTileX = neigbourTileX - maxCoord;
     }
     if (neigbourTileX < 0) {
       neigbourTileX = neigbourTileX + maxCoord;
-    }
-
-    /**
-     * TODO(to discuss): Virtual tiles on max/min Y axis
-     */
-    if (neigbourTileY >= maxCoord) {
-      neigbourTileY = neigbourTileY - maxCoord;
-    }
-    if (neigbourTileY < 0) {
-      neigbourTileY = neigbourTileY + maxCoord;
     }
 
     return this.getPreTile({
