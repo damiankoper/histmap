@@ -1,6 +1,5 @@
 {
-  "publications": [
-    {
+  "publications": [{
       "id": 1,
       "title": "Lorem ipsum",
       "author": "Janusz Biernat",
@@ -8,10 +7,27 @@
         "Polska"
       ],
       "year": 2000
+    },
+    {
+      "id": 2,
+      "title": "Lorem Gipsum",
+      "author": "Janush Borat",
+      "places": [
+        "Polska"
+      ],
+      "year": 2000
+    },
+    {
+      "id": 3,
+      "title": "Lorem Cipsum",
+      "author": "Piotrek Patronik",
+      "places": [
+        "Polska"
+      ],
+      "year": 2000
     }
   ],
-  "preTiles": [
-    {
+  "preTiles": [{
       "x": 0,
       "y": 0,
       "z": 0,
@@ -38,19 +54,18 @@
       "y": 0,
       "z": 1,
       "t": 2000,
-      "points": [
-        {
+      "points": [{
           "x": 128,
           "y": 128,
           "publications": [
-            1
+            1, 3
           ]
         },
         {
           "x": 230,
           "y": 230,
           "publications": [
-            1
+            1, 2, 3
           ]
         }
       ]
@@ -60,53 +75,46 @@
       "y": 0,
       "z": 1,
       "t": 2000,
-      "points": [
-        {
-          "x": 0,
-          "y": 256,
-          "publications": [
-            1
-          ]
-        }
-      ]
+      "points": [{
+        "x": 0,
+        "y": 256,
+        "publications": [
+          1, 2
+        ]
+      }]
     },
     {
       "x": 0,
       "y": 1,
       "z": 1,
       "t": 2000,
-      "points": [
-        {
-          "x": 128,
-          "y": 128,
-          "publications": [
-            1
-          ]
-        }
-      ]
+      "points": [{
+        "x": 128,
+        "y": 128,
+        "publications": [
+          1, 3
+        ]
+      }]
     },
     {
       "x": 1,
       "y": 1,
       "z": 1,
       "t": 2000,
-      "points": [
-        {
-          "x": 128,
-          "y": 128,
-          "publications": [
-            1
-          ]
-        }
-      ]
+      "points": [{
+        "x": 128,
+        "y": 128,
+        "publications": [
+          2, 1, 3
+        ]
+      }]
     },
     {
       "x": 0,
       "y": 0,
       "z": 2,
       "t": 2000,
-      "points": [
-        {
+      "points": [{
           "x": 128,
           "y": 128,
           "publications": [
@@ -123,8 +131,7 @@
       ]
     }
   ],
-  "stats": [
-    {
+  "stats": [{
       "z": 0,
       "t": 2000,
       "max": 1

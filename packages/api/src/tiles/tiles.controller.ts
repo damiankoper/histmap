@@ -6,9 +6,13 @@ import { TileCoordsDto } from './dto/tile-coords.dto';
 import { TileOptionsDto } from './dto/tile-options.dto';
 import { Response } from 'express';
 import { TileRendererService } from './tile-renderer.service';
+import * as _ from 'lodash';
+import { ApiTags } from '@nestjs/swagger';
+
 import { TileMetaCoords, TileStats } from 'pre-processor';
 import { GlobalStats } from 'src/data/interfaces/global-stats.interface';
 
+@ApiTags('tiles')
 @Controller('tiles')
 export class TilesController {
   constructor(
@@ -38,10 +42,10 @@ export class TilesController {
     const mainPreTile = this.dataService.getPreTile(coords);
     const tile = this.tilesService.calculateTile(mainPreTile);
 
-    // TODO: filters entrypoint: filterService.filter(tile, options)
+    const filteredTile = this.filterService.filter(_.cloneDeep(tile), options);
 
     const stats = this.dataService.getTileStats(coords);
-    const render = this.tileRendererService.render(tile, stats);
+    const render = this.tileRendererService.render(filteredTile, stats);
 
     // TODO: cache render here in CacheService with key built from coords and options
 
