@@ -17,18 +17,18 @@
         </h2>
         <hr style="margin: 12px 0" />
 
-        <el-form :model="form" label-width="70px">
+        <el-form label-width="70px">
           <el-form-item label="Tytul">
             <el-input
-              v-model="form.title"
+              v-model="titleInner"
               placeholder="Tytuł publikacji lub jego część"
             />
           </el-form-item>
           <el-form-item label="Miejsce">
-            <el-input v-model="form.place" placeholder="Miejsce publikacji" />
+            <el-input v-model="placeInner" placeholder="Miejsce publikacji" />
           </el-form-item>
           <el-form-item label="Autor">
-            <el-input v-model="form.author" placeholder="Autor publikacji" />
+            <el-input v-model="authorInner" placeholder="Autor publikacji" />
           </el-form-item>
         </el-form>
 
@@ -54,7 +54,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive, ref, toRefs } from "vue";
+import { defineComponent, ref, watchEffect } from "vue";
 import Help from "../others/Help.vue";
 import SmallTitle from "../layout/SmallTitle.vue";
 
@@ -65,31 +65,56 @@ export default defineComponent({
       type: Boolean,
       required: true,
     },
+    place: {
+      type: String,
+      required: true,
+    },
+    author: {
+      type: String,
+      required: true,
+    },
+    title: {
+      type: String,
+      required: true,
+    },
   },
-  emits: ["formDrawerToggled", "listDrawerToggled", "update:visible"],
+  emits: [
+    "listDrawerToggled",
+    "update:visible",
+    "update:place",
+    "update:author",
+    "update:title",
+  ],
   setup(props, { emit }) {
     const loading = ref(false);
     const helpVisible = ref(false);
-    const form = reactive({
-      form: {
-        place: "",
-        author: "",
-        title: "",
-      },
-    });
+    const placeInner = ref("");
+    const authorInner = ref("");
+    const titleInner = ref("");
 
     const cancelForm = () => {
       loading.value = false;
     };
 
+    watchEffect(() => {
+      placeInner.value = props.place;
+      authorInner.value = props.author;
+      titleInner.value = props.title;
+    });
+
     const onSubmit = () => {
       emit("update:visible", false);
+      emit("update:author", authorInner.value);
+      emit("update:title", titleInner.value);
+      emit("update:place", placeInner.value);
       emit("listDrawerToggled");
     };
 
     return {
       loading,
-      ...toRefs(form),
+      placeInner,
+      authorInner,
+      titleInner,
       cancelForm,
       onSubmit,
       helpVisible,
