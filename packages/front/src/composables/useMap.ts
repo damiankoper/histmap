@@ -57,7 +57,8 @@ export function useMap(
     if (heatMapLayer) setUrl(heatMapLayer);
   });
 
-  watch([place, author, year], () => {
+  watch([place, author, title], () => {
+    console.log("rekłest");
     if (heatMapLayer) setUrlWithQueryParams(heatMapLayer);
   });
 
