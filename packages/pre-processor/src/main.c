@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <inttypes.h>
 #include <immintrin.h>
 #include <math.h>
@@ -15,6 +16,12 @@
 #define M_PIf 3.14159265358979323846f
 #define MAX_ZOOM_LEVEL 8
 #define TILE_PIXEL_SIZE 256
+
+const char* const INPUT_DB_FILEPATH = "../../data/bn_geos_2.db";
+const char* const OUTPUT_DB_FILEPATH = "../../data/db.json";
+
+const char* const GEOCODE_INPUT_FILEPATH = "../../data/places.txt";
+const char* const GEOCODE_RESULT_DIR = "../../data/places/";
 
 int32_t tile_stats[MAX_ZOOM_LEVEL * 256];
 
@@ -83,22 +90,22 @@ static void Extract(const char* intputDbFilename)
 	int64_t bookCount = GetInt64(db, "SELECT COUNT(*) FROM BOOKS WHERE GEOGRAPHIC_NAMES != ''");
 	printf("There are %" PRId64 " publications with geographic names.\n", bookCount);
 
-	sqlite3_prepare_v2(db, "SELECT TITLE, YEAR, GEOGRAPHIC_NAMES FROM BOOKS WHERE GEOGRAPHIC_NAMES != ''", -1, &stmt, NULL);
+	sqlite3_prepare_v2(db, "SELECT TITLE, AUTHORS, YEAR, GEOGRAPHIC_NAMES FROM BOOKS WHERE GEOGRAPHIC_NAMES != ''", -1, &stmt, NULL);
 
 	printf("Extracting publications and places...\n");
 	while (sqlite3_step(stmt) == SQLITE_ROW)
 	{
 		const char* title = (const char*)sqlite3_column_text(stmt, 0);
-		const char* author = "N/A";
-		int16_t year = (int16_t)sqlite3_column_int(stmt, 1);
+		const char* author = (const char*)sqlite3_column_text(stmt, 1);
+		int16_t year = (int16_t)sqlite3_column_int(stmt, 2);
 
 		int32_t publication_id = PublicationInsert(title, author, year);
 
-		const char* geoNames = (const char*)sqlite3_column_text(stmt, 2);
+		const char* geoNames = (const char*)sqlite3_column_text(stmt, 3);
 		while (true)
 		{
 			const char* sep = strstr(geoNames, " , ");
-			int len = sep ? (int)(sep - geoNames) : -1;
+			size_t len = sep ? (size_t)(sep - geoNames) : strlen(geoNames);
 
 			char name[1000];
 			if (len >= sizeof(name)) len = sizeof(name) - 1;
@@ -146,7 +153,7 @@ static void Precalculate()
 	uint64_t last_tile_id;
 	for (int32_t rowid = 0; rowid < tilePoints.count; ++rowid)
 	{
-		int64_t tile_id = tilePoints.tile_id[rowid];
+		uint64_t tile_id = tilePoints.tile_id[rowid];
 
 		if (first_tile || tile_id != last_tile_id)
 		{
@@ -232,10 +239,9 @@ static void Dump(FILE* out)
 	bool first_publication = true;
 	uint64_t last_tile_id;
 	uint8_t last_x, last_y;
-	for (int32_t rowid = 0; rowid < tilePoints.count; ++rowid) // TODO Step through, missing closing thingies
+	for (int32_t rowid = 0; rowid < tilePoints.count; ++rowid)
 	{
-		int64_t tile_id = tilePoints.tile_id[rowid];
-		//printf("%016" PRId64 "\n", tile_id);
+		uint64_t tile_id = tilePoints.tile_id[rowid];
 
 		if (first_tile || tile_id != last_tile_id)
 		{
@@ -254,7 +260,7 @@ static void Dump(FILE* out)
 
 		uint8_t pixel_x = tilePoints.x[rowid];
 		uint8_t pixel_y = tilePoints.y[rowid];
-		if (first_point || last_x != pixel_x && last_y != pixel_y)
+		if (first_point || (last_x != pixel_x && last_y != pixel_y))
 		{
 			if (first_point) first_point = false;
 			else fprintf(out, "]},\n");
@@ -280,7 +286,7 @@ static void Dump(FILE* out)
 	fprintf(out, "\"stats\":[\n");
 
 	bool first_stat = true;
-	for (int32_t stat_id = 0; stat_id < sizeof(tile_stats) / sizeof(*tile_stats); ++stat_id)
+	for (size_t stat_id = 0; stat_id < sizeof(tile_stats) / sizeof(*tile_stats); ++stat_id)
 	{
 		int32_t max = tile_stats[stat_id];
 		if (max <= 0) continue;
@@ -298,7 +304,17 @@ static void Dump(FILE* out)
 	fprintf(out, "}");
 }
 
-int main(int argc, char *argv[])
+void DumpPlaces(FILE* out)
+{
+	printf("Dumping places...\n");
+
+	for (int32_t rowid = 0; rowid < places.count; ++rowid)
+	{
+		fprintf(out, "%s\n", places.name[rowid]);
+	}
+}
+
+int main()
 {
 	#ifdef _WIN32
 		int64_t counterFreq, counterStart;
@@ -311,11 +327,14 @@ int main(int argc, char *argv[])
 	#endif
 	srand((unsigned int)time(NULL));
 
-	Extract("bn_geos.db");
+	Extract(INPUT_DB_FILEPATH);
 	Precalculate();
-	FILE* out = fopen("dump.json", "wb");
-	Dump(out);
-	fclose(out);
+	FILE* fout = fopen(OUTPUT_DB_FILEPATH, "wb");
+	Dump(fout);
+	fclose(fout);
+	FILE* fplaces = fopen("places.txt", "wb");
+	DumpPlaces(fplaces);
+	fclose(fplaces);
 
 	#ifdef _WIN32
 		int64_t counterEnd;

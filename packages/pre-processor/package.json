@@ -6,24 +6,18 @@
     "pre",
     "process"
   ],
-  "author": "damiankoper <kopernickk@gmail.com>",
+  "author": "iszn11 <smnbdg13@gmail.com>",
   "homepage": "https://github.com/damiankoper/histmap#readme",
   "license": "ISC",
-  "main": "lib/pre-processor.js",
   "types": "types/types.d.ts",
-  "directories": {
-    "lib": "lib",
-    "test": "__tests__"
-  },
-  "files": [
-    "lib"
-  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/damiankoper/histmap.git"
   },
   "scripts": {
-    "test": "echo \"Error: run tests from root\" && exit 1"
+    "build": "cmake -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo && cmake --build build",
+    "build:debug": "cmake -B build-debug -DCMAKE_BUILD_TYPE=Debug && cmake --build build-debug",
+    "pre-processor": "./bin/pre-processor"
   },
   "bugs": {
     "url": "https://github.com/damiankoper/histmap/issues"

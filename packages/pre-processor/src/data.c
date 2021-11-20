@@ -153,7 +153,6 @@ static void SortTilePoints(int32_t a, int32_t b)
 	uint64_t* tile_id = tilePoints.tile_id;
 	uint8_t* x = tilePoints.x;
 	uint8_t* y = tilePoints.y;
-	int32_t* publication_id = tilePoints.publication_id;
 
 	int32_t pivot_rowid = a;
 
