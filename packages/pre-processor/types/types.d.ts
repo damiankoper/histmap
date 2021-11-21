@@ -38,9 +38,3 @@ export interface Point {
     y: number
     publications: number[]
 }
-
-export interface PublicationInfo {
-  title: string
-  author: string
-  place: string
-}

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { TileStats } from 'pre-processor';
+import { Point, TileStats } from 'pre-processor';
 import { RendererService, Tile as RenderTile } from 'renderer';
 import { Tile } from './models/tile.model';
 
@@ -12,12 +12,16 @@ export class TileRendererService {
   }
 
   public render(tile: Tile, stats: TileStats) {
-    return this.renderer.render(this.mapToRenderTile(tile, stats.max));
+    return this.renderer.render(this.mapToRenderTile(tile.points, stats.max));
   }
 
-  private mapToRenderTile(preTile: Tile, max: number): RenderTile {
+  public renderPoints(points: Point[]) {
+    return this.renderer.render(this.mapToRenderTile(points, 1000));
+  }
+
+  private mapToRenderTile(tilePoints: Point[], max: number): RenderTile {
     return {
-      points: preTile.points.map((point) => ({
+      points: tilePoints.map((point) => ({
         ...point,
         value: point.publications.length,
       })),

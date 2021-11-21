@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PreTileSet } from 'src/tiles/models/pre-tile-set.model';
 import { Tile } from 'src/tiles/models/tile.model';
-import { PreTile } from 'pre-processor';
+import { Point, PreTile } from 'pre-processor';
 import { DataService } from 'src/data/data.service';
 import { PreTileSetItem } from './models/pre-tile-set-item.model';
 
@@ -33,6 +33,58 @@ export class TilesService {
     });
 
     return tile;
+  }
+
+  public calculateValidPoints(
+    tile: Tile,
+    pinXCoordOnTile: number,
+    pinYCoordOnTile: number,
+    r: number,
+  ): Point[] {
+    const validPoints: Point[] = [];
+    tile.points.forEach((point) => {
+      const isIn = this.isPointInsideArea(
+        point,
+        pinXCoordOnTile,
+        pinYCoordOnTile,
+        r,
+      );
+
+      if (isIn) {
+        validPoints.push(point);
+      }
+    });
+
+    return validPoints;
+  }
+
+  public lon2tile(lon, zoom) {
+    const result = ((lon + 180) / 360) * Math.pow(2, zoom);
+    return result; //floor after getting result to get coord
+  }
+
+  public lat2tile(lat, zoom) {
+    const result =
+      ((1 -
+        Math.log(
+          Math.tan((lat * Math.PI) / 180) + 1 / Math.cos((lat * Math.PI) / 180),
+        ) /
+          Math.PI) /
+        2) *
+      Math.pow(2, zoom);
+    return result; //floor after getting result to get coord
+  }
+
+  public tile2lon(x, z) {
+    const longitute = (x / Math.pow(2, z)) * 360 - 180;
+    return longitute;
+  }
+
+  public tile2lat(y, z) {
+    const n = Math.PI - (2 * Math.PI * y) / Math.pow(2, z);
+    const latitude =
+      (180 / Math.PI) * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n)));
+    return latitude;
   }
 
   private getPreTileSet(mainPreTile: PreTile): PreTileSet {
@@ -81,31 +133,18 @@ export class TilesService {
     return cornerDistanceSq <= Math.pow(radius, 2);
   }
 
-  // wzory z miro, prawdopodobnie do wywalenia - przydadzą się do filtrowania obszarowego
-  // private lon2tile(lon, zoom) {
-  //   return Math.floor(((lon + 180) / 360) * Math.pow(2, zoom));
-  // }
-
-  // private lat2tile(lat, zoom) {
-  //   return Math.floor(
-  //     ((1 -
-  //       Math.log(
-  //         Math.tan((lat * Math.PI) / 180) + 1 / Math.cos((lat * Math.PI) / 180),
-  //       ) /
-  //         Math.PI) /
-  //       2) *
-  //       Math.pow(2, zoom),
-  //   );
-  // }
-  // private tile2lon(x, z) {
-  //   const longitute = (x / Math.pow(2, z)) * 360 - 180;
-  //   return longitute;
-  // }
-
-  // private tile2lat(y, z) {
-  //   const n = Math.PI - (2 * Math.PI * y) / Math.pow(2, z);
-  //   const latitude =
-  //     (180 / Math.PI) * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n)));
-  //   return latitude;
-  // }
+  /**
+   * @see https://stackoverflow.com/questions/481144/equation-for-testing-if-a-point-is-inside-a-circle
+   */
+  private isPointInsideArea(
+    point: Point,
+    centerX: number,
+    centerY: number,
+    radius: number,
+  ): boolean {
+    return (
+      Math.pow(point.x - centerX, 2) + Math.pow(point.y - centerY, 2) <
+      radius * radius
+    );
+  }
 }

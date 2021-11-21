@@ -11,6 +11,7 @@ import {
 } from 'pre-processor';
 import * as _ from 'lodash';
 import { GlobalStats } from './interfaces/global-stats.interface';
+import { AreaOptionsDto } from 'src/area/dto/area-options.dto';
 
 @Injectable()
 export class DataService {
