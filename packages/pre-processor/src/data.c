@@ -74,6 +74,31 @@ int32_t PublicationInsert(const char* title, const char* author, int16_t year)
 	return publications.count++;
 }
 
+void PlaceInsert(char* name, float lat, float lon)
+{
+	PlacesEnsureCapacity(places.count + 1);
+
+	places.name[places.count] = name;
+	places.lat[places.count] = lat;
+	places.lon[places.count] = lon;
+
+	places.count += 1;
+}
+
+bool PlaceTryGet(const char* name, int32_t* res)
+{
+	for (int32_t rowid = 0; rowid < places.count; ++rowid)
+	{
+		if (strcmp(name, places.name[rowid]) == 0)
+		{
+			*res = rowid;
+			return true;
+		}
+	}
+
+	return false;
+}
+
 int32_t PlaceGetOrInsert(const char* name)
 {
 	for (int32_t rowid = 0; rowid < places.count; ++rowid)

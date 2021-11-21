@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdint.h>
 
 typedef struct Publications {
@@ -5,8 +6,8 @@ typedef struct Publications {
 	int32_t capacity;
 
 	// implicit id (by index)
-	const char** title;
-	const char** author;
+	char** title;
+	char** author;
 	int16_t* year;
 } Publications;
 
@@ -15,7 +16,7 @@ typedef struct Places {
 	int32_t capacity;
 
 	// implicit id (by index)
-	const char** name;
+	char** name;
 	float* lat;
 	float* lon;
 } Places;
@@ -49,6 +50,8 @@ void PublicationPlacesEnsureCapacity(int32_t desired_capacity);
 void TilePointsEnsureCapacity(int32_t desired_capacity);
 
 int32_t PublicationInsert(const char* title, const char* author, int16_t year);
+void PlaceInsert(char* name, float lat, float lon);
+bool PlaceTryGet(const char* name, int32_t* res);
 int32_t PlaceGetOrInsert(const char* name);
 void PublicationPlaceInsert(int32_t publication_id, int32_t place_id);
 void TilePointInsert(uint64_t tile_id, uint8_t x, uint8_t y, int32_t publication_id);

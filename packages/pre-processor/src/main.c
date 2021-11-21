@@ -23,15 +23,14 @@ const char* const OUTPUT_DB_FILEPATH = "../../data/db.json";
 const char* const GEOCODE_INPUT_FILEPATH = "../../data/places.txt";
 const char* const GEOCODE_RESULT_DIR = "../../data/places/";
 
-int32_t tile_stats[MAX_ZOOM_LEVEL * 256];
+static int32_t tile_stats[MAX_ZOOM_LEVEL * 256];
+static char geocode_json_buffer[24576];
 
 #ifdef _WIN32
 int __stdcall SetConsoleOutputCP(unsigned int wCodePageID);
 int QueryPerformanceFrequency(int64_t* lpFrequency);
 int QueryPerformanceCounter(int64_t* lpPerformanceCount);
 #endif
-
-sqlite3* db;
 
 typedef struct TileCoord {
 	int16_t tileX;
@@ -52,6 +51,22 @@ static TileCoord GeoCoordToTileCoord(float lonDeg, float latDeg, int z)
 		.pixelX = (uint8_t)floorf(TILE_PIXEL_SIZE * fmodf(fmodf(x, 1.0f) + 1.0f, 1.0f)),
 		.pixelY = (uint8_t)floorf(TILE_PIXEL_SIZE * fmodf(fmodf(y, 1.0f) + 1.0f, 1.0f)),
 	};
+}
+
+static char* ReadFileAlloc(const char* filename)
+{
+	FILE* file = fopen(filename, "rb");
+
+	fseek(file, 0L, SEEK_END);
+	size_t length = (size_t)ftell(file);
+	rewind(file);
+
+	char* buf = malloc(length + 1);
+	fread(buf, 1, length, file);
+	buf[length] = '\0';
+
+	fclose(file);
+	return buf;
 }
 
 #ifndef _WIN32
@@ -112,8 +127,11 @@ static void Extract(const char* intputDbFilename)
 			strncpy(name, geoNames, len);
 			name[len] = 0;
 
-			int32_t place_id = PlaceGetOrInsert(name);
-			PublicationPlaceInsert(publication_id, place_id);
+			int32_t place_id;
+			if (PlaceTryGet(name, &place_id))
+			{
+				PublicationPlaceInsert(publication_id, place_id);
+			}
 
 			if (!sep) break;
 			geoNames = sep + 3;
@@ -121,6 +139,40 @@ static void Extract(const char* intputDbFilename)
 	}
 
 	sqlite3_close(db);
+}
+
+static void LoadGeocodedData()
+{
+	printf("Loading geocoded data...\n");
+
+	char* places_file_content = ReadFileAlloc(GEOCODE_INPUT_FILEPATH);
+
+	FILE* file;
+
+	char* tok = strtok(places_file_content, "\n");
+	int place_input_id = 0;
+	while (tok)
+	{
+		char geocode_result_filepath[100];
+		sprintf(geocode_result_filepath, "%s%05d.json", GEOCODE_RESULT_DIR, place_input_id);
+
+		file = fopen(geocode_result_filepath, "rb");
+		size_t len = fread(geocode_json_buffer, 1, sizeof(geocode_json_buffer), file);
+		geocode_json_buffer[len] = '\0';
+
+		char* loc = strstr(geocode_json_buffer, "\"location\"");
+		if (loc)
+		{
+			float lat, lon;
+			sscanf(loc, "%*[^-0123456789]%f%*[^-0123456789]%f", &lat, &lon);
+			PlaceInsert(tok, lat, lon);
+		}
+
+		fclose(file);
+
+		tok = strtok(NULL, "\n");
+		place_input_id += 1;
+	}
 }
 
 static void Precalculate()
@@ -294,7 +346,7 @@ static void Dump(FILE* out)
 		if (first_stat) first_stat = false;
 		else fprintf(out, ",\n");
 
-		int16_t tile_z = stat_id / 256;
+		int16_t tile_z = (int16_t)(stat_id / 256);
 		int16_t tile_t = stat_id % 256 + 1800;
 
 		fprintf(out, "{\"z\":%d,\"t\":%d,\"max\":%d}", tile_z, tile_t, max);
@@ -327,14 +379,15 @@ int main()
 	#endif
 	srand((unsigned int)time(NULL));
 
+	LoadGeocodedData();
 	Extract(INPUT_DB_FILEPATH);
 	Precalculate();
 	FILE* fout = fopen(OUTPUT_DB_FILEPATH, "wb");
 	Dump(fout);
 	fclose(fout);
-	FILE* fplaces = fopen("places.txt", "wb");
-	DumpPlaces(fplaces);
-	fclose(fplaces);
+	//FILE* fplaces = fopen("places.txt", "wb");
+	//DumpPlaces(fplaces);
+	//fclose(fplaces);
 
 	#ifdef _WIN32
 		int64_t counterEnd;
