@@ -18,11 +18,6 @@ export class AreaOptionsDto {
   @IsNumber()
   r: number;
 
-  @ApiProperty({ required: true })
-  @Type(() => Number)
-  @IsNumber()
-  z: number;
-
   @ApiProperty({ required: false })
   @IsOptional()
   @Type(() => Number)

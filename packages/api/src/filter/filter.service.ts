@@ -20,7 +20,7 @@ export class FilterService {
         );
       });
     });
-
+    // TODO: Levenshtein, zamienić or na and, paginacja
     properties.forEach((prop) => {
       const filtered = this.publicationsInTile.filter(
         (v) => v[prop] === options[prop],

@@ -1,23 +1,17 @@
 import { Controller, Get, Header, Query, Res } from '@nestjs/common';
 import { Response } from 'express';
 import { ApiTags } from '@nestjs/swagger';
-import { Point } from 'pre-processor';
 import { DataService } from 'src/data/data.service';
-import { FilterService } from 'src/filter/filter.service';
-import { TileCoordsDto } from 'src/tiles/dto/tile-coords.dto';
-import { Tile } from 'src/tiles/models/tile.model';
-import { TileRendererService } from 'src/tiles/tile-renderer.service';
-import { TilesService } from 'src/tiles/tiles.service';
 import { AreaOptionsDto } from './dto/area-options.dto';
+import { MathService } from 'src/math/math.service';
+import { GeoPoint } from './models/geo-point.model';
 
 @ApiTags('area')
 @Controller('area')
 export class AreaController {
   constructor(
     private dataService: DataService,
-    private filterService: FilterService,
-    private tilesService: TilesService,
-    private tileRendererService: TileRendererService,
+    private mathService: MathService,
   ) {}
 
   @Get()
@@ -30,61 +24,36 @@ export class AreaController {
       options.r = 128;
     }
 
-    const tileX = this.tilesService.lon2tile(options.lon, 1);
-    const tileY = this.tilesService.lat2tile(options.lat, 1);
-    const flooredTileX = Math.floor(tileX);
-    const flooredTileY = Math.floor(tileY);
-    const pinXCoordOnTile = tileX * 256;
-    const pinYCoordOnTile = tileY * 256;
-    let points: Point[] = [];
+    const tileX = this.mathService.lon2tile(options.lon, 1); //tile z wartością po przecinku
+    const tileY = this.mathService.lat2tile(options.lat, 1);
+    const flooredTileX = Math.floor(tileX); // tile X
+    const flooredTileY = Math.floor(tileY); // Tile Y
+    const pinXCoordOnTile = tileX * 256; // współrzędna X środka okręgu
+    const pinYCoordOnTile = tileY * 256; // współrzędna Y środka okręgu
+    const validPoints: GeoPoint[] = [];
+
+    this.dataService.getGeoPoints().forEach((point) => {
+      const doesIntersect = this.mathService.lanLonIntersects(
+        options.lon,
+        options.lat,
+        options.r,
+        point.lon,
+        point.lat,
+      );
+
+      if (doesIntersect) {
+        validPoints.push(point);
+      }
+    });
 
     if (options.t) {
-      const coords = new TileCoordsDto();
-      coords.t = options.t;
-      coords.x = flooredTileX;
-      coords.y = flooredTileY;
-      coords.z = options.z;
-
-      const mainPreTile = this.dataService.getPreTile(coords);
-      const tile = this.tilesService.calculateTile(mainPreTile);
-
-      points = points.concat(
-        this.tilesService.calculateValidPoints(
-          tile,
-          pinXCoordOnTile,
-          pinYCoordOnTile,
-          options.r,
-        ),
+      const filteredValidPoints = validPoints.filter(
+        (point) => point.t == options.t,
       );
+
+      response.send(filteredValidPoints);
     }
 
-    if (!options.t) {
-      const years = [1999, 2000, 2001, 2002, 2003];
-      const tiles: Tile[] = [];
-      years.forEach((year) => {
-        const coords = new TileCoordsDto();
-        coords.t = year;
-        coords.x = flooredTileX;
-        coords.y = flooredTileY;
-        coords.z = options.z;
-
-        const mainPreTile = this.dataService.getPreTile(coords);
-        tiles.push(this.tilesService.calculateTile(mainPreTile));
-      });
-
-      tiles.forEach((tile) => {
-        points = points.concat(
-          this.tilesService.calculateValidPoints(
-            tile,
-            pinXCoordOnTile,
-            pinYCoordOnTile,
-            options.r,
-          ),
-        );
-      });
-    }
-
-    const render = this.tileRendererService.renderPoints(points);
-    response.send(render);
+    response.send(validPoints);
   }
 }

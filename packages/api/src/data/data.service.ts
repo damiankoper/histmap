@@ -11,7 +11,8 @@ import {
 } from 'pre-processor';
 import * as _ from 'lodash';
 import { GlobalStats } from './interfaces/global-stats.interface';
-import { AreaOptionsDto } from 'src/area/dto/area-options.dto';
+import { GeoPoint } from 'src/area/models/geo-point.model';
+import { MathService } from 'src/math/math.service';
 
 @Injectable()
 export class DataService {
@@ -19,6 +20,7 @@ export class DataService {
   private preTileMap: Map<string, PreTile> = new Map();
   private statsMap: Map<string, TileStats> = new Map();
   private publications: Map<number, Publication> = new Map();
+  private geoPoints: GeoPoint[] = [];
   public readonly globalStats: GlobalStats = {
     tMin: Infinity,
     tMax: -Infinity,
@@ -26,7 +28,7 @@ export class DataService {
     zMax: -Infinity,
   };
 
-  constructor() {
+  constructor(private mathService: MathService) {
     this.initJsonData();
   }
 
@@ -40,6 +42,19 @@ export class DataService {
     preData.preTiles.forEach((preTile) => {
       const key = this.getPreTileKey(preTile);
       this.preTileMap.set(key, preTile);
+      preTile.points.forEach((point) => {
+        const lat = this.mathService.tile2lat(
+          preTile.y + point.y / 256,
+          preTile.z,
+        );
+        const lon = this.mathService.tile2lon(
+          preTile.x + point.x / 256,
+          preTile.z,
+        );
+        this.geoPoints.push(
+          new GeoPoint(lon, lat, preTile.t, point.publications),
+        );
+      });
     });
 
     preData.stats.forEach((tileStats) => {
@@ -55,6 +70,10 @@ export class DataService {
 
   public getPublication(id: number): Publication {
     return this.publications.get(id);
+  }
+
+  public getGeoPoints(): GeoPoint[] {
+    return this.geoPoints;
   }
 
   computeGlobalStats(tileStats: TileStats): void {
