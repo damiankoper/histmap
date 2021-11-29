@@ -11,6 +11,8 @@ export class FilterService {
 
   constructor(private dataService: DataService) {}
   filter(tile: Tile, options: TileOptionsDto) {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const levenshtein = require('js-levenshtein');
     const properties = Object.keys(options);
 
     tile.points.forEach((point) => {
@@ -21,11 +23,20 @@ export class FilterService {
       });
     });
     // TODO: Levenshtein, zamienić or na and, paginacja
+    let loopCounter = 0;
     properties.forEach((prop) => {
-      const filtered = this.publicationsInTile.filter(
-        (v) => v[prop] === options[prop],
-      );
-      this.filteredPublications = this.filteredPublications.concat(filtered);
+      if (loopCounter == 0) {
+        // first loops filters publicationsInTile, another loops filter filteredPublications
+        this.filteredPublications = this.publicationsInTile.filter(
+          (v) => levenshtein(v[prop], options[prop]) <= 3,
+        );
+      } else {
+        this.filteredPublications = this.filteredPublications.filter(
+          (v) => levenshtein(v[prop], options[prop]) <= 3,
+        );
+      }
+
+      loopCounter++;
     });
 
     const filteredPublicationsIds = this.removeDuplicates(
