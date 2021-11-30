@@ -1,1 +1,6 @@
+/places.txt
+/places/*
+!/places/.gitkeep
+bn_geos_2.db
+db.json
 *.json
