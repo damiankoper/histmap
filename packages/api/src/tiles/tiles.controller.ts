@@ -42,7 +42,7 @@ export class TilesController {
     const mainPreTile = this.dataService.getPreTile(coords);
     const tile = this.tilesService.calculateTile(mainPreTile);
 
-    const filteredTile = this.filterService.filter(_.cloneDeep(tile), options);
+    const filteredTile = this.filterService.filter(tile, options);
 
     const stats = this.dataService.getTileStats(coords);
     const render = this.tileRendererService.render(filteredTile, stats);
