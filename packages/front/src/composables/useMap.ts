@@ -29,7 +29,13 @@ const DefaultIcon = L.icon({
 
 L.Marker.prototype.options.icon = DefaultIcon;
 
-export function useMap(container: Ref<HTMLElement | null>, year: Ref<number>) {
+export function useMap(
+  container: Ref<HTMLElement | null>,
+  year: Ref<number>,
+  place: Ref<string>,
+  author: Ref<string>,
+  title: Ref<string>
+) {
   const map: Ref<L.Map | null> = shallowRef(null);
   let circle: L.Circle | null = null;
   let marker: L.Marker | null = null;
@@ -41,8 +47,19 @@ export function useMap(container: Ref<HTMLElement | null>, year: Ref<number>) {
     );
   }
 
+  function setUrlWithQueryParams(heatMapLayer: L.TileLayer) {
+    heatMapLayer.setUrl(
+      `${process.env.VUE_APP_API_URL}/tiles/${year.value}/{z}/{x}/{y}.png?author=${author.value}&title=${title.value}&place=${place.value}`
+    );
+  }
+
   watch(year, () => {
     if (heatMapLayer) setUrl(heatMapLayer);
+  });
+
+  watch([place, author, title], () => {
+    console.log("rekłest");
+    if (heatMapLayer) setUrlWithQueryParams(heatMapLayer);
   });
 
   onMounted(() => {

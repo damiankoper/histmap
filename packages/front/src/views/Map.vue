@@ -13,6 +13,9 @@
         :search="mapSearch"
         :year="year"
         :global-stats="globalStats"
+        :place="place"
+        :author="author"
+        :title="title"
         @dblclick="onMapDblClick"
         @click="onMapClick"
         @zoom="onZoomChange"
@@ -20,8 +23,12 @@
     </div>
     <TimelineSlider v-model:year="year" :global-stats="globalStats" />
   </el-container>
-  <!-- TODO:  -->
-  <FormDrawer v-model:visible="formDialogVisible" />
+  <FormDrawer
+    v-model:visible="formDialogVisible"
+    v-model:place="place"
+    v-model:author="author"
+    v-model:title="title"
+  />
   <ListDrawer
     v-model:visible="listDialogVisible"
     :map-area="mapArea"
@@ -57,6 +64,9 @@ export default defineComponent({
   setup() {
     const year = ref(1990);
     const zoom = ref(1);
+    const place = ref("");
+    const author = ref("");
+    const title = ref("");
 
     const formDialogVisible = ref(false);
     const listDialogVisible = ref(false);
@@ -72,6 +82,9 @@ export default defineComponent({
     return {
       year,
       zoom,
+      place,
+      author,
+      title,
       mapSearch,
       mapArea,
       globalStats,

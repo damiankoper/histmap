@@ -19,6 +19,18 @@ export default defineComponent({
       type: Number,
       default: 0,
     },
+    place: {
+      type: String,
+      required: true,
+    },
+    author: {
+      type: String,
+      required: true,
+    },
+    title: {
+      type: String,
+      required: true,
+    },
     globalStats: {
       type: Object as PropType<GlobalStats | null>,
     },
@@ -33,7 +45,13 @@ export default defineComponent({
       setSearchResult,
       clearSearchResult,
       setZoomRange,
-    } = useMap(container, toRef(props, "year"));
+    } = useMap(
+      container,
+      toRef(props, "year"),
+      toRef(props, "place"),
+      toRef(props, "author"),
+      toRef(props, "title")
+    );
 
     onMounted(() => {
       watch(
