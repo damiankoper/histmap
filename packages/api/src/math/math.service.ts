@@ -72,6 +72,9 @@ export class MathService {
     );
   }
 
+  /**
+   * @see https://stackoverflow.com/questions/27928/calculate-distance-between-two-latitude-longitude-points-haversine-formula/27943#27943
+   */
   public lanLonIntersects(
     centerLon: number,
     centerLat: number,

@@ -24,6 +24,7 @@ export class AreaController {
       options.r = 128;
     }
 
+    // wydzielić do service
     const tileX = this.mathService.lon2tile(options.lon, 1); //tile z wartością po przecinku
     const tileY = this.mathService.lat2tile(options.lat, 1);
     const flooredTileX = Math.floor(tileX); // tile X
@@ -53,7 +54,7 @@ export class AreaController {
 
       response.send(filteredValidPoints);
     }
-
+    // paginacja połączyć z cache
     response.send(validPoints);
   }
 }

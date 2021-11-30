@@ -3,6 +3,7 @@ import { Publication } from 'pre-processor';
 import { DataService } from 'src/data/data.service';
 import { TileOptionsDto } from 'src/tiles/dto/tile-options.dto';
 import { Tile } from 'src/tiles/models/tile.model';
+import levenshtein from 'js-levenshtein';
 
 @Injectable()
 export class FilterService {
@@ -11,8 +12,6 @@ export class FilterService {
 
   constructor(private dataService: DataService) {}
   filter(tile: Tile, options: TileOptionsDto) {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const levenshtein = require('js-levenshtein');
     const properties = Object.keys(options);
 
     tile.points.forEach((point) => {
@@ -22,7 +21,7 @@ export class FilterService {
         );
       });
     });
-    // TODO: Levenshtein, zamienić or na and, paginacja
+    // TODO: paginacja
     let loopCounter = 0;
     properties.forEach((prop) => {
       if (loopCounter == 0) {
