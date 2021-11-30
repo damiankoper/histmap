@@ -8,6 +8,7 @@ typedef struct Publications {
 	// implicit id (by index)
 	char** title;
 	char** author;
+	char** publication_place;
 	int16_t* year;
 } Publications;
 
@@ -49,7 +50,7 @@ void PlacesEnsureCapacity(int32_t desired_capacity);
 void PublicationPlacesEnsureCapacity(int32_t desired_capacity);
 void TilePointsEnsureCapacity(int32_t desired_capacity);
 
-int32_t PublicationInsert(const char* title, const char* author, int16_t year);
+int32_t PublicationInsert(const char* title, const char* author, const char* publication_place, int16_t year);
 void PlaceInsert(char* name, float lat, float lon);
 bool PlaceTryGet(const char* name, int32_t* res);
 int32_t PlaceGetOrInsert(const char* name);
