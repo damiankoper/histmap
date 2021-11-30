@@ -1,7 +1,5 @@
 FROM base as build
 
-ENV VUE_APP_API_URL=/api
-
 COPY package*.json ./
 RUN npm install
 COPY . .
@@ -14,4 +12,4 @@ COPY package*.json ./
 
 RUN npm install --only=production 
 
-COPY --from=build /app/packages/front/dist ./dist
+COPY --from=build /app/packages/api/dist ./dist

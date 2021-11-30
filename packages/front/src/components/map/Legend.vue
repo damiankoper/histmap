@@ -1,9 +1,9 @@
 <template>
   <div class="legend-container">
     <el-row justify="space-between">
-      <el-col :span="NaN"> 0 </el-col>
-      <el-col :span="NaN"> Liczba publikacji </el-col>
-      <el-col :span="NaN">
+      <el-col :span="6"> 0 </el-col>
+      <el-col :span="10" style="text-align: center"> Liczba publikacji </el-col>
+      <el-col :span="6" style="text-align: right">
         <div v-if="data">
           {{ data.max }}
         </div>

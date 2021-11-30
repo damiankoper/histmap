@@ -34,38 +34,43 @@ export class DataService {
 
   private initJsonData(): void {
     this.logger.log('Loading JSON Tiles file');
-    const preData: Data = JSON.parse(
-      readFileSync(resolve(__dirname, '../../../../data/data.json'), 'utf-8'),
-    );
-    this.logger.log('JSON Tiles file loaded');
+    try {
+      const preData: Data = JSON.parse(
+        readFileSync(resolve(__dirname, '../../../../data/data.json'), 'utf-8'),
+      );
+      this.logger.log('JSON Tiles file loaded');
 
-    preData.preTiles.forEach((preTile) => {
-      const key = this.getPreTileKey(preTile);
-      this.preTileMap.set(key, preTile);
-      preTile.points.forEach((point) => {
-        const lat = this.mathService.tile2lat(
-          preTile.y + point.y / 256,
-          preTile.z,
-        );
-        const lon = this.mathService.tile2lon(
-          preTile.x + point.x / 256,
-          preTile.z,
-        );
-        this.geoPoints.push(
-          new GeoPoint(lon, lat, preTile.t, point.publications),
-        );
+      preData.preTiles.forEach((preTile) => {
+        const key = this.getPreTileKey(preTile);
+        this.preTileMap.set(key, preTile);
+        preTile.points.forEach((point) => {
+          const lat = this.mathService.tile2lat(
+            preTile.y + point.y / 256,
+            preTile.z,
+          );
+          const lon = this.mathService.tile2lon(
+            preTile.x + point.x / 256,
+            preTile.z,
+          );
+          this.geoPoints.push(
+            new GeoPoint(lon, lat, preTile.t, point.publications),
+          );
+        });
       });
-    });
 
-    preData.stats.forEach((tileStats) => {
-      const key = this.getTileStatsKey(tileStats);
-      this.statsMap.set(key, tileStats);
-      this.computeGlobalStats(tileStats);
-    });
+      preData.stats.forEach((tileStats) => {
+        const key = this.getTileStatsKey(tileStats);
+        this.statsMap.set(key, tileStats);
+        this.computeGlobalStats(tileStats);
+      });
 
-    preData.publications.forEach((publication) => {
-      this.publications.set(publication.id, publication);
-    });
+      preData.publications.forEach((publication) => {
+        this.publications.set(publication.id, publication);
+      });
+    } catch (e) {
+      this.logger.error('JSON Tiles file loading error!');
+      this.logger.error(e);
+    }
   }
 
   public getPublication(id: number): Publication {

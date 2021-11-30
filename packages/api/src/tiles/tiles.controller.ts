@@ -17,7 +17,6 @@ import { Response } from 'express';
 import { TileRendererService } from './tile-renderer.service';
 import * as _ from 'lodash';
 import { ApiTags } from '@nestjs/swagger';
-import { Cache } from 'cache-manager';
 
 import { TileMetaCoords, TileStats } from 'pre-processor';
 import { GlobalStats } from 'src/data/interfaces/global-stats.interface';
@@ -32,7 +31,6 @@ export class TilesController {
     private filterService: FilterService,
     private dataService: DataService,
     private tileRendererService: TileRendererService,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   @Get('/stats/global')
@@ -52,11 +50,10 @@ export class TilesController {
     @Query() options: TileOptionsDto,
     @Res() response: Response,
   ): Promise<void> {
-    const cacheEnabled = true;
     const cacheKey = this.getCacheKey(coords, options);
     const renderFromCache = this.tilesCache.get(cacheKey);
 
-    if (!renderFromCache || !cacheEnabled) {
+    if (!renderFromCache && !this.hasFilters(options)) {
       const mainPreTile = this.dataService.getPreTile(coords);
       const tile = this.tilesService.calculateTile(mainPreTile);
 
@@ -70,6 +67,12 @@ export class TilesController {
     } else {
       response.send(renderFromCache);
     }
+  }
+
+  private hasFilters(options: TileOptionsDto) {
+    return (
+      options.author.length + options.title.length + options.place.length > 0
+    );
   }
 
   private getCacheKey(coords: TileCoordsDto, options: TileOptionsDto): string {

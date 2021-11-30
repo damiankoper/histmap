@@ -1,0 +1,19 @@
+---
+version: "3.9"
+services:
+  api:
+    build: .
+    image: kopernick/histmap-api:latest
+    command: 'npx lerna run --scope api --stream start:prod'
+    expose:
+      - 3000
+
+  front-proxy:
+    build:
+      dockerfile: ./docker/Dockerfile.proxy
+      context: .
+    image: kopernick/histmap-front-proxy:latest
+    ports:
+      - 80:80
+    depends_on:
+      - api
