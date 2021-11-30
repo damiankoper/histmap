@@ -1,50 +1,31 @@
 import { Injectable } from '@nestjs/common';
-import { Publication } from 'pre-processor';
 import { DataService } from 'src/data/data.service';
 import { TileOptionsDto } from 'src/tiles/dto/tile-options.dto';
 import { Tile } from 'src/tiles/models/tile.model';
+import levenshtein from 'js-levenshtein';
 
 @Injectable()
 export class FilterService {
-  private publicationsInTile: Publication[] = [];
-  private filteredPublications: Publication[] = [];
-
   constructor(private dataService: DataService) {}
-  filter(tile: Tile, options: TileOptionsDto) {
-    const properties = Object.keys(options);
 
+  public filter(tile: Tile, options: TileOptionsDto) {
     tile.points.forEach((point) => {
-      point.publications.forEach((publication) => {
-        this.publicationsInTile.push(
-          this.dataService.getPublication(publication),
-        );
+      point.publications = point.publications.filter((id) => {
+        const pub = this.dataService.getPublication(id);
+
+        const title =
+          !options.title?.length || levenshtein(pub.title, options.title) <= 3;
+
+        const author =
+          !options.author?.length ||
+          levenshtein(pub.author, options.author) <= 3;
+
+        const place =
+          !options.place?.length ||
+          pub.places.some((place) => levenshtein(place, options.place) <= 3);
+
+        return title && author && place;
       });
-    });
-
-    properties.forEach((prop) => {
-      const filtered = this.publicationsInTile.filter(
-        (v) => v[prop] === options[prop],
-      );
-      this.filteredPublications = this.filteredPublications.concat(filtered);
-    });
-
-    const filteredPublicationsIds = this.removeDuplicates(
-      this.filteredPublications,
-    ).map((x) => x.id);
-
-    tile.points.forEach((point) => {
-      point.publications = point.publications.filter((item) =>
-        filteredPublicationsIds.includes(item),
-      );
-    });
-
-    return tile;
-  }
-
-  private removeDuplicates(array: Publication[]) {
-    const seen = {};
-    return array.filter(function (item) {
-      return seen.hasOwnProperty(item.id) ? false : (seen[item.id] = true);
     });
   }
 }

@@ -1,4 +1,13 @@
-import { Controller, Get, Header, Param, Query, Res } from '@nestjs/common';
+import {
+  CACHE_MANAGER,
+  Controller,
+  Get,
+  Header,
+  Inject,
+  Param,
+  Query,
+  Res,
+} from '@nestjs/common';
 import { TilesService } from './tiles.service';
 import { FilterService } from '../filter/filter.service';
 import { DataService } from 'src/data/data.service';
@@ -8,6 +17,7 @@ import { Response } from 'express';
 import { TileRendererService } from './tile-renderer.service';
 import * as _ from 'lodash';
 import { ApiTags } from '@nestjs/swagger';
+import { Cache } from 'cache-manager';
 
 import { TileMetaCoords, TileStats } from 'pre-processor';
 import { GlobalStats } from 'src/data/interfaces/global-stats.interface';
@@ -15,11 +25,14 @@ import { GlobalStats } from 'src/data/interfaces/global-stats.interface';
 @ApiTags('tiles')
 @Controller('tiles')
 export class TilesController {
+  private tilesCache = new Map<string, Buffer>();
+
   constructor(
     private tilesService: TilesService,
     private filterService: FilterService,
     private dataService: DataService,
     private tileRendererService: TileRendererService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   @Get('/stats/global')
@@ -36,19 +49,32 @@ export class TilesController {
   @Header('Content-Type', 'image/png')
   async getTile(
     @Param() coords: TileCoordsDto,
-    @Query() options: TileOptionsDto, // TODO: future options
+    @Query() options: TileOptionsDto,
     @Res() response: Response,
   ): Promise<void> {
-    const mainPreTile = this.dataService.getPreTile(coords);
-    const tile = this.tilesService.calculateTile(mainPreTile);
+    const cacheEnabled = true;
+    const cacheKey = this.getCacheKey(coords, options);
+    const renderFromCache = this.tilesCache.get(cacheKey);
 
-    const filteredTile = this.filterService.filter(tile, options);
+    if (!renderFromCache || !cacheEnabled) {
+      const mainPreTile = this.dataService.getPreTile(coords);
+      const tile = this.tilesService.calculateTile(mainPreTile);
 
-    const stats = this.dataService.getTileStats(coords);
-    const render = this.tileRendererService.render(filteredTile, stats);
+      this.filterService.filter(tile, options);
 
-    // TODO: cache render here in CacheService with key built from coords and options
+      const stats = this.dataService.getTileStats(coords);
+      const render = this.tileRendererService.render(tile, stats);
 
-    response.send(render);
+      response.send(render);
+      this.tilesCache.set(cacheKey, render);
+    } else {
+      response.send(renderFromCache);
+    }
+  }
+
+  private getCacheKey(coords: TileCoordsDto, options: TileOptionsDto): string {
+    return `${coords.t}.${coords.z}.${coords.x}.${coords.y}.${
+      options.author || ''
+    }.${options.place || ''}.${options.title || ''}`;
   }
 }

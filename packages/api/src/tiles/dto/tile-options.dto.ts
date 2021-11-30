@@ -1,10 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsOptional, IsString } from 'class-validator';
-import { PublicationInfo } from 'pre-processor';
 
-// TODO: Tile drawing + filter options to be passed to renderer
-export class TileOptionsDto implements PublicationInfo {
+export class TileOptionsDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @Type(() => String)

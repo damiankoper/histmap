@@ -4,10 +4,14 @@ import { Tile } from 'src/tiles/models/tile.model';
 import { PreTile } from 'pre-processor';
 import { DataService } from 'src/data/data.service';
 import { PreTileSetItem } from './models/pre-tile-set-item.model';
+import { MathService } from 'src/math/math.service';
 
 @Injectable()
 export class TilesService {
-  constructor(private dataService: DataService) {}
+  constructor(
+    private dataService: DataService,
+    private mathService: MathService,
+  ) {}
 
   public calculateTile(mainPreTile: PreTile): Tile {
     const set = this.getPreTileSet(mainPreTile);
@@ -24,7 +28,9 @@ export class TilesService {
           const relativeX = setItem.offsetX * tileSize + point.x;
           const relativeY = setItem.offsetY * tileSize + point.y;
 
-          if (this.intersects(relativeX, relativeY, gradientRadius)) {
+          if (
+            this.mathService.intersects(relativeX, relativeY, gradientRadius)
+          ) {
             point.x = relativeX;
             point.y = relativeY;
             tile.points.push(point);
@@ -55,57 +61,4 @@ export class TilesService {
 
     return set;
   }
-
-  /**
-   * @see https://stackoverflow.com/questions/401847/circle-rectangle-collision-detection-intersection
-   */
-  private intersects(x: number, y: number, radius: number): boolean {
-    const maxOfTile = 256;
-    const middleOfTile = maxOfTile / 2;
-
-    const circleDistanceX = Math.abs(x - middleOfTile);
-    const circleDistanceY = Math.abs(y - middleOfTile);
-    const maxDistance = middleOfTile + radius;
-
-    if (circleDistanceX > maxDistance || circleDistanceY > maxDistance) {
-      return false;
-    }
-    if (circleDistanceX <= middleOfTile || circleDistanceY <= middleOfTile) {
-      return true;
-    }
-
-    const cornerDistanceSq =
-      Math.pow(circleDistanceX - middleOfTile, 2) +
-      Math.pow(circleDistanceY - middleOfTile, 2);
-
-    return cornerDistanceSq <= Math.pow(radius, 2);
-  }
-
-  // wzory z miro, prawdopodobnie do wywalenia - przydadzą się do filtrowania obszarowego
-  // private lon2tile(lon, zoom) {
-  //   return Math.floor(((lon + 180) / 360) * Math.pow(2, zoom));
-  // }
-
-  // private lat2tile(lat, zoom) {
-  //   return Math.floor(
-  //     ((1 -
-  //       Math.log(
-  //         Math.tan((lat * Math.PI) / 180) + 1 / Math.cos((lat * Math.PI) / 180),
-  //       ) /
-  //         Math.PI) /
-  //       2) *
-  //       Math.pow(2, zoom),
-  //   );
-  // }
-  // private tile2lon(x, z) {
-  //   const longitute = (x / Math.pow(2, z)) * 360 - 180;
-  //   return longitute;
-  // }
-
-  // private tile2lat(y, z) {
-  //   const n = Math.PI - (2 * Math.PI * y) / Math.pow(2, z);
-  //   const latitude =
-  //     (180 / Math.PI) * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n)));
-  //   return latitude;
-  // }
 }

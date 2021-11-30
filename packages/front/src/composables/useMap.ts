@@ -60,8 +60,8 @@ export function useMap(container: Ref<HTMLElement | null>, year: Ref<number>) {
     });
 
     heatMapLayer = L.tileLayer("", {
-      attribution: "&copy; Rainviewer",
       maxZoom: 10,
+      opacity: 0.9,
     });
     setUrl(heatMapLayer);
 
