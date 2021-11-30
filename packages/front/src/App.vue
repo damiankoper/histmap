@@ -10,9 +10,9 @@ body {
   height: 100%;
   margin: 0;
   padding: 0;
-}
-
-#app {
   font-family: "Lato", sans-serif;
+}
+.el-notification {
+  z-index: 999999 !important;
 }
 </style>

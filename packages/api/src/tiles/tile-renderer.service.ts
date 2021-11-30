@@ -25,10 +25,12 @@ export class TileRendererService {
 
   private mapToRenderTile(tilePoints: Point[], max: number): RenderTile {
     return {
-      points: tilePoints.map((point) => ({
-        ...point,
-        value: point.publications.length,
-      })),
+      points: tilePoints
+        .map((point) => ({
+          ...point,
+          value: point.publications.length,
+        }))
+        .filter((point) => point.value),
       max,
     };
   }

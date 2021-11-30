@@ -76,7 +76,8 @@ export default defineComponent({
         () => props.globalStats,
         () => {
           if (props.globalStats) setZoomRange(props.globalStats);
-        }
+        },
+        { immediate: true }
       );
 
       if (map.value) {

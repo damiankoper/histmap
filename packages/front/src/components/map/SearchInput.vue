@@ -1,7 +1,9 @@
 <template>
   <div class="search-container" ref="searchContainer">
     <div class="search-input">
-      <MenuBurger @click="$emit('click')" />
+      <el-badge style="z-index: 9" is-dot :hidden="!hasFilters">
+        <MenuBurger @click="$emit('click')" />
+      </el-badge>
       <el-input
         v-model="input"
         :placeholder="selected ? placeholder : 'Szukaj miejsca'"
@@ -57,6 +59,7 @@ export default defineComponent({
   components: { MenuBurger, LocationCard },
   props: {
     modelValue: { type: String, default: "" },
+    hasFilters: { type: Boolean, default: false },
   },
   emits: ["location", "click"],
   setup(props, { emit }) {

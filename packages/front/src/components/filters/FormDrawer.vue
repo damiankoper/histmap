@@ -2,7 +2,7 @@
   <div>
     <el-drawer
       :model-value="visible"
-      @close="$emit('update:visible', false)"
+      @close="onClose"
       direction="ltr"
       custom-class="drawer"
       :size="386"
@@ -21,20 +21,32 @@
           <el-form-item label="Tytul">
             <el-input
               v-model="titleInner"
+              @keypress.enter="onSubmit"
               placeholder="Tytuł publikacji lub jego część"
             />
           </el-form-item>
           <el-form-item label="Miejsce">
-            <el-input v-model="placeInner" placeholder="Miejsce publikacji" />
+            <el-input
+              v-model="placeInner"
+              @keypress.enter="onSubmit"
+              placeholder="Miejsce publikacji"
+            />
           </el-form-item>
           <el-form-item label="Autor">
-            <el-input v-model="authorInner" placeholder="Autor publikacji" />
+            <el-input
+              v-model="authorInner"
+              @keypress.enter="onSubmit"
+              placeholder="Autor publikacji"
+            />
           </el-form-item>
         </el-form>
 
         <el-row justify="end">
-          <el-button :loading="loading" @click="onSubmit">
-            {{ loading ? "Ładowanie..." : "Filtruj" }}
+          <el-button :loading="loading" @click="clearForm">
+            Usuń filtry
+          </el-button>
+          <el-button type="primary" :loading="loading" @click="onSubmit">
+            Filtruj
           </el-button>
         </el-row>
       </div>
@@ -86,14 +98,15 @@ export default defineComponent({
     "update:title",
   ],
   setup(props, { emit }) {
-    const loading = ref(false);
     const helpVisible = ref(false);
     const placeInner = ref("");
     const authorInner = ref("");
     const titleInner = ref("");
 
-    const cancelForm = () => {
-      loading.value = false;
+    const clearForm = () => {
+      placeInner.value = "";
+      authorInner.value = "";
+      titleInner.value = "";
     };
 
     watchEffect(() => {
@@ -111,13 +124,18 @@ export default defineComponent({
     };
 
     return {
-      loading,
       placeInner,
       authorInner,
       titleInner,
-      cancelForm,
+      clearForm,
       onSubmit,
       helpVisible,
+      onClose() {
+        placeInner.value = props.place;
+        authorInner.value = props.author;
+        titleInner.value = props.title;
+        emit("update:visible", false);
+      },
     };
   },
 });

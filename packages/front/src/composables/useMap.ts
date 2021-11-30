@@ -43,23 +43,12 @@ export function useMap(
 
   function setUrl(heatMapLayer: L.TileLayer) {
     heatMapLayer.setUrl(
-      `${process.env.VUE_APP_API_URL}/tiles/${year.value}/{z}/{x}/{y}.png`
-    );
-  }
-
-  function setUrlWithQueryParams(heatMapLayer: L.TileLayer) {
-    heatMapLayer.setUrl(
       `${process.env.VUE_APP_API_URL}/tiles/${year.value}/{z}/{x}/{y}.png?author=${author.value}&title=${title.value}&place=${place.value}`
     );
   }
 
-  watch(year, () => {
+  watch([year, place, author, title], () => {
     if (heatMapLayer) setUrl(heatMapLayer);
-  });
-
-  watch([place, author, title], () => {
-    console.log("rekłest");
-    if (heatMapLayer) setUrlWithQueryParams(heatMapLayer);
   });
 
   onMounted(() => {
@@ -73,12 +62,10 @@ export function useMap(
 
     const osmLayer = L.tileLayer(osmTileURL, {
       attribution: osmTileAttr,
-      maxZoom: 10,
     });
 
     heatMapLayer = L.tileLayer("", {
-      maxZoom: 10,
-      opacity: 0.9,
+      opacity: 0.75,
     });
     setUrl(heatMapLayer);
 

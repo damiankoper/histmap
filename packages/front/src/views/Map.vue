@@ -2,7 +2,11 @@
   <el-container class="container" direction="vertical">
     <div style="position: relative; height: 100%">
       <div class="search-wrapper">
-        <SearchInput @location="onLocation" @click="formDialogVisible = true" />
+        <SearchInput
+          @location="onLocation"
+          @click="formDialogVisible = true"
+          :has-filters="!!(title + author + place).length"
+        />
       </div>
       <div class="legend-wrapper">
         <Legend :year="year" :zoom="zoom" />
@@ -38,7 +42,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref } from "vue";
+import { defineComponent, onMounted, ref, watch } from "vue";
 import Footer from "../components/layout/Footer.vue";
 import SearchInput from "../components/map/SearchInput.vue";
 import Map from "../components/map/Map.vue";
@@ -50,6 +54,7 @@ import ListDrawer from "../components/publications/ListDrawer.vue";
 import Legend from "@/components/map/Legend.vue";
 import useApi from "@/composables/useApi";
 import { GlobalStats } from "@/interfaces/GlobalStats";
+import { ElNotification } from "element-plus";
 
 export default defineComponent({
   components: {
@@ -79,6 +84,10 @@ export default defineComponent({
 
     onMounted(fetch);
 
+    watch(listDialogVisible, (v) => {
+      if (!v) mapArea.value = null;
+    });
+
     return {
       year,
       zoom,
@@ -100,6 +109,15 @@ export default defineComponent({
           radius: r,
         };
         listDialogVisible.value = true;
+
+        if ((title.value + author.value + place.value).length)
+          ElNotification({
+            title: "Wyszyszczono filtry",
+            type: "info",
+          });
+        title.value = "";
+        author.value = "";
+        place.value = "";
       },
       onZoomChange(z: number) {
         zoom.value = z;
