@@ -107,6 +107,7 @@ export default defineComponent({
       placeInner.value = "";
       authorInner.value = "";
       titleInner.value = "";
+      onSubmit();
     };
 
     watchEffect(() => {

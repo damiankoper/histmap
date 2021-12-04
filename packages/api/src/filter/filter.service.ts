@@ -27,7 +27,8 @@ export class FilterService {
 
         const place =
           !options.place.length ||
-          pub.places.some((place) => fuzzy(place, options.place) > 0.5);
+          (pub.publicationPlace.length &&
+            fuzzy(pub.publicationPlace, options.place) > 0.5);
 
         return title && author && place;
       });

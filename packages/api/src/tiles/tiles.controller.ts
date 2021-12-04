@@ -53,7 +53,7 @@ export class TilesController {
     const cacheKey = this.getCacheKey(coords, options);
     const renderFromCache = this.tilesCache.get(cacheKey);
 
-    if (!renderFromCache && !this.hasFilters(options)) {
+    if (!renderFromCache || this.hasFilters(options)) {
       const mainPreTile = this.dataService.getPreTile(coords);
       const tile = this.tilesService.calculateTile(mainPreTile);
 

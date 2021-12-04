@@ -65,7 +65,7 @@ export function useMap(
     });
 
     heatMapLayer = L.tileLayer("", {
-      opacity: 0.75,
+      opacity: 0.8,
     });
     setUrl(heatMapLayer);
 

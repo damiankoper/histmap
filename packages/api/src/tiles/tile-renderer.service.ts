@@ -11,7 +11,7 @@ export class TileRendererService {
     this.renderer = new RendererService({
       blur: 20,
       radius: 30,
-      minOpacity: 0.2,
+      minOpacity: 0.3,
     });
   }
 
