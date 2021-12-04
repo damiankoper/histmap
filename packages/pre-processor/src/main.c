@@ -14,7 +14,7 @@
 
 #define M_PI 3.14159265358979323846
 #define M_PIf 3.14159265358979323846f
-#define MAX_ZOOM_LEVEL 8
+#define MAX_ZOOM_LEVEL 13
 #define TILE_PIXEL_SIZE 256
 
 const char* const INPUT_DB_FILEPATH = "../../data/bn_geos_2.db";
@@ -23,7 +23,7 @@ const char* const OUTPUT_DB_FILEPATH = "../../data/db.json";
 const char* const GEOCODE_INPUT_FILEPATH = "../../data/places.txt";
 const char* const GEOCODE_RESULT_DIR = "../../data/places/";
 
-static int32_t tile_stats[MAX_ZOOM_LEVEL * 256];
+static int32_t tile_stats[(MAX_ZOOM_LEVEL + 1) * 256];
 static char geocode_json_buffer[24576];
 
 #ifdef _WIN32
@@ -105,16 +105,17 @@ static void Extract(const char* intputDbFilename)
 	int64_t bookCount = GetInt64(db, "SELECT COUNT(*) FROM BOOKS WHERE GEOGRAPHIC_NAMES != ''");
 	printf("There are %" PRId64 " publications with geographic names.\n", bookCount);
 
-	sqlite3_prepare_v2(db, "SELECT TITLE, AUTHORS, YEAR, GEOGRAPHIC_NAMES FROM BOOKS WHERE GEOGRAPHIC_NAMES != ''", -1, &stmt, NULL);
+	sqlite3_prepare_v2(db, "SELECT TITLE, AUTHORS, YEAR, GEOGRAPHIC_NAMES, PUBLICATION_PLACES FROM BOOKS WHERE GEOGRAPHIC_NAMES != ''", -1, &stmt, NULL);
 
 	printf("Extracting publications and places...\n");
 	while (sqlite3_step(stmt) == SQLITE_ROW)
 	{
 		const char* title = (const char*)sqlite3_column_text(stmt, 0);
 		const char* author = (const char*)sqlite3_column_text(stmt, 1);
+		const char* publication_place = (const char*)sqlite3_column_text(stmt, 4);
 		int16_t year = (int16_t)sqlite3_column_int(stmt, 2);
 
-		int32_t publication_id = PublicationInsert(title, author, year);
+		int32_t publication_id = PublicationInsert(title, author, publication_place, year);
 
 		const char* geoNames = (const char*)sqlite3_column_text(stmt, 3);
 		while (true)
@@ -203,11 +204,13 @@ static void Precalculate()
 	bool first_tile = true;
 	int32_t current_count = 0;
 	uint64_t last_tile_id;
+	uint16_t last_tile_point;
 	for (int32_t rowid = 0; rowid < tilePoints.count; ++rowid)
 	{
 		uint64_t tile_id = tilePoints.tile_id[rowid];
+		uint16_t tile_point = ((uint16_t)tilePoints.x[rowid] << 8) | tilePoints.y[rowid];
 
-		if (first_tile || tile_id != last_tile_id)
+		if (first_tile || tile_id != last_tile_id || tile_point != last_tile_point)
 		{
 			if (first_tile) first_tile = false;
 			else
@@ -220,6 +223,7 @@ static void Precalculate()
 			}
 
 			last_tile_id = tile_id;
+			last_tile_point = tile_point;
 			current_count = 0;
 		}
 
@@ -270,12 +274,15 @@ static void Dump(FILE* out)
 
 		const char* title = publications.title[rowid];
 		const char* author = publications.author[rowid];
+		const char* publication_place = publications.publication_place[rowid];
 		int16_t year = publications.year[rowid];
 
 		fprintf(out, "{\"id\":%" PRId32 ",\"title\":", rowid);
 		PrintJsonString(out, title);
 		fprintf(out, ",\"author\":");
 		PrintJsonString(out, author);
+		fprintf(out, ",\"publicationPlace\":");
+		PrintJsonString(out, publication_place);
 		fprintf(out, ",\"places\":[],\"year\":%d}", year); // TODO Places for debug data.
 	}
 
@@ -312,7 +319,7 @@ static void Dump(FILE* out)
 
 		uint8_t pixel_x = tilePoints.x[rowid];
 		uint8_t pixel_y = tilePoints.y[rowid];
-		if (first_point || (last_x != pixel_x && last_y != pixel_y))
+		if (first_point || last_x != pixel_x || last_y != pixel_y)
 		{
 			if (first_point) first_point = false;
 			else fprintf(out, "]},\n");

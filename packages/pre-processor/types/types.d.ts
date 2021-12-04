@@ -9,6 +9,7 @@ export interface Publication {
     id: number
     title: string
     author: string
+    publicationPlace: string
     places: string[]
     year: number
 }

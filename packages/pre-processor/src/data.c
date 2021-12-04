@@ -25,6 +25,7 @@ void PublicationsEnsureCapacity(int32_t desired_capacity)
 	EC_I(publications, title);
 	EC_I(publications, author);
 	EC_I(publications, year);
+	EC_I(publications, publication_place);
 }
 
 void PlacesEnsureCapacity(int32_t desired_capacity)
@@ -54,21 +55,25 @@ void TilePointsEnsureCapacity(int32_t desired_capacity)
 #undef EC_H
 #undef EC_I
 
-int32_t PublicationInsert(const char* title, const char* author, int16_t year)
+int32_t PublicationInsert(const char* title, const char* author, const char* publication_place, int16_t year)
 {
 	PublicationsEnsureCapacity(publications.count + 1);
 
 	size_t title_len = strlen(title);
 	size_t author_len = strlen(author);
+	size_t publication_place_len = strlen(publication_place);
 
 	char* title_copy = malloc(title_len + 1);
 	char* author_copy = malloc(author_len + 1);
+	char* publication_place_copy = malloc(publication_place_len + 1);
 
 	strcpy(title_copy, title);
 	strcpy(author_copy, author);
+	strcpy(publication_place_copy, publication_place);
 
 	publications.title[publications.count] = title_copy;
 	publications.author[publications.count] = author_copy;
+	publications.publication_place[publications.count] = publication_place_copy;
 	publications.year[publications.count] = year;
 
 	return publications.count++;
