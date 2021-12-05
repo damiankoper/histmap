@@ -4,7 +4,9 @@
     :model-value="modelValue"
     @close="$emit('update:modelValue', false)"
   >
-    <div class="markdown-body" v-html="help"></div>
+    <el-scrollbar height="500px">
+      <div class="markdown-body" v-html="help"></div>
+    </el-scrollbar>
   </el-dialog>
 </template>
 
@@ -28,4 +30,9 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.markdown-body :deep(p) {
+  word-break: normal;
+  text-align: justify;
+}
+</style>
