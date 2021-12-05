@@ -4,7 +4,7 @@ Mapa prezentuje świat wraz z nałożoną mapą ciepła. Legenda pokazuje, zale�
 
 ## Slider i czas
 
-U dołu ekranu znajduje się interaktywny slider. Reprezentuje on oś czasu. Możliwe jest zarówno manualne ustawienie roku, jak i uruchomienie trybu prezentacji.
+U dołu ekranu znajduje się interaktywny slider. Reprezentuje on oś czasu. Możliwe jest zarówno manualne ustawienie roku, jak i uruchomienie trybu prezentacji przez kliknięcie przycisku, lub naciśnięcie spacji.
 
 Tryb prezentacji dostępny jest w trzech prędkościach: wolnej, normalnej i szybkiej, symbolizowanych przez ikony zwierząt. Prezentacje można w dowolnym miejscu zatrzymać.
 
