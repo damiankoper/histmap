@@ -1,6 +1,6 @@
 ## Mapa
 
-Mapa prezentuje świat wraz z nałożoną mapą ciepła. Legenda pokazuje, zależność koloru od liczby publikacji w danym obszarze. Mapę można zarówno przybliżać i oddalać. Wtedy legenda dostosuje się do nowego widocznego obszaru.
+Mapa prezentuje świat wraz z nałożoną mapą ciepła. Legenda pokazuje, zależność koloru od liczby publikacji w danym obszarze. Mapę można zarówno przybliżać i oddalać. Wtedy legenda dostosuje się do nowego widocznego obszaru. Istnieje możliwość wyszukania miejscowości, przez wpisanie jej nazwy w formularzu w lewym górnym rogu ekranu.
 
 ## Slider i czas
 

@@ -85,10 +85,10 @@ export default defineComponent({
     };
 
     const token =
-      "pk.eyJ1IjoiaGVycmdlcnIiLCJhIjoiY2t2cWwyOHhpMjQ1bTJ4b3U5cjBzem10NSJ9.biRPWndoVnsjQDiNDTssSQ";
+      "pk.eyJ1IjoiaGVycmdlcnIiLCJhIjoiY2t3dDNpMXpyMWNkbjJvcDNpeGhyZDd3MCJ9.lqGPz68Zp9YpALPHNbrtYw";
     const { fetch, data, err, loading } = useApi<ApiLocation>(() =>
       encodeURI(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${input.value}.json?access_token=${token}`
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${input.value}.json?types=place&language=pl&access_token=${token}`
       )
     );
     function clickAwayHandler(event: MouseEvent) {
