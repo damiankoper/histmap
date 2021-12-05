@@ -7,6 +7,7 @@
       <el-input
         v-model="input"
         :placeholder="selected ? placeholder : 'Szukaj miejsca'"
+        @keydown="markOption"
       />
       <i
         v-if="selected"
@@ -22,16 +23,19 @@
     </div>
 
     <LocationCard
-      v-for="location in locationsList"
+      v-for="(location, index) in locationsList"
       :key="location.id"
       :location="location"
+      :focus="index === focus"
       @click="locationClicked(location)"
+      @mouseover="focus = index"
     />
     <LocationCard
       v-if="displayEmpty"
       :location="{ label: 'Brak wyników wyszukiwania' }"
       :error="!!err"
       :loading="loading"
+      :focus="false"
       empty-results
     />
   </div>
@@ -52,6 +56,7 @@ import ApiLocation from "../../interfaces/ApiLocation";
 import ApiLocationDetails from "../../interfaces/ApiLocationDetails";
 import useApi from "../../composables/useApi";
 import { MapSearchResult } from "@/composables/useMap";
+import { useKeypress } from "vue3-keypress";
 import * as L from "leaflet";
 import _ from "lodash";
 
@@ -68,6 +73,22 @@ export default defineComponent({
     const initialSearch = ref(false);
     const selected = ref(false);
     const placeholder = ref("");
+    const focus = ref<number>(0);
+
+    const selectLocation = () => {
+      const choosenLocation = locationsList.value[focus.value];
+      locationClicked(choosenLocation);
+    };
+
+    useKeypress({
+      keyEvent: "keydown",
+      keyBinds: [
+        {
+          keyCode: "enter",
+          success: selectLocation,
+        },
+      ],
+    });
 
     const locationClicked = (location: MapSearchResult) => {
       emit("location", location);
@@ -147,6 +168,27 @@ export default defineComponent({
       );
     });
 
+    const markOption = (event: KeyboardEvent) => {
+      switch (event.key) {
+        case "ArrowDown":
+          if (focus.value === null) {
+            focus.value = 0;
+          } else if (focus.value < locationsList.value.length - 1) {
+            focus.value++;
+          } else if (focus.value == locationsList.value.length - 1) {
+            focus.value = 0;
+          }
+          break;
+        case "ArrowUp":
+          if (focus.value === null) {
+            focus.value = 0;
+          } else if (focus.value > 0) {
+            focus.value--;
+          }
+          break;
+      }
+    };
+
     watch(
       input,
       _.debounce(async () => {
@@ -164,6 +206,8 @@ export default defineComponent({
     return {
       searchContainer,
       err,
+      focus,
+      markOption,
       selected,
       loading,
       input,
