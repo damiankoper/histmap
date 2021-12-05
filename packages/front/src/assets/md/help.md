@@ -1,17 +1,17 @@
 ## Mapa
 
-Praesent turpis. Aliquam erat volutpat.. In consectetuer turpis ut velit.
+Mapa prezentuje świat wraz z nałożoną mapą ciepła. Legenda pokazuje, zależność koloru od liczby publikacji w danym obszarze. Mapę można zarówno przybliżać i oddalać. Wtedy legenda dostosuje się do nowego widocznego obszaru.
 
 ## Slider i czas
 
-Praesent ut ligula non mi varius sagittis. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Fusce vel dui. Sed a libero. Quisque id mi.
+U dołu ekranu znajduje się interaktywny slider. Reprezentuje on oś czasu. Możliwe jest zarówno manualne ustawienie roku, jak i uruchomienie trybu prezentacji.
 
-Donec vitae orci sed dolor rutrum auctor. Vestibulum purus quam, scelerisque ut, mollis sed, nonummy id, metus. Praesent egestas tristique nibh. Pellentesque dapibus hendrerit tortor. Morbi vestibulum volutpat enim.
+Tryb prezentacji dostępny jest w trzech prędkościach: wolnej, normalnej i szybkiej, symbolizowanych przez ikony zwierząt. Prezentacje można w dowolnym miejscu zatrzymać.
 
 ## Filtrowanie
 
-Cras sagittis. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Phasellus tempus. Nunc sed turpis. Fusce a quam.
+Nacięnięcie przycisku menu w lewym górnym rogu, powoduje dostęp do filtracji widocznych wyników.
 
 ## Pozycje z danego miejsca na mapie
 
-Nunc egestas, augue at pellentesque laoreet, felis eros vehicula leo, at malesuada velit leo quis pede. Vivamus laoreet. Nullam cursus lacinia erat. Nunc nec neque. Fusce a quam.
+Dwuktrotne kliknięcie na mapę, powoduje zaznaczenie pewnego obszaru, oznaczonego czerwonym kołem. Publikacje znajdujące się wewnątrz tego koła ukarzą się na liście z lewej strony ekranu.
