@@ -13,7 +13,6 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { useKeypress } from "vue3-keypress";
 
 export default defineComponent({
   props: {
@@ -23,18 +22,5 @@ export default defineComponent({
     },
   },
   emits: ["click"],
-  setup(props, { emit }) {
-    useKeypress({
-      keyEvent: "keydown",
-      keyBinds: [
-        {
-          keyCode: "space",
-          success: () => {
-            emit("click");
-          },
-        },
-      ],
-    });
-  },
 });
 </script>

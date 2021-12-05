@@ -10,7 +10,7 @@ Tryb prezentacji dostępny jest w trzech prędkościach: wolnej, normalnej i szy
 
 ## Filtrowanie
 
-Nacięnięcie przycisku menu w lewym górnym rogu, powoduje dostęp do filtracji widocznych wyników.
+Nacięnięcie przycisku menu w lewym górnym rogu, powoduje dostęp do filtracji widocznych wyników. Czerwony znak przy menu, oznacza, że założony jest filtr
 
 ## Pozycje z danego miejsca na mapie
 

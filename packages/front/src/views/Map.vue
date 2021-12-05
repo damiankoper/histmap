@@ -25,7 +25,12 @@
         @zoom="onZoomChange"
       />
     </div>
-    <TimelineSlider v-model:year="year" :global-stats="globalStats" />
+    <TimelineSlider
+      v-model:year="year"
+      :global-stats="globalStats"
+      :formDialogVisible="formDialogVisible"
+      :listDialogVisible="listDialogVisible"
+    />
   </el-container>
   <FormDrawer
     v-model:visible="formDialogVisible"

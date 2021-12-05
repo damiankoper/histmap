@@ -30,6 +30,7 @@ import SliderPlayButton from "../slider/SliderPlayButton.vue";
 import SliderSpeedButton from "../slider/SliderSpeedButton.vue";
 import { Speed, delaySettings } from "../../interfaces/Speed";
 import { GlobalStats } from "@/interfaces/GlobalStats";
+import { useKeypress } from "vue3-keypress";
 
 export default defineComponent({
   components: { SliderPlayButton, SliderSpeedButton },
@@ -39,6 +40,14 @@ export default defineComponent({
       type: Object as PropType<GlobalStats | null>,
     },
     year: { type: Number, default: 0 },
+    formDialogVisible: {
+      type: Boolean,
+      required: true,
+    },
+    listDialogVisible: {
+      type: Boolean,
+      required: true,
+    },
   },
   setup(props, { emit }) {
     const yearInner = ref(0);
@@ -49,6 +58,20 @@ export default defineComponent({
 
     watchEffect(() => {
       emit("update:year", yearInner.value);
+    });
+
+    useKeypress({
+      keyEvent: "keydown",
+      keyBinds: [
+        {
+          keyCode: "space",
+          success: () => {
+            if (!props.formDialogVisible && !props.listDialogVisible) {
+              toggleIsPlaying();
+            }
+          },
+        },
+      ],
     });
 
     const isPlaying = ref(false);
