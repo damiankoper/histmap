@@ -78,7 +78,12 @@ export default defineComponent({
         {
           keyCode: "space",
           success: () => {
-            if (!props.formDialogVisible && !props.listDialogVisible) {
+            if (
+              !props.formDialogVisible &&
+              !props.listDialogVisible &&
+              byYear.value
+            ) {
+              console.log(byYear);
               toggleIsPlaying();
             }
           },
