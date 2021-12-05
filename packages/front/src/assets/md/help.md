@@ -1,6 +1,8 @@
 ## Mapa
 
-Mapa prezentuje świat wraz z nałożoną mapą ciepła. Legenda pokazuje, zależność koloru od liczby publikacji w danym obszarze. Mapę można zarówno przybliżać i oddalać. Wtedy legenda dostosuje się do nowego widocznego obszaru. Istnieje możliwość wyszukania miejscowości, przez wpisanie jej nazwy w formularzu w lewym górnym rogu ekranu.
+Mapa prezentuje świat wraz z nałożoną mapą ciepła. Legenda pokazuje, zależność koloru od liczby publikacji w danym obszarze. Mapę można zarówno przybliżać i oddalać - wtedy legenda dostosuje się do nowego widocznego obszaru.
+
+Istnieje możliwość wyszukania miejscowości, przez wpisanie jej nazwy w formularzu w lewym górnym rogu ekranu.
 
 ## Slider i czas
 
@@ -8,9 +10,11 @@ U dołu ekranu znajduje się interaktywny slider. Reprezentuje on oś czasu. Mo�
 
 Tryb prezentacji dostępny jest w trzech prędkościach: wolnej, normalnej i szybkiej, symbolizowanych przez ikony zwierząt. Prezentacje można w dowolnym miejscu zatrzymać.
 
+Można też uzyskać wgląd do zsumowanych danych z całego okresu. Do tego służy przycisk, który znajduje się w lewym dolnym rogu strony.
+
 ## Filtrowanie
 
-Nacięnięcie przycisku menu w lewym górnym rogu, powoduje dostęp do filtracji widocznych wyników. Czerwony znak przy menu, oznacza, że założony jest filtr
+Nacięnięcie przycisku menu w lewym górnym rogu, powoduje dostęp do filtracji widocznych wyników. Czerwony znak przy menu, oznacza, że założony jest filtr.
 
 ## Pozycje z danego miejsca na mapie
 
