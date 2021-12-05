@@ -30,6 +30,7 @@
       :global-stats="globalStats"
       :formDialogVisible="formDialogVisible"
       :listDialogVisible="listDialogVisible"
+      @byYear="onByYear"
     />
   </el-container>
   <FormDrawer
@@ -42,6 +43,7 @@
     v-model:visible="listDialogVisible"
     :map-area="mapArea"
     :year="year"
+    :byYear="isDataShownByYear"
   />
   <Footer />
 </template>
@@ -83,6 +85,7 @@ export default defineComponent({
 
     const mapSearch = ref<MapSearchResult | null>(null);
     const mapArea = ref<MapArea | null>(null);
+    const isDataShownByYear = ref(true);
 
     const { data: globalStats, fetch } =
       useApi<GlobalStats>("tiles/stats/global");
@@ -104,6 +107,7 @@ export default defineComponent({
       globalStats,
       formDialogVisible,
       listDialogVisible,
+      isDataShownByYear,
       onMapClick(_e: L.LeafletMouseEvent) {
         mapArea.value = null;
       },
@@ -129,6 +133,9 @@ export default defineComponent({
       },
       onLocation(location: MapSearchResult) {
         mapSearch.value = location;
+      },
+      onByYear(byYear: boolean) {
+        isDataShownByYear.value = byYear;
       },
     };
   },

@@ -14,23 +14,6 @@
           <span class="mdi-set mdi-book-marker-outline"></span>
           Wyszukiwanie obszarowe
         </h2>
-        <!-- TODO type depends on search type -->
-        <el-tooltip
-          placement="left"
-          :content="
-            byYear
-              ? 'Wyszukiwanie w wybranym roku'
-              : 'Wyszukiwanie w całym zakresie czasowym'
-          "
-        >
-          <el-button
-            :type="byYear ? 'primary' : 'info'"
-            @click="byYear = !byYear"
-            size="small"
-          >
-            <span class="mdi-set mdi-calendar-outline" />
-          </el-button>
-        </el-tooltip>
       </el-row>
       <hr style="margin: 12px 0" />
       <div style="height: calc(100% - 48px)" v-loading="loading">
@@ -58,7 +41,7 @@
 
 <script lang="ts">
 import Publication from "@/interfaces/Publication";
-import { defineComponent, PropType, ref, watch } from "vue";
+import { defineComponent, PropType, watch } from "vue";
 import PublicationCard from "./PublicationCard.vue";
 import SmallTitle from "../layout/SmallTitle.vue";
 import useApi from "@/composables/useApi";
@@ -79,9 +62,12 @@ export default defineComponent({
       type: Object as PropType<MapArea>,
       requried: false,
     },
+    byYear: {
+      type: Boolean,
+      required: true,
+    },
   },
   setup(props) {
-    const byYear = ref(true);
     const { fetch, data, loading, err } = useApi<Publication[]>(
       () => "search/area",
       () => ({
@@ -89,7 +75,7 @@ export default defineComponent({
           lat: (props.mapArea?.point as L.LatLng).lat,
           long: (props.mapArea?.point as L.LatLng).lng,
           r: props.mapArea?.radius,
-          t: byYear.value ? props.year : null,
+          t: props.byYear ? props.year : 0,
         },
       })
     );
@@ -101,11 +87,11 @@ export default defineComponent({
       }
     );
 
-    watch([() => props.year, byYear], () => {
-      if (byYear.value) fetch();
+    watch([() => props.year], () => {
+      if (props.byYear) fetch();
     });
 
-    return { data, loading, err, byYear };
+    return { data, loading, err };
   },
 });
 </script>
