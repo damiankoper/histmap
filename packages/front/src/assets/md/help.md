@@ -1,17 +1,21 @@
 ## Mapa
 
-Praesent turpis. Aliquam erat volutpat.. In consectetuer turpis ut velit.
+Mapa prezentuje świat wraz z nałożoną mapą ciepła. Legenda pokazuje, zależność koloru od liczby publikacji w danym obszarze. Mapę można zarówno przybliżać i oddalać - wtedy legenda dostosuje się do nowego widocznego obszaru.
+
+Istnieje możliwość wyszukania miejscowości, przez wpisanie jej nazwy w formularzu w lewym górnym rogu ekranu.
 
 ## Slider i czas
 
-Praesent ut ligula non mi varius sagittis. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Fusce vel dui. Sed a libero. Quisque id mi.
+U dołu ekranu znajduje się interaktywny slider. Reprezentuje on oś czasu. Możliwe jest zarówno manualne ustawienie roku, jak i uruchomienie trybu prezentacji przez kliknięcie przycisku, lub naciśnięcie spacji.
 
-Donec vitae orci sed dolor rutrum auctor. Vestibulum purus quam, scelerisque ut, mollis sed, nonummy id, metus. Praesent egestas tristique nibh. Pellentesque dapibus hendrerit tortor. Morbi vestibulum volutpat enim.
+Tryb prezentacji dostępny jest w trzech prędkościach: wolnej, normalnej i szybkiej, symbolizowanych przez ikony zwierząt. Prezentacje można w dowolnym miejscu zatrzymać.
+
+Można też uzyskać wgląd do zsumowanych danych z całego okresu. Do tego służy przycisk, który znajduje się w lewym dolnym rogu strony.
 
 ## Filtrowanie
 
-Cras sagittis. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Phasellus tempus. Nunc sed turpis. Fusce a quam.
+Nacięnięcie przycisku menu w lewym górnym rogu, powoduje dostęp do filtracji widocznych wyników. Czerwony znak przy menu, oznacza, że założony jest filtr.
 
 ## Pozycje z danego miejsca na mapie
 
-Nunc egestas, augue at pellentesque laoreet, felis eros vehicula leo, at malesuada velit leo quis pede. Vivamus laoreet. Nullam cursus lacinia erat. Nunc nec neque. Fusce a quam.
+Dwuktrotne kliknięcie na mapę, powoduje zaznaczenie pewnego obszaru, oznaczonego czerwonym kołem. Publikacje znajdujące się wewnątrz tego koła ukarzą się na liście z lewej strony ekranu.
