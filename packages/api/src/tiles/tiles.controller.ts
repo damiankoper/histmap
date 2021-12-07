@@ -1,13 +1,4 @@
-import {
-  CACHE_MANAGER,
-  Controller,
-  Get,
-  Header,
-  Inject,
-  Param,
-  Query,
-  Res,
-} from '@nestjs/common';
+import { Controller, Get, Header, Param, Query, Res } from '@nestjs/common';
 import { TilesService } from './tiles.service';
 import { FilterService } from '../filter/filter.service';
 import { DataService } from 'src/data/data.service';
@@ -15,7 +6,6 @@ import { TileCoordsDto } from './dto/tile-coords.dto';
 import { TileOptionsDto } from './dto/tile-options.dto';
 import { Response } from 'express';
 import { TileRendererService } from './tile-renderer.service';
-import * as _ from 'lodash';
 import { ApiTags } from '@nestjs/swagger';
 
 import { TileMetaCoords, TileStats } from 'pre-processor';

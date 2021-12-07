@@ -1,58 +1,64 @@
-import { Controller, Get, Header, Query, Res } from '@nestjs/common';
-import { Response } from 'express';
+import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { DataService } from 'src/data/data.service';
 import { AreaOptionsDto } from './dto/area-options.dto';
-import { MathService } from 'src/math/math.service';
-import { GeoPoint } from './models/geo-point.model';
+import { AreaService } from './area.service';
+import { GetManyDefaultResponse } from 'src/paginate/pagination.options.interface';
+import { Publication } from 'pre-processor';
 
 @ApiTags('area')
 @Controller('area')
 export class AreaController {
-  constructor(
-    private dataService: DataService,
-    private mathService: MathService,
-  ) {}
+  private areaCache = new Map<string, Publication[]>();
+  constructor(private areaService: AreaService) {}
 
   @Get()
   async getPublicationsInArea(
     @Query() options: AreaOptionsDto,
-  ): Promise<GeoPoint[]> {
-    // TODO: zamiast GeoPoint[] zwrócić interface paginacji
+  ): Promise<GetManyDefaultResponse<Publication>> {
     if (options.r > 128) {
       options.r = 128;
     }
 
-    // wydzielić do service
-    const tileX = this.mathService.lon2tile(options.lon, 1); //tile z wartością po przecinku
-    const tileY = this.mathService.lat2tile(options.lat, 1);
-    const flooredTileX = Math.floor(tileX); // tile X
-    const flooredTileY = Math.floor(tileY); // Tile Y
-    const pinXCoordOnTile = tileX * 256; // współrzędna X środka okręgu
-    const pinYCoordOnTile = tileY * 256; // współrzędna Y środka okręgu
-    const validPoints: GeoPoint[] = [];
+    const cacheKey = this.getCacheKey(options);
+    const renderFromCache = this.areaCache.get(cacheKey);
 
-    this.dataService.getGeoPoints().forEach((point) => {
-      const doesIntersect = this.mathService.lanLonIntersects(
-        options.lon,
-        options.lat,
-        options.r,
-        point.lon,
-        point.lat,
+    if (!renderFromCache) {
+      const validPoints = this.areaService.getValidPoints(options);
+      const validPublications =
+        this.areaService.getValidPublications(validPoints);
+
+      const page = new GetManyDefaultResponse<Publication>();
+      page.pageNumber = options.page ? options.page : 1;
+      page.count = options.limit ? options.limit : 20;
+      page.total = validPublications.length;
+      page.pageCount = Math.ceil(page.total / page.count);
+      page.data = validPublications.slice(
+        (page.pageNumber - 1) * page.count + 1,
+        page.pageNumber * page.count < validPublications.length
+          ? page.count * page.pageNumber
+          : validPublications.length - 1,
       );
 
-      if (doesIntersect) {
-        validPoints.push(point);
-      }
-    });
-
-    if (options.t) {
-      const filteredValidPoints = validPoints.filter(
-        (point) => point.t == options.t,
+      this.areaCache.set(cacheKey, validPublications);
+      return page;
+    } else {
+      const page = new GetManyDefaultResponse<Publication>();
+      page.pageNumber = options.page;
+      page.count = options.limit;
+      page.total = renderFromCache.length;
+      page.pageCount = Math.ceil(page.total / page.count);
+      page.data = renderFromCache.slice(
+        (page.pageNumber - 1) * page.count + 1,
+        page.pageNumber * page.count < renderFromCache.length
+          ? page.count * page.pageNumber
+          : renderFromCache.length - 1,
       );
-      return filteredValidPoints;
+
+      return page;
     }
-    // paginacja połączyć z cache
-    return validPoints;
+  }
+
+  private getCacheKey(options: AreaOptionsDto): string {
+    return `${options.lat}.${options.lon}.${options.r}.${options.t || ''}`;
   }
 }

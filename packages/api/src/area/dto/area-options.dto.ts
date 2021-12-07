@@ -1,8 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsNumber, IsOptional } from 'class-validator';
+import { GetManyDefaultRequest } from 'src/paginate/pagination.options.interface';
 
-export class AreaOptionsDto {
+export class AreaOptionsDto extends GetManyDefaultRequest {
   @ApiProperty({ required: true })
   @Type(() => Number)
   @IsNumber()
@@ -23,4 +24,7 @@ export class AreaOptionsDto {
   @Type(() => Number)
   @IsNumber()
   t: number;
+
+  page: number;
+  limit: number;
 }

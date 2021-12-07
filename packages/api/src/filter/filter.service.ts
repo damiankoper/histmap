@@ -3,6 +3,7 @@ import { DataService } from 'src/data/data.service';
 import { TileOptionsDto } from 'src/tiles/dto/tile-options.dto';
 import { Tile } from 'src/tiles/models/tile.model';
 import { fuzzy } from 'fast-fuzzy';
+
 @Injectable()
 export class FilterService {
   constructor(private dataService: DataService) {}
