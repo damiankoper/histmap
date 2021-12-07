@@ -31,6 +31,10 @@ export default defineComponent({
       type: String,
       required: true,
     },
+    showAreas: {
+      type: Boolean,
+      required: true,
+    },
     globalStats: {
       type: Object as PropType<GlobalStats | null>,
     },
@@ -50,7 +54,8 @@ export default defineComponent({
       toRef(props, "year"),
       toRef(props, "place"),
       toRef(props, "author"),
-      toRef(props, "title")
+      toRef(props, "title"),
+      toRef(props, "showAreas")
     );
 
     onMounted(() => {

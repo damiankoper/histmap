@@ -34,7 +34,8 @@ export function useMap(
   year: Ref<number>,
   place: Ref<string>,
   author: Ref<string>,
-  title: Ref<string>
+  title: Ref<string>,
+  showAreas: Ref<boolean>
 ) {
   const map: Ref<L.Map | null> = shallowRef(null);
   let circle: L.Circle | null = null;
@@ -43,12 +44,18 @@ export function useMap(
 
   function setUrl(heatMapLayer: L.TileLayer) {
     heatMapLayer.setUrl(
-      `${process.env.VUE_APP_API_URL}/tiles/${year.value}/{z}/{x}/{y}.png?author=${author.value}&title=${title.value}&place=${place.value}`
+      `${process.env.VUE_APP_API_URL}/tiles/${
+        year.value
+      }/{z}/{x}/{y}.png?author=${author.value}&title=${title.value}&place=${
+        place.value
+      }&area=${+showAreas.value}`
     );
   }
 
-  watch([year, place, author, title], () => {
-    if (heatMapLayer) setUrl(heatMapLayer);
+  watch([year, place, author, title, showAreas], () => {
+    if (heatMapLayer) {
+      setUrl(heatMapLayer);
+    }
   });
 
   onMounted(() => {

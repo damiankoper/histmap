@@ -1,17 +1,17 @@
 <template>
   <!-- necessary div to use @click in parent  -->
-  <div>
+  <div style="margin-right: 10px">
     <el-tooltip
       placement="top"
-      :content="byYear ? 'Widok wybranego roku' : 'Widok wszystkich lat'"
+      :content="showAreas ? 'Obszary widoczne' : 'Obszary ukryte'"
     >
       <el-button
         circle
         style="font-size: 1rem; padding: 8px; min-height: initial"
-        :type="byYear ? 'primary' : 'info'"
+        :type="showAreas ? 'primary' : 'info'"
         size="small"
       >
-        <span class="mdi-set mdi-calendar-outline" />
+        <span class="mdi-set mdi-map-search" />
       </el-button>
     </el-tooltip>
   </div>
@@ -20,7 +20,7 @@
 <script>
 export default {
   props: {
-    byYear: {
+    showAreas: {
       type: Boolean,
       required: true,
     },

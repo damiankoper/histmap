@@ -20,6 +20,7 @@
         :place="place"
         :author="author"
         :title="title"
+        :showAreas="areAreasShown"
         @dblclick="onMapDblClick"
         @click="onMapClick"
         @zoom="onZoomChange"
@@ -31,6 +32,7 @@
       :formDialogVisible="formDialogVisible"
       :listDialogVisible="listDialogVisible"
       @byYear="onByYear"
+      @showAreas="onShowAreas"
     />
   </el-container>
   <FormDrawer
@@ -86,6 +88,7 @@ export default defineComponent({
     const mapSearch = ref<MapSearchResult | null>(null);
     const mapArea = ref<MapArea | null>(null);
     const isDataShownByYear = ref(true);
+    const areAreasShown = ref(true);
 
     const { data: globalStats, fetch } =
       useApi<GlobalStats>("tiles/stats/global");
@@ -105,6 +108,7 @@ export default defineComponent({
       mapSearch,
       mapArea,
       globalStats,
+      areAreasShown,
       formDialogVisible,
       listDialogVisible,
       isDataShownByYear,
@@ -136,6 +140,9 @@ export default defineComponent({
       },
       onByYear(byYear: boolean) {
         isDataShownByYear.value = byYear;
+      },
+      onShowAreas(showAreas: boolean) {
+        areAreasShown.value = showAreas;
       },
     };
   },
