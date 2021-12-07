@@ -5,6 +5,8 @@
   "author": "",
   "private": true,
   "license": "UNLICENSED",
+  "types": "./dist/export.d.ts",
+  "main": "./dist/export.js",
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build",

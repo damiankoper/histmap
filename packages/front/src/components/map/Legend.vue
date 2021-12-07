@@ -19,6 +19,7 @@
 import useApi from "@/composables/useApi";
 import { defineComponent, onMounted, computed, watch } from "vue";
 import { TileStats } from "pre-processor";
+
 export default defineComponent({
   props: {
     year: {

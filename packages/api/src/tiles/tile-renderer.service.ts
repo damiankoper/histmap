@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Point, TileStats } from 'pre-processor';
 import { RendererService, Tile as RenderTile } from 'renderer';
+import { gradients } from 'src/export';
 import { Tile } from './models/tile.model';
 
 @Injectable()
@@ -12,6 +13,7 @@ export class TileRendererService {
       blur: 20,
       radius: 30,
       minOpacity: 0.3,
+      gradient: gradients.heat,
     });
   }
 
