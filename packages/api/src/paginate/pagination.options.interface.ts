@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsNumber, IsOptional } from 'class-validator';
+import { IsNumber, IsOptional, Min } from 'class-validator';
 
 export class GetManyDefaultResponse<T> {
   @ApiProperty({ required: false })
@@ -39,11 +39,13 @@ export class GetManyDefaultRequest {
   @Type(() => Number)
   @IsNumber()
   @IsOptional()
+  @Min(1)
   limit: number;
 
   @ApiProperty({ required: false })
   @Type(() => Number)
   @IsNumber()
   @IsOptional()
+  @Min(1)
   page: number;
 }
