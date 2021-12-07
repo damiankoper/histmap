@@ -83,7 +83,6 @@ export default defineComponent({
               !props.listDialogVisible &&
               byYear.value
             ) {
-              console.log(byYear);
               toggleIsPlaying();
             }
           },
@@ -123,6 +122,8 @@ export default defineComponent({
       if (isPlaying.value) {
         toggleIsPlaying();
         if (props.globalStats) yearInner.value = props.globalStats?.tMin;
+      } else {
+        if (props.globalStats) yearInner.value = props.globalStats.tMin;
       }
     }
 

@@ -8,6 +8,7 @@
         v-model="input"
         :placeholder="selected ? placeholder : 'Szukaj miejsca'"
         @keydown="markOption"
+        @keydown.space.stop
       />
       <i
         v-if="selected"
@@ -90,6 +91,21 @@ export default defineComponent({
       ],
     });
 
+    useKeypress({
+      keyEvent: "keydown",
+      keyBinds: [
+        {
+          keyCode: "esc",
+          success: () => {
+            input.value = "";
+            data.value = null;
+            focus.value = 0;
+            initialSearch.value = false;
+          },
+        },
+      ],
+    });
+
     const locationClicked = (location: MapSearchResult) => {
       emit("location", location);
       input.value = "";
@@ -120,6 +136,7 @@ export default defineComponent({
         if (!isClickInside) {
           input.value = "";
           data.value = null;
+          focus.value = 0;
           if (selected.value) {
             //
           } else {
