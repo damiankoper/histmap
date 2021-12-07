@@ -1,5 +1,5 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AreaOptionsDto } from './dto/area-options.dto';
 import { AreaService } from './area.service';
 import { GetManyDefaultResponse } from 'src/paginate/pagination.options.interface';
@@ -12,6 +12,11 @@ export class AreaController {
   constructor(private areaService: AreaService) {}
 
   @Get()
+  @ApiResponse({
+    status: 201,
+    type: GetManyDefaultResponse,
+    description: 'Returns list of publications in area and pagination info',
+  })
   async getPublicationsInArea(
     @Query() options: AreaOptionsDto,
   ): Promise<GetManyDefaultResponse<Publication>> {

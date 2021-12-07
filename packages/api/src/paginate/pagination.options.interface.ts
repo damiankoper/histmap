@@ -36,13 +36,13 @@ export class GetManyDefaultResponse<T> {
 
 export class GetManyDefaultRequest {
   @ApiProperty({ required: false })
-  @Type(() => String)
+  @Type(() => Number)
   @IsNumber()
   @IsOptional()
   limit: number;
 
   @ApiProperty({ required: false })
-  @Type(() => String)
+  @Type(() => Number)
   @IsNumber()
   @IsOptional()
   page: number;
