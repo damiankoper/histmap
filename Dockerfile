@@ -4,6 +4,11 @@ COPY ./package.json ./
 RUN npm install
 COPY ./lerna.json ./
 COPY ./data/data.json ./data/data.json
+# Package pre-processor
+FROM base as pre-processor-build
+WORKDIR /app/packages/pre-processor
+COPY  packages/pre-processor/package*.json ./
+COPY  packages/pre-processor/types ./types
 # Package renderer
 FROM base as renderer-build
 WORKDIR /app/packages/renderer
@@ -21,11 +26,6 @@ WORKDIR /app/
 RUN npx lerna bootstrap --scope=renderer --includeDependencies
 WORKDIR /app/packages/renderer
 COPY --from=renderer-build  /app/packages/renderer/dist ./dist
-# Package pre-processor
-FROM base as pre-processor-build
-WORKDIR /app/packages/pre-processor
-COPY  packages/pre-processor/package*.json ./
-COPY  packages/pre-processor/types ./types
 # Package api
 FROM base as api-build
 WORKDIR /app/packages/api
@@ -83,7 +83,7 @@ WORKDIR /app/packages/front
 COPY --from=front-build  /app/packages/front/dist ./dist
 # final stage
 FROM base
-COPY --from=renderer-production /app/packages/renderer /app/packages/renderer
 COPY --from=pre-processor-build /app/packages/pre-processor /app/packages/pre-processor
+COPY --from=renderer-production /app/packages/renderer /app/packages/renderer
 COPY --from=api-production /app/packages/api /app/packages/api
 COPY --from=front-production /app/packages/front /app/packages/front
