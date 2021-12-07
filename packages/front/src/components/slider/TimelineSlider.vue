@@ -27,7 +27,7 @@
       class="slider"
       :disabled="!byYear"
     />
-    <span v-if="globalStats && byYear">
+    <span v-if="globalStats">
       {{ year }}
     </span>
     <span v-else> --- </span>
@@ -121,9 +121,6 @@ export default defineComponent({
       emit("byYear", byYear.value);
       if (isPlaying.value) {
         toggleIsPlaying();
-        if (props.globalStats) yearInner.value = props.globalStats?.tMin;
-      } else {
-        if (props.globalStats) yearInner.value = props.globalStats.tMin;
       }
     }
 
