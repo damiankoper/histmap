@@ -29,3 +29,12 @@ export const gradients = {
     { pos: 0.3 + 5 * 0.14, color: '#35193e' },
   ],
 };
+
+export interface SingleColorData {
+  pos: number;
+  color: string;
+}
+
+export interface GradientData {
+  colors: Array<SingleColorData>;
+}

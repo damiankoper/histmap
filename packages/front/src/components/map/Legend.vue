@@ -48,9 +48,9 @@
 
 <script lang="ts">
 import useApi from "@/composables/useApi";
-import { defineComponent, onMounted, computed, watch } from "vue";
+import { defineComponent, onMounted, watch } from "vue";
 import { TileStats } from "pre-processor";
-// import { gradients } from "api";
+import { SingleColorData, GradientData } from "api";
 
 export default defineComponent({
   props: {
@@ -75,17 +75,20 @@ export default defineComponent({
       { pos: 0.8, color: "yellow" },
       { pos: 1.0, color: "red" },
     ];
+
+    const createGradient = (gradient: GradientData) => {
+      const parts: string[] = [];
+      gradient.forEach((p: SingleColorData) => {
+        parts.push(`${p.color} ${p.pos * 100}%`);
+      });
+      return `linear-gradient(to right,${parts.join(", ")})`;
+    };
+
     onMounted(fetch);
     watch(props, fetch);
     return {
       data,
-      gradient: computed(() => {
-        const parts: string[] = [];
-        gradient.forEach((p) => {
-          parts.push(`${p.color} ${p.pos * 100}%`);
-        });
-        return `linear-gradient(to right,${parts.join(", ")})`;
-      }),
+      gradient: createGradient(gradient),
     };
   },
 });
