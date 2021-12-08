@@ -2,7 +2,7 @@
   <el-popover
     placement="top-start"
     title="Wybierz paletę kolorów"
-    trigger="click"
+    trigger="hover"
     width="350"
   >
     <template #reference>
@@ -20,7 +20,7 @@
           <el-col :span="24">
             <div
               class="gradient"
-              :style="{ background: defaultGradient }"
+              :style="{ background: choosenGradient }"
             ></div>
           </el-col>
         </el-row>
@@ -30,14 +30,22 @@
       <div class="legend-container">
         <div
           class="gradient gradient-choice"
+          @click="setGradient(defaultGradient)"
+          :style="{ background: defaultGradient }"
+        ></div>
+        <div
+          class="gradient gradient-choice"
+          @click="setGradient(viridisGradient)"
           :style="{ background: viridisGradient }"
         ></div>
         <div
           class="gradient gradient-choice"
+          @click="setGradient(heatGradient)"
           :style="{ background: heatGradient }"
         ></div>
         <div
           class="gradient gradient-choice"
+          @click="setGradient(magmaGradient)"
           :style="{ background: magmaGradient }"
         ></div>
       </div>
@@ -47,7 +55,7 @@
 
 <script lang="ts">
 import useApi from "@/composables/useApi";
-import { defineComponent, onMounted, watch } from "vue";
+import { defineComponent, onMounted, ref, watch } from "vue";
 import { TileStats } from "pre-processor";
 import { SingleColorData, GradientData, gradients } from "api";
 
@@ -84,14 +92,23 @@ export default defineComponent({
     const heatGradient = createGradient(heatGradientData);
     const magmaGradient = createGradient(magmaGradientData);
 
+    const choosenGradient = ref<string>(defaultGradient);
+
+    const setGradient = (gradient: string) => {
+      console.log("klik");
+      choosenGradient.value = gradient;
+    };
+
     onMounted(fetch);
     watch(props, fetch);
     return {
       data,
+      setGradient,
       defaultGradient,
       viridisGradient,
       heatGradient,
       magmaGradient,
+      choosenGradient,
     };
   },
 });
@@ -126,6 +143,7 @@ export default defineComponent({
 
   .gradient-choice {
     margin: 20px 0;
+    cursor: pointer;
   }
 }
 </style>
