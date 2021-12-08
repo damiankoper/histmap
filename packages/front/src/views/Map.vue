@@ -9,7 +9,7 @@
         />
       </div>
       <div class="legend-wrapper">
-        <Legend :year="year" :zoom="zoom" />
+        <Legend :year="year" :zoom="zoom" @gradientChanged="onGradientChange" />
       </div>
       <Map
         class="map"
@@ -21,6 +21,7 @@
         :author="author"
         :title="title"
         :showAreas="areAreasShown"
+        :choosenGradient="choosenGradient"
         @dblclick="onMapDblClick"
         @click="onMapClick"
         @zoom="onZoomChange"
@@ -64,6 +65,8 @@ import Legend from "@/components/map/Legend.vue";
 import useApi from "@/composables/useApi";
 import { GlobalStats } from "@/interfaces/GlobalStats";
 import { ElNotification } from "element-plus";
+import { useGradients } from "../composables/useGradients";
+import { Gradient } from "api";
 
 export default defineComponent({
   components: {
@@ -87,8 +90,13 @@ export default defineComponent({
 
     const mapSearch = ref<MapSearchResult | null>(null);
     const mapArea = ref<MapArea | null>(null);
+
+    // store needed? not the best solution having 2 sources of truth
     const isDataShownByYear = ref(true);
     const areAreasShown = ref(true);
+
+    const { defaultGradient } = useGradients();
+    const choosenGradient = ref<Gradient>(defaultGradient);
 
     const { data: globalStats, fetch } =
       useApi<GlobalStats>("tiles/stats/global");
@@ -111,6 +119,7 @@ export default defineComponent({
       areAreasShown,
       formDialogVisible,
       listDialogVisible,
+      choosenGradient,
       isDataShownByYear,
       onMapClick(_e: L.LeafletMouseEvent) {
         mapArea.value = null;
@@ -143,6 +152,9 @@ export default defineComponent({
       },
       onShowAreas(showAreas: boolean) {
         areAreasShown.value = showAreas;
+      },
+      onGradientChange(gradient: Gradient) {
+        choosenGradient.value = gradient;
       },
     };
   },

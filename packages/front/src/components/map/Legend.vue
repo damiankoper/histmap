@@ -20,7 +20,7 @@
           <el-col :span="24">
             <div
               class="gradient"
-              :style="{ background: choosenGradient }"
+              :style="{ background: choosenGradient.color }"
             ></div>
           </el-col>
         </el-row>
@@ -31,22 +31,22 @@
         <div
           class="gradient gradient-choice"
           @click="setGradient(defaultGradient)"
-          :style="{ background: defaultGradient }"
+          :style="{ background: defaultGradient.color }"
         ></div>
         <div
           class="gradient gradient-choice"
           @click="setGradient(viridisGradient)"
-          :style="{ background: viridisGradient }"
+          :style="{ background: viridisGradient.color }"
         ></div>
         <div
           class="gradient gradient-choice"
           @click="setGradient(heatGradient)"
-          :style="{ background: heatGradient }"
+          :style="{ background: heatGradient.color }"
         ></div>
         <div
           class="gradient gradient-choice"
           @click="setGradient(magmaGradient)"
-          :style="{ background: magmaGradient }"
+          :style="{ background: magmaGradient.color }"
         ></div>
       </div>
     </div>
@@ -57,7 +57,8 @@
 import useApi from "@/composables/useApi";
 import { defineComponent, onMounted, ref, watch } from "vue";
 import { TileStats } from "pre-processor";
-import { SingleColorData, GradientData, gradients } from "api";
+import { useGradients } from "../../composables/useGradients";
+import { Gradient } from "api";
 
 export default defineComponent({
   props: {
@@ -70,33 +71,20 @@ export default defineComponent({
       default: 0,
     },
   },
-  setup(props) {
+  emits: ["gradientChanged"],
+  setup(props, { emit }) {
     const { fetch, data } = useApi<TileStats>(
       () => `tiles/stats/${props.year}/${props.zoom}`
     );
-    const createGradient = (gradient: GradientData) => {
-      const parts: string[] = [];
-      gradient.colors.forEach((p: SingleColorData) => {
-        parts.push(`${p.color} ${p.pos * 100}%`);
-      });
-      return `linear-gradient(to right,${parts.join(", ")})`;
-    };
 
-    const defaultGradientData: GradientData = { colors: gradients.default };
-    const viridisGradientData: GradientData = { colors: gradients.viridis };
-    const heatGradientData: GradientData = { colors: gradients.heat };
-    const magmaGradientData: GradientData = { colors: gradients.magma };
+    const { defaultGradient, viridisGradient, heatGradient, magmaGradient } =
+      useGradients();
 
-    const defaultGradient = createGradient(defaultGradientData);
-    const viridisGradient = createGradient(viridisGradientData);
-    const heatGradient = createGradient(heatGradientData);
-    const magmaGradient = createGradient(magmaGradientData);
+    const choosenGradient = ref<Gradient>(defaultGradient);
 
-    const choosenGradient = ref<string>(defaultGradient);
-
-    const setGradient = (gradient: string) => {
-      console.log("klik");
+    const setGradient = (gradient: Gradient) => {
       choosenGradient.value = gradient;
+      emit("gradientChanged", choosenGradient.value);
     };
 
     onMounted(fetch);
@@ -121,8 +109,7 @@ export default defineComponent({
 
 .el-popover__title {
   padding: 8px 8px 0 8px;
-  font-size: 20px;
-  margin-bottom: 0;
+  margin-bottom: 0 !important;
 }
 
 .legend-container {

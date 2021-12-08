@@ -35,6 +35,12 @@ export interface SingleColorData {
   color: string;
 }
 
+export interface Gradient {
+  name: string;
+  color: string;
+}
+
 export interface GradientData {
+  name: string;
   colors: Array<SingleColorData>;
 }

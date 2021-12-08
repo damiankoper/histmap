@@ -4,6 +4,7 @@ import { onMounted, onUnmounted, Ref, shallowRef, watch } from "vue";
 import icon from "leaflet/dist/images/marker-icon.png";
 import iconShadow from "leaflet/dist/images/marker-shadow.png";
 import { GlobalStats } from "@/interfaces/GlobalStats";
+import { Gradient } from "api";
 
 const osmTileURL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 const osmTileAttr =
@@ -35,7 +36,8 @@ export function useMap(
   place: Ref<string>,
   author: Ref<string>,
   title: Ref<string>,
-  showAreas: Ref<boolean>
+  showAreas: Ref<boolean>,
+  choosenGradient: Ref<Gradient>
 ) {
   const map: Ref<L.Map | null> = shallowRef(null);
   let circle: L.Circle | null = null;
@@ -48,11 +50,11 @@ export function useMap(
         year.value
       }/{z}/{x}/{y}.png?author=${author.value}&title=${title.value}&place=${
         place.value
-      }&area=${+showAreas.value}`
+      }&area=${+showAreas.value}&c=${choosenGradient.value.name}`
     );
   }
 
-  watch([year, place, author, title, showAreas], () => {
+  watch([year, place, author, title, showAreas, choosenGradient], () => {
     if (heatMapLayer) {
       setUrl(heatMapLayer);
     }
