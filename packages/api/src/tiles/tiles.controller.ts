@@ -1,13 +1,4 @@
-import {
-  CACHE_MANAGER,
-  Controller,
-  Get,
-  Header,
-  Inject,
-  Param,
-  Query,
-  Res,
-} from '@nestjs/common';
+import { Controller, Get, Header, Param, Query, Res } from '@nestjs/common';
 import { TilesService } from './tiles.service';
 import { FilterService } from '../filter/filter.service';
 import { DataService } from 'src/data/data.service';
@@ -15,8 +6,7 @@ import { TileCoordsDto } from './dto/tile-coords.dto';
 import { TileOptionsDto } from './dto/tile-options.dto';
 import { Response } from 'express';
 import { TileRendererService } from './tile-renderer.service';
-import * as _ from 'lodash';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { TileMetaCoords, TileStats } from 'pre-processor';
 import { GlobalStats } from 'src/data/interfaces/global-stats.interface';
@@ -45,6 +35,11 @@ export class TilesController {
 
   @Get(':t/:z/:x/:y.png')
   @Header('Content-Type', 'image/png')
+  @ApiResponse({
+    status: 201,
+    type: Buffer,
+    description: 'Returns rendered tile as a Buffer.',
+  })
   async getTile(
     @Param() coords: TileCoordsDto,
     @Query() options: TileOptionsDto,

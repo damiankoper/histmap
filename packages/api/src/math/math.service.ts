@@ -82,7 +82,7 @@ export class MathService {
     lon: number,
     lat: number,
   ): boolean {
-    const R = radius; // 6371 Radius of the earth in km
+    const R = 6371; // 6371 Radius of the earth in km
     const dLat = this.toRadians(centerLat - lat);
     const dLon = this.toRadians(centerLon - lon);
     const a =
@@ -98,6 +98,6 @@ export class MathService {
   }
 
   private toRadians(deg: number): number {
-    return deg * (Math.PI / 180);
+    return deg * 0.017453292519943295; // Math.PI / 180
   }
 }

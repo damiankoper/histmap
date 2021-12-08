@@ -69,11 +69,11 @@ export default defineComponent({
   },
   setup(props) {
     const { fetch, data, loading, err } = useApi<Publication[]>(
-      () => "search/area",
+      () => "area",
       () => ({
         params: {
           lat: (props.mapArea?.point as L.LatLng).lat,
-          long: (props.mapArea?.point as L.LatLng).lng,
+          lon: (props.mapArea?.point as L.LatLng).lng,
           r: props.mapArea?.radius,
           t: props.byYear ? props.year : 0,
         },
