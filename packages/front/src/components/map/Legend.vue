@@ -18,7 +18,10 @@
             </div>
           </el-col>
           <el-col :span="24">
-            <div class="gradient" :style="{ background: gradient }"></div>
+            <div
+              class="gradient"
+              :style="{ background: defaultGradient }"
+            ></div>
           </el-col>
         </el-row>
       </div>
@@ -27,19 +30,15 @@
       <div class="legend-container">
         <div
           class="gradient gradient-choice"
-          :style="{ background: gradient }"
+          :style="{ background: viridisGradient }"
         ></div>
         <div
           class="gradient gradient-choice"
-          :style="{ background: gradient }"
+          :style="{ background: heatGradient }"
         ></div>
         <div
           class="gradient gradient-choice"
-          :style="{ background: gradient }"
-        ></div>
-        <div
-          class="gradient gradient-choice"
-          :style="{ background: gradient }"
+          :style="{ background: magmaGradient }"
         ></div>
       </div>
     </div>
@@ -50,7 +49,7 @@
 import useApi from "@/composables/useApi";
 import { defineComponent, onMounted, watch } from "vue";
 import { TileStats } from "pre-processor";
-import { SingleColorData, GradientData } from "api";
+import { SingleColorData, GradientData, gradients } from "api";
 
 export default defineComponent({
   props: {
@@ -67,28 +66,32 @@ export default defineComponent({
     const { fetch, data } = useApi<TileStats>(
       () => `tiles/stats/${props.year}/${props.zoom}`
     );
-    const gradient = [
-      { pos: 0.0, color: "blue" },
-      { pos: 0.4, color: "blue" },
-      { pos: 0.6, color: "cyan" },
-      { pos: 0.7, color: "lime" },
-      { pos: 0.8, color: "yellow" },
-      { pos: 1.0, color: "red" },
-    ];
-
     const createGradient = (gradient: GradientData) => {
       const parts: string[] = [];
-      gradient.forEach((p: SingleColorData) => {
+      gradient.colors.forEach((p: SingleColorData) => {
         parts.push(`${p.color} ${p.pos * 100}%`);
       });
       return `linear-gradient(to right,${parts.join(", ")})`;
     };
 
+    const defaultGradientData: GradientData = { colors: gradients.default };
+    const viridisGradientData: GradientData = { colors: gradients.viridis };
+    const heatGradientData: GradientData = { colors: gradients.heat };
+    const magmaGradientData: GradientData = { colors: gradients.magma };
+
+    const defaultGradient = createGradient(defaultGradientData);
+    const viridisGradient = createGradient(viridisGradientData);
+    const heatGradient = createGradient(heatGradientData);
+    const magmaGradient = createGradient(magmaGradientData);
+
     onMounted(fetch);
     watch(props, fetch);
     return {
       data,
-      gradient: createGradient(gradient),
+      defaultGradient,
+      viridisGradient,
+      heatGradient,
+      magmaGradient,
     };
   },
 });
