@@ -1,24 +1,56 @@
 <template>
-  <div class="legend-container">
-    <el-row justify="space-between">
-      <el-col :span="6"> 0 </el-col>
-      <el-col :span="10" style="text-align: center"> Liczba publikacji </el-col>
-      <el-col :span="6" style="text-align: right">
-        <div v-if="data">
-          {{ data.max }}
-        </div>
-      </el-col>
-      <el-col :span="24">
-        <div class="gradient" :style="{ background: gradient }"></div>
-      </el-col>
-    </el-row>
-  </div>
+  <el-popover
+    placement="top-start"
+    title="Wybierz paletę kolorów"
+    trigger="click"
+    width="350"
+  >
+    <template #reference>
+      <div class="legend-container">
+        <el-row justify="space-between">
+          <el-col :span="6"> 0 </el-col>
+          <el-col :span="10" style="text-align: center">
+            Liczba publikacji
+          </el-col>
+          <el-col :span="6" style="text-align: right">
+            <div v-if="data">
+              {{ data.max }}
+            </div>
+          </el-col>
+          <el-col :span="24">
+            <div class="gradient" :style="{ background: gradient }"></div>
+          </el-col>
+        </el-row>
+      </div>
+    </template>
+    <div>
+      <div class="legend-container">
+        <div
+          class="gradient gradient-choice"
+          :style="{ background: gradient }"
+        ></div>
+        <div
+          class="gradient gradient-choice"
+          :style="{ background: gradient }"
+        ></div>
+        <div
+          class="gradient gradient-choice"
+          :style="{ background: gradient }"
+        ></div>
+        <div
+          class="gradient gradient-choice"
+          :style="{ background: gradient }"
+        ></div>
+      </div>
+    </div>
+  </el-popover>
 </template>
 
 <script lang="ts">
 import useApi from "@/composables/useApi";
 import { defineComponent, onMounted, computed, watch } from "vue";
 import { TileStats } from "pre-processor";
+// import { gradients } from "api";
 
 export default defineComponent({
   props: {
@@ -59,7 +91,17 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
+.el-popover {
+  padding: 0 !important;
+}
+
+.el-popover__title {
+  padding: 8px 8px 0 8px;
+  font-size: 20px;
+  margin-bottom: 0;
+}
+
 .legend-container {
   padding: 12px;
   line-height: 1em;
@@ -74,6 +116,10 @@ export default defineComponent({
     width: 100%;
     border-radius: 4px;
     margin-top: 4px;
+  }
+
+  .gradient-choice {
+    margin: 20px 0;
   }
 }
 </style>
