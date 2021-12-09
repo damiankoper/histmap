@@ -17,7 +17,7 @@
       </el-row>
       <hr style="margin: 12px 0" />
       <div style="height: calc(100% - 48px)" v-loading="loading">
-        <div v-if="err" class="error-msg">
+        <div v-if="err || !publications" class="error-msg">
           <span
             class="mdi-set mdi-book-remove-outline"
             style="font-size: 3em; margin-bottom: 4px"
@@ -29,8 +29,8 @@
         <el-scrollbar always v-else v-loading="loading">
           <!-- TODO: Handle pagination -->
           <PublicationCard
-            v-for="publication in data"
-            :key="publication.isbn"
+            v-for="publication in publications"
+            :key="publication.id"
             :publication="publication"
           />
         </el-scrollbar>
@@ -40,15 +40,15 @@
 </template>
 
 <script lang="ts">
-import Publication from "@/interfaces/Publication";
-import { defineComponent, PropType, watch } from "vue";
+import { PublicationsPage } from "@/interfaces/Publication";
 import PublicationCard from "./PublicationCard.vue";
+import { defineComponent, PropType, watch, computed } from "vue";
 import SmallTitle from "../layout/SmallTitle.vue";
 import useApi from "@/composables/useApi";
 import { MapArea } from "@/composables/useMap";
 import * as L from "leaflet";
 export default defineComponent({
-  components: { PublicationCard, SmallTitle },
+  components: { SmallTitle, PublicationCard },
   props: {
     visible: {
       type: Boolean,
@@ -68,7 +68,7 @@ export default defineComponent({
     },
   },
   setup(props) {
-    const { fetch, data, loading, err } = useApi<Publication[]>(
+    const { fetch, data, loading, err } = useApi<PublicationsPage>(
       () => "area",
       () => ({
         params: {
@@ -91,7 +91,11 @@ export default defineComponent({
       if (props.byYear) fetch();
     });
 
-    return { data, loading, err };
+    const publications = computed(() => {
+      return data?.value?.data;
+    });
+
+    return { publications, loading, err };
   },
 });
 </script>
