@@ -26,8 +26,8 @@
           <br />
           Brak znalezionych publikacji w wybranym obszarze. Wybierz inny obszar.
         </div>
-        <el-scrollbar always v-else v-loading="loading" u ref="scrollComponent">
-          <div @scroll="handleScroll">
+        <el-scrollbar always v-else v-loading="loading">
+          <div id="infinite-list">
             <PublicationCard
               v-for="publication in publications"
               :key="publication.id"
@@ -43,7 +43,14 @@
 <script lang="ts">
 import Publication, { PublicationsPage } from "@/interfaces/Publication";
 import PublicationCard from "./PublicationCard.vue";
-import { defineComponent, PropType, watch, computed, ref } from "vue";
+import {
+  defineComponent,
+  PropType,
+  watch,
+  computed,
+  ref,
+  onMounted,
+} from "vue";
 import SmallTitle from "../layout/SmallTitle.vue";
 import useApi from "@/composables/useApi";
 import { MapArea } from "@/composables/useMap";
@@ -112,17 +119,19 @@ export default defineComponent({
       return newData;
     });
 
-    // TODO - detect end of scrolling
-    const handleScroll = (el: any) => {
-      if (
-        el.target.offsetHeight + el.targer.scrollTop >=
-        el.target.scrollHeight
-      ) {
-        loadMorePublications();
-      }
-    };
+    onMounted(() => {
+      // Detect when scrolled to bottom.
+      const listElm = document.querySelector("#infinite-list");
+      listElm?.addEventListener("scroll", () => {
+        console.log("saddnsakjdnjksa");
 
-    return { publications, loading, err, scrollComponent, handleScroll };
+        if (listElm.scrollTop + listElm.clientHeight >= listElm.scrollHeight) {
+          loadMorePublications();
+        }
+      });
+    });
+
+    return { publications, loading, err, scrollComponent };
   },
 });
 </script>
