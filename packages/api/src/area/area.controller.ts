@@ -32,38 +32,34 @@ export class AreaController {
       const validPublications =
         this.areaService.getValidPublications(validPoints);
 
-      const page = new GetManyDefaultResponse<Publication>();
-      page.pageNumber = options.page ? options.page : 1;
-      page.count = options.limit ? options.limit : 20;
-      page.total = validPublications.length;
-      page.pageCount = Math.ceil(page.total / page.count);
-      page.data = validPublications.slice(
-        (page.pageNumber - 1) * page.count,
-        page.pageNumber * page.count < validPublications.length
-          ? page.count * page.pageNumber
-          : validPublications.length,
-      );
-
       this.areaCache.set(cacheKey, validPublications);
-      return page;
-    } else {
-      const page = new GetManyDefaultResponse<Publication>();
-      page.pageNumber = options.page;
-      page.count = options.limit ? options.limit : 20;
-      page.total = renderFromCache.length;
-      page.pageCount = Math.ceil(page.total / page.count);
-      page.data = renderFromCache.slice(
-        (page.pageNumber - 1) * page.count,
-        page.pageNumber * page.count < renderFromCache.length
-          ? page.count * page.pageNumber
-          : renderFromCache.length,
-      );
 
-      return page;
+      return this.createPage(options, validPublications);
+    } else {
+      return this.createPage(options, renderFromCache);
     }
   }
 
   private getCacheKey(options: AreaOptionsDto): string {
     return `${options.lat}.${options.lon}.${options.r}.${options.t || ''}`;
+  }
+
+  private createPage(
+    options: AreaOptionsDto,
+    publications: Publication[],
+  ): GetManyDefaultResponse<Publication> {
+    const page = new GetManyDefaultResponse<Publication>();
+    page.pageNumber = options.page ? options.page : 1;
+    page.count = options.limit ? options.limit : 20;
+    page.total = publications.length;
+    page.pageCount = Math.ceil(page.total / page.count);
+    page.data = publications.slice(
+      (page.pageNumber - 1) * page.count,
+      page.pageNumber * page.count < publications.length
+        ? page.count * page.pageNumber
+        : publications.length,
+    );
+
+    return page;
   }
 }
