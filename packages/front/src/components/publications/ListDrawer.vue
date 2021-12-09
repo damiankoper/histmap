@@ -26,13 +26,14 @@
           <br />
           Brak znalezionych publikacji w wybranym obszarze. Wybierz inny obszar.
         </div>
-        <el-scrollbar always v-else v-loading="loading">
-          <!-- TODO: Handle pagination -->
-          <PublicationCard
-            v-for="publication in publications"
-            :key="publication.id"
-            :publication="publication"
-          />
+        <el-scrollbar always v-else v-loading="loading" u ref="scrollComponent">
+          <div @scroll="handleScroll">
+            <PublicationCard
+              v-for="publication in publications"
+              :key="publication.id"
+              :publication="publication"
+            />
+          </div>
         </el-scrollbar>
       </div>
     </el-drawer>
@@ -40,9 +41,9 @@
 </template>
 
 <script lang="ts">
-import { PublicationsPage } from "@/interfaces/Publication";
+import Publication, { PublicationsPage } from "@/interfaces/Publication";
 import PublicationCard from "./PublicationCard.vue";
-import { defineComponent, PropType, watch, computed } from "vue";
+import { defineComponent, PropType, watch, computed, ref } from "vue";
 import SmallTitle from "../layout/SmallTitle.vue";
 import useApi from "@/composables/useApi";
 import { MapArea } from "@/composables/useMap";
@@ -68,6 +69,10 @@ export default defineComponent({
     },
   },
   setup(props) {
+    const scrollComponent = ref<HTMLElement | null>(null);
+    const pageNumber = ref<number>(1);
+    const allPublications = ref<Publication[]>([]);
+
     const { fetch, data, loading, err } = useApi<PublicationsPage>(
       () => "area",
       () => ({
@@ -76,6 +81,8 @@ export default defineComponent({
           lon: (props.mapArea?.point as L.LatLng).lng,
           r: props.mapArea?.radius,
           t: props.byYear ? props.year : 0,
+          limit: 5,
+          page: pageNumber.value,
         },
       })
     );
@@ -91,11 +98,31 @@ export default defineComponent({
       if (props.byYear) fetch();
     });
 
-    const publications = computed(() => {
-      return data?.value?.data;
+    watch([pageNumber], () => {
+      fetch();
     });
 
-    return { publications, loading, err };
+    const loadMorePublications = () => {
+      pageNumber.value++;
+    };
+
+    const publications = computed(() => {
+      let newData = data?.value?.data;
+      if (newData) newData = allPublications.value.concat(newData);
+      return newData;
+    });
+
+    // TODO - detect end of scrolling
+    const handleScroll = (el: any) => {
+      if (
+        el.target.offsetHeight + el.targer.scrollTop >=
+        el.target.scrollHeight
+      ) {
+        loadMorePublications();
+      }
+    };
+
+    return { publications, loading, err, scrollComponent, handleScroll };
   },
 });
 </script>

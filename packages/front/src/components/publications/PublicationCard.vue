@@ -2,8 +2,7 @@
   <el-card shadow="hover" class="card">
     <h3>{{ pub.title }}</h3>
     <div>{{ pub.author }}</div>
-    <div>{{ pub.city }} {{ pub.year }}</div>
-    <div>ISBN {{ pub.isbn }}</div>
+    <div>{{ pub.publicationPlace }} {{ pub.year }}</div>
   </el-card>
 </template>
 
