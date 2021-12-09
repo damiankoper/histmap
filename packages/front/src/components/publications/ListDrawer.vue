@@ -17,6 +17,7 @@
       </el-row>
       <hr style="margin: 12px 0" />
       <div style="height: calc(100% - 48px)" v-loading="loading">
+        <!-- publications.length === 0 -->
         <div v-if="err || !publications" class="error-msg">
           <span
             class="mdi-set mdi-book-remove-outline"
@@ -26,15 +27,16 @@
           <br />
           Brak znalezionych publikacji w wybranym obszarze. Wybierz inny obszar.
         </div>
-        <el-scrollbar always v-else v-loading="loading">
-          <div id="infinite-list">
-            <PublicationCard
-              v-for="publication in publications"
-              :key="publication.id"
-              :publication="publication"
-            />
-          </div>
-        </el-scrollbar>
+        <ul
+          v-else
+          v-infinite-scroll="loadMorePublications"
+          class="infinite-list"
+          style="overflow: auto"
+        >
+          <li v-for="publication in publications" :key="publication.id">
+            <PublicationCard :publication="publication" />
+          </li>
+        </ul>
       </div>
     </el-drawer>
   </div>
@@ -43,14 +45,7 @@
 <script lang="ts">
 import Publication, { PublicationsPage } from "@/interfaces/Publication";
 import PublicationCard from "./PublicationCard.vue";
-import {
-  defineComponent,
-  PropType,
-  watch,
-  computed,
-  ref,
-  onMounted,
-} from "vue";
+import { defineComponent, PropType, watch, ref } from "vue";
 import SmallTitle from "../layout/SmallTitle.vue";
 import useApi from "@/composables/useApi";
 import { MapArea } from "@/composables/useMap";
@@ -78,7 +73,7 @@ export default defineComponent({
   setup(props) {
     const scrollComponent = ref<HTMLElement | null>(null);
     const pageNumber = ref<number>(1);
-    const allPublications = ref<Publication[]>([]);
+    let publications = ref<Publication[]>([]);
 
     const { fetch, data, loading, err } = useApi<PublicationsPage>(
       () => "area",
@@ -97,7 +92,12 @@ export default defineComponent({
     watch(
       () => props.mapArea,
       () => {
+        publications.value = [];
+        pageNumber.value = 1;
         fetch();
+        appendPublications();
+        console.log(data.value?.data);
+        console.log(publications.value);
       }
     );
 
@@ -105,33 +105,24 @@ export default defineComponent({
       if (props.byYear) fetch();
     });
 
-    watch([pageNumber], () => {
-      fetch();
-    });
-
     const loadMorePublications = () => {
+      fetch();
+      appendPublications();
       pageNumber.value++;
     };
 
-    const publications = computed(() => {
-      let newData = data?.value?.data;
-      if (newData) newData = allPublications.value.concat(newData);
-      return newData;
-    });
+    const appendPublications = () => {
+      let newData = data.value?.data;
+      if (newData) publications.value = publications.value.concat(newData);
+    };
 
-    onMounted(() => {
-      // Detect when scrolled to bottom.
-      const listElm = document.querySelector("#infinite-list");
-      listElm?.addEventListener("scroll", () => {
-        console.log("saddnsakjdnjksa");
-
-        if (listElm.scrollTop + listElm.clientHeight >= listElm.scrollHeight) {
-          loadMorePublications();
-        }
-      });
-    });
-
-    return { publications, loading, err, scrollComponent };
+    return {
+      publications,
+      loading,
+      err,
+      scrollComponent,
+      loadMorePublications,
+    };
   },
 });
 </script>
@@ -141,6 +132,12 @@ h2,
 h3 {
   margin-top: 0;
   margin-bottom: 0;
+}
+.infinite-list {
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  list-style: none;
 }
 .error-msg {
   text-align: center;
