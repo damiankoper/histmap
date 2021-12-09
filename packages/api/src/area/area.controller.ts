@@ -38,10 +38,10 @@ export class AreaController {
       page.total = validPublications.length;
       page.pageCount = Math.ceil(page.total / page.count);
       page.data = validPublications.slice(
-        (page.pageNumber - 1) * page.count + 1,
+        (page.pageNumber - 1) * page.count,
         page.pageNumber * page.count < validPublications.length
           ? page.count * page.pageNumber
-          : validPublications.length - 1,
+          : validPublications.length,
       );
 
       this.areaCache.set(cacheKey, validPublications);
@@ -49,14 +49,14 @@ export class AreaController {
     } else {
       const page = new GetManyDefaultResponse<Publication>();
       page.pageNumber = options.page;
-      page.count = options.limit;
+      page.count = options.limit ? options.limit : 20;
       page.total = renderFromCache.length;
       page.pageCount = Math.ceil(page.total / page.count);
       page.data = renderFromCache.slice(
-        (page.pageNumber - 1) * page.count + 1,
+        (page.pageNumber - 1) * page.count,
         page.pageNumber * page.count < renderFromCache.length
           ? page.count * page.pageNumber
-          : renderFromCache.length - 1,
+          : renderFromCache.length,
       );
 
       return page;
