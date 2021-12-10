@@ -39,6 +39,7 @@
           <li v-for="publication in publications" :key="publication.id">
             <PublicationCard :publication="publication" />
           </li>
+          <div class="end-of-list" v-if="endOfList">Koniec wyników</div>
         </ul>
       </div>
     </el-drawer>
@@ -78,6 +79,7 @@ export default defineComponent({
     const pageNumber = ref<number>(1);
     let publications = ref<Publication[]>([]);
     const tempRefToMakeWatchWork = ref<Publication[]>([]);
+    const endOfList = ref(false);
 
     const { fetch, data, loading, err } = useApi<PublicationsPage>(
       () => "area",
@@ -119,7 +121,14 @@ export default defineComponent({
     const loadMorePublications = () => {
       if (pageNumber.value == 1) {
         pageNumber.value++;
-      } else {
+      } else if (pageNumber.value === data?.value?.pageCount) {
+        fetch();
+        endOfList.value = true;
+        pageNumber.value++;
+      } else if (
+        data?.value?.pageCount &&
+        pageNumber.value < data?.value?.pageCount
+      ) {
         fetch();
         pageNumber.value++;
       }
@@ -129,6 +138,7 @@ export default defineComponent({
       publications,
       loading,
       err,
+      endOfList,
       scrollComponent,
       loadMorePublications,
     };
@@ -156,5 +166,11 @@ h3 {
     overflow: hidden;
     padding-top: 0;
   }
+}
+.end-of-list {
+  text-align: center;
+  margin: 20px 0;
+  font-size: 20px;
+  font-weight: bold;
 }
 </style>
