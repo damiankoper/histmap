@@ -110,12 +110,12 @@ export default defineComponent({
     });
 
     watchEffect(() => {
-      if (data.value?.data) tempRefToMakeWatchWork.value = data.value?.data;
+      if (data.value?.data) tempRefToMakeWatchWork.value = data.value.data;
     });
 
     watch(tempRefToMakeWatchWork, () => {
       if (data.value?.data) {
-        publications.value = publications.value.concat(data?.value?.data);
+        publications.value = publications.value.concat(data.value.data);
       }
     });
 
