@@ -59,6 +59,7 @@ export class AreaController {
         ? page.count * page.pageNumber
         : publications.length,
     );
+    page.count = page.data.length;
 
     return page;
   }
