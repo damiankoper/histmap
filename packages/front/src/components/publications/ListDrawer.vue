@@ -18,7 +18,10 @@
       <hr style="margin: 12px 0" />
       <div style="height: calc(100% - 48px)" v-loading="loading">
         <!-- publications.length === 0 -->
-        <div v-if="err || !publications" class="error-msg">
+        <div
+          v-if="err || (publications.length === 0 && loading === false)"
+          class="error-msg"
+        >
           <span
             class="mdi-set mdi-book-remove-outline"
             style="font-size: 3em; margin-bottom: 4px"
@@ -45,7 +48,7 @@
 <script lang="ts">
 import Publication, { PublicationsPage } from "@/interfaces/Publication";
 import PublicationCard from "./PublicationCard.vue";
-import { defineComponent, PropType, watch, ref } from "vue";
+import { defineComponent, PropType, watch, ref, watchEffect } from "vue";
 import SmallTitle from "../layout/SmallTitle.vue";
 import useApi from "@/composables/useApi";
 import { MapArea } from "@/composables/useMap";
@@ -74,6 +77,7 @@ export default defineComponent({
     const scrollComponent = ref<HTMLElement | null>(null);
     const pageNumber = ref<number>(1);
     let publications = ref<Publication[]>([]);
+    const tempRefToMakeWatchWork = ref<Publication[]>([]);
 
     const { fetch, data, loading, err } = useApi<PublicationsPage>(
       () => "area",
@@ -95,9 +99,6 @@ export default defineComponent({
         publications.value = [];
         pageNumber.value = 1;
         fetch();
-        appendPublications();
-        console.log(data.value?.data);
-        console.log(publications.value);
       }
     );
 
@@ -105,15 +106,23 @@ export default defineComponent({
       if (props.byYear) fetch();
     });
 
-    const loadMorePublications = () => {
-      fetch();
-      appendPublications();
-      pageNumber.value++;
-    };
+    watchEffect(() => {
+      if (data.value?.data) tempRefToMakeWatchWork.value = data.value?.data;
+    });
 
-    const appendPublications = () => {
-      let newData = data.value?.data;
-      if (newData) publications.value = publications.value.concat(newData);
+    watch(tempRefToMakeWatchWork, () => {
+      if (data.value?.data) {
+        publications.value = publications.value.concat(data?.value?.data);
+      }
+    });
+
+    const loadMorePublications = () => {
+      if (pageNumber.value == 1) {
+        pageNumber.value++;
+      } else {
+        fetch();
+        pageNumber.value++;
+      }
     };
 
     return {
