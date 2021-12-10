@@ -100,6 +100,7 @@ export default defineComponent({
       () => {
         publications.value = [];
         pageNumber.value = 1;
+        endOfList.value = false;
         fetch();
       }
     );
