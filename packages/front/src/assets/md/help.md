@@ -4,9 +4,9 @@ Mapa prezentuje świat wraz z nałożoną mapą ciepła. Legenda pokazuje, zale�
 
 Istnieje możliwość wyszukania miejscowości, przez wpisanie jej nazwy w formularzu w lewym górnym rogu ekranu.
 
-## Slider i czas
+## Oś czasu
 
-U dołu ekranu znajduje się interaktywny slider. Reprezentuje on oś czasu. Możliwe jest zarówno manualne ustawienie roku, jak i uruchomienie trybu prezentacji przez kliknięcie przycisku, lub naciśnięcie spacji.
+U dołu ekranu znajduje się interaktywna oś czasu. Możliwe jest zarówno manualne ustawienie roku, jak i uruchomienie trybu prezentacji przez kliknięcie przycisku, lub naciśnięcie spacji.
 
 Tryb prezentacji dostępny jest w trzech prędkościach: wolnej, normalnej i szybkiej, symbolizowanych przez ikony zwierząt. Prezentacje można w dowolnym miejscu zatrzymać.
 
@@ -18,4 +18,4 @@ Nacięnięcie przycisku menu w lewym górnym rogu, powoduje dostęp do filtracji
 
 ## Pozycje z danego miejsca na mapie
 
-Dwuktrotne kliknięcie na mapę, powoduje zaznaczenie pewnego obszaru, oznaczonego czerwonym kołem. Publikacje znajdujące się wewnątrz tego koła ukarzą się na liście z lewej strony ekranu.
+Dwuktrotne kliknięcie na mapę, powoduje zaznaczenie pewnego obszaru, oznaczonego niebieskim kołem. Publikacje znajdujące się wewnątrz tego koła ukarzą się na liście z lewej strony ekranu.
