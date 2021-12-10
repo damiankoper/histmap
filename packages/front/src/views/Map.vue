@@ -22,6 +22,7 @@
         :title="title"
         :showAreas="areAreasShown"
         :choosenGradient="choosenGradient"
+        :byYear="isDataShownByYear"
         @dblclick="onMapDblClick"
         @click="onMapClick"
         @zoom="onZoomChange"

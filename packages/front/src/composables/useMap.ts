@@ -37,6 +37,7 @@ export function useMap(
   author: Ref<string>,
   title: Ref<string>,
   showAreas: Ref<boolean>,
+  byYear: Ref<boolean>,
   choosenGradient: Ref<Gradient>
 ) {
   const map: Ref<L.Map | null> = shallowRef(null);
@@ -50,15 +51,20 @@ export function useMap(
         year.value
       }/{z}/{x}/{y}.png?author=${author.value}&title=${title.value}&place=${
         place.value
-      }&area=${+showAreas.value}&c=${choosenGradient.value.name}`
+      }&area=${+showAreas.value}&c=${choosenGradient.value.name}&t=${
+        byYear.value ? year.value : 0
+      }`
     );
   }
 
-  watch([year, place, author, title, showAreas, choosenGradient], () => {
-    if (heatMapLayer) {
-      setUrl(heatMapLayer);
+  watch(
+    [year, place, author, title, showAreas, choosenGradient, byYear],
+    () => {
+      if (heatMapLayer) {
+        setUrl(heatMapLayer);
+      }
     }
-  });
+  );
 
   onMounted(() => {
     if (!container.value) throw new Error("Invalid map container!");
