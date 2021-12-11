@@ -22,16 +22,35 @@ export class FilterService {
           (pub.title.length &&
             fuzzy(pub.title, options.title, { ignoreCase: true }) > 0.5);
 
-        const author =
-          !options.author.length ||
-          (pub.author.length && fuzzy(pub.author, options.author) > 0.5);
+        const multipleAuthors = pub.author.split(/[,;]+/);
+        for (let index = 0; index < multipleAuthors.length; index++) {
+          multipleAuthors[index] = multipleAuthors[index].trim();
+        }
 
-        const place =
-          !options.place.length ||
-          (pub.publicationPlace.length &&
-            fuzzy(pub.publicationPlace, options.place) > 0.5);
+        let authorBool = !options.author.length || false;
+        multipleAuthors.forEach((author) => {
+          const authorFuzzy =
+            !options.author.length ||
+            (author.length && fuzzy(author, options.author) > 0.5);
 
-        return title && author && place;
+          authorBool = authorBool || authorFuzzy;
+        });
+
+        const multiplePlaces = pub.publicationPlace.split(/[,;]+/);
+        for (let index = 0; index < multiplePlaces.length; index++) {
+          multiplePlaces[index] = multiplePlaces[index].trim();
+        }
+
+        let pubPlaceBool = !options.place.length || false;
+        multiplePlaces.forEach((place) => {
+          const pubPlaceFuzzy =
+            !options.author.length ||
+            (place.length && fuzzy(place, options.place) > 0.5);
+
+          pubPlaceBool = pubPlaceBool || pubPlaceFuzzy;
+        });
+
+        return title && authorBool && pubPlaceBool;
       });
     });
   }

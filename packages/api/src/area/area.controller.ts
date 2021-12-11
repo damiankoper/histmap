@@ -20,9 +20,7 @@ export class AreaController {
   async getPublicationsInArea(
     @Query() options: AreaOptionsDto,
   ): Promise<GetManyDefaultResponse<Publication>> {
-    if (options.r > 128) {
-      options.r = 128;
-    }
+    options.r = options.r / 1000;
 
     const cacheKey = this.getCacheKey(options);
     const renderFromCache = this.areaCache.get(cacheKey);
