@@ -4,6 +4,7 @@ import { onMounted, onUnmounted, Ref, shallowRef, watch } from "vue";
 import icon from "leaflet/dist/images/marker-icon.png";
 import iconShadow from "leaflet/dist/images/marker-shadow.png";
 import { GlobalStats } from "@/interfaces/GlobalStats";
+import { Gradient } from "api";
 
 const osmTileURL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 const osmTileAttr =
@@ -34,7 +35,10 @@ export function useMap(
   year: Ref<number>,
   place: Ref<string>,
   author: Ref<string>,
-  title: Ref<string>
+  title: Ref<string>,
+  showAreas: Ref<boolean>,
+  byYear: Ref<boolean>,
+  choosenGradient: Ref<Gradient>
 ) {
   const map: Ref<L.Map | null> = shallowRef(null);
   let circle: L.Circle | null = null;
@@ -43,13 +47,24 @@ export function useMap(
 
   function setUrl(heatMapLayer: L.TileLayer) {
     heatMapLayer.setUrl(
-      `${process.env.VUE_APP_API_URL}/tiles/${year.value}/{z}/{x}/{y}.png?author=${author.value}&title=${title.value}&place=${place.value}`
+      `${process.env.VUE_APP_API_URL}/tiles/${
+        year.value
+      }/{z}/{x}/{y}.png?author=${author.value}&title=${title.value}&place=${
+        place.value
+      }&area=${+showAreas.value}&c=${choosenGradient.value.name}&t=${
+        byYear.value ? year.value : 0
+      }`
     );
   }
 
-  watch([year, place, author, title], () => {
-    if (heatMapLayer) setUrl(heatMapLayer);
-  });
+  watch(
+    [year, place, author, title, showAreas, choosenGradient, byYear],
+    () => {
+      if (heatMapLayer) {
+        setUrl(heatMapLayer);
+      }
+    }
+  );
 
   onMounted(() => {
     if (!container.value) throw new Error("Invalid map container!");

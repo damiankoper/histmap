@@ -6,6 +6,7 @@
 import { defineComponent, onMounted, PropType, ref, toRef, watch } from "vue";
 import { MapArea, MapSearchResult, useMap } from "@/composables/useMap";
 import { GlobalStats } from "@/interfaces/GlobalStats";
+import { Gradient } from "api";
 
 export default defineComponent({
   props: {
@@ -31,6 +32,18 @@ export default defineComponent({
       type: String,
       required: true,
     },
+    byYear: {
+      type: Boolean,
+      required: true,
+    },
+    showAreas: {
+      type: Boolean,
+      required: true,
+    },
+    choosenGradient: {
+      type: Object as PropType<Gradient>,
+      required: true,
+    },
     globalStats: {
       type: Object as PropType<GlobalStats | null>,
     },
@@ -50,7 +63,10 @@ export default defineComponent({
       toRef(props, "year"),
       toRef(props, "place"),
       toRef(props, "author"),
-      toRef(props, "title")
+      toRef(props, "title"),
+      toRef(props, "showAreas"),
+      toRef(props, "byYear"),
+      toRef(props, "choosenGradient")
     );
 
     onMounted(() => {

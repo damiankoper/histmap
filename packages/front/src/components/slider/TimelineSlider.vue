@@ -5,8 +5,19 @@
     align="middle"
     v-loading="!globalStats"
   >
-    <SliderSpeedButton :speed="speed" @click="onSpeedButtonClick" />
-    <SliderPlayButton :isPlaying="isPlaying" @click="toggleIsPlaying" />
+    <SliderAreaButton :showAreas="showAreas" @click="onAreaButtonClick" />
+    <SliderTimeButton :byYear="byYear" @click="onTimeButtonClick" />
+    <el-divider direction="vertical" />
+    <SliderSpeedButton
+      :speed="speed"
+      @click="onSpeedButtonClick"
+      :disabled="!byYear"
+    />
+    <SliderPlayButton
+      :isPlaying="isPlaying"
+      @click="toggleIsPlaying"
+      :disabled="!byYear"
+    />
     <el-slider
       v-model="yearInner"
       show-stops
@@ -16,6 +27,7 @@
       :step="1"
       height="80"
       class="slider"
+      :disabled="!byYear"
     />
     <span v-if="globalStats">
       {{ year }}
@@ -28,18 +40,35 @@
 import { computed, defineComponent, PropType, ref, watchEffect } from "vue";
 import SliderPlayButton from "../slider/SliderPlayButton.vue";
 import SliderSpeedButton from "../slider/SliderSpeedButton.vue";
+import SliderTimeButton from "../slider/SliderTimeButton.vue";
+import SliderAreaButton from "../slider/SliderAreaButton.vue";
 import { Speed, delaySettings } from "../../interfaces/Speed";
 import { GlobalStats } from "@/interfaces/GlobalStats";
+import { useKeypress } from "vue3-keypress";
 
 export default defineComponent({
-  components: { SliderPlayButton, SliderSpeedButton },
+  components: {
+    SliderPlayButton,
+    SliderSpeedButton,
+    SliderTimeButton,
+    SliderAreaButton,
+  },
 
   props: {
     globalStats: {
       type: Object as PropType<GlobalStats | null>,
     },
     year: { type: Number, default: 0 },
+    formDialogVisible: {
+      type: Boolean,
+      required: true,
+    },
+    listDialogVisible: {
+      type: Boolean,
+      required: true,
+    },
   },
+  emits: ["byYear", "showAreas", "update:year"],
   setup(props, { emit }) {
     const yearInner = ref(0);
 
@@ -51,9 +80,29 @@ export default defineComponent({
       emit("update:year", yearInner.value);
     });
 
+    useKeypress({
+      keyEvent: "keydown",
+      keyBinds: [
+        {
+          keyCode: "space",
+          success: () => {
+            if (
+              !props.formDialogVisible &&
+              !props.listDialogVisible &&
+              byYear.value
+            ) {
+              toggleIsPlaying();
+            }
+          },
+        },
+      ],
+    });
+
     const isPlaying = ref(false);
     const speed = ref<Speed>(Speed.SLOW);
     const delay = ref(delaySettings[Speed.SLOW]);
+    const byYear = ref(true);
+    const showAreas = ref(true);
     let playInterval: ReturnType<typeof setInterval>;
 
     function setPlayingInterval() {
@@ -74,6 +123,19 @@ export default defineComponent({
       } else {
         clearInterval(playInterval);
       }
+    }
+
+    function onTimeButtonClick() {
+      byYear.value = !byYear.value;
+      emit("byYear", byYear.value);
+      if (isPlaying.value) {
+        toggleIsPlaying();
+      }
+    }
+
+    function onAreaButtonClick() {
+      showAreas.value = !showAreas.value;
+      emit("showAreas", showAreas.value);
     }
 
     const nextSpeed = computed(() => {
@@ -99,8 +161,12 @@ export default defineComponent({
     return {
       yearInner,
       speed,
+      byYear,
       isPlaying,
+      showAreas,
+      onTimeButtonClick,
       onSpeedButtonClick,
+      onAreaButtonClick,
       toggleIsPlaying,
     };
   },
@@ -126,6 +192,11 @@ export default defineComponent({
   span {
     font-size: 2rem;
     font-weight: 700;
+  }
+
+  :deep(.el-divider--vertical) {
+    height: 2em;
+    width: 3px;
   }
 }
 </style>

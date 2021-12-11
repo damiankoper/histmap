@@ -3,6 +3,7 @@
     v-loading="loading"
     align="middle"
     class="location-row"
+    :class="{ focus: cardFocus }"
     justify="start"
   >
     <i
@@ -19,7 +20,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from "vue";
+import { defineComponent, PropType, toRef } from "vue";
 import { MapSearchResult } from "@/composables/useMap";
 
 export default defineComponent({
@@ -40,9 +41,15 @@ export default defineComponent({
       type: Boolean,
       default: false,
     },
+    focus: {
+      type: Boolean,
+      required: true,
+    },
   },
-  setup() {
-    return {};
+  setup(props) {
+    return {
+      cardFocus: toRef(props, "focus"),
+    };
   },
 });
 </script>
@@ -59,9 +66,6 @@ export default defineComponent({
   /* without margin first element overlaps shadow of search input */
   /* &:first-child does not work somehow in this case */
   /* but such margin is also nice */
-  &:hover {
-    background: #ebeef5;
-  }
   p {
     overflow: hidden;
     white-space: nowrap;
@@ -70,6 +74,11 @@ export default defineComponent({
     padding: 0 15px;
   }
 }
+
+.focus {
+  background: #ebeef5;
+}
+
 .location-icon {
   min-width: 32px;
   text-align: center;

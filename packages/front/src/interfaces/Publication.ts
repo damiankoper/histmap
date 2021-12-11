@@ -1,9 +1,10 @@
-interface Publication {
-  title: string;
-  author?: string;
-  city?: string;
-  year?: number;
-  isbn?: string;
+import { Publication } from "pre-processor";
+
+interface PublicationsPage {
+  total: number;
+  pageCount: number | null;
+  data: Array<Publication>;
 }
 
 export default Publication;
+export { PublicationsPage };

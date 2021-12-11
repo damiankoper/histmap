@@ -14,27 +14,14 @@
           <span class="mdi-set mdi-book-marker-outline"></span>
           Wyszukiwanie obszarowe
         </h2>
-        <!-- TODO type depends on search type -->
-        <el-tooltip
-          placement="left"
-          :content="
-            byYear
-              ? 'Wyszukiwanie w wybranym roku'
-              : 'Wyszukiwanie w całym zakresie czasowym'
-          "
-        >
-          <el-button
-            :type="byYear ? 'primary' : 'info'"
-            @click="byYear = !byYear"
-            size="small"
-          >
-            <span class="mdi-set mdi-calendar-outline" />
-          </el-button>
-        </el-tooltip>
       </el-row>
       <hr style="margin: 12px 0" />
       <div style="height: calc(100% - 48px)" v-loading="loading">
-        <div v-if="err" class="error-msg">
+        <!-- publications.length === 0 -->
+        <div
+          v-if="err || (publications.length === 0 && loading === false)"
+          class="error-msg"
+        >
           <span
             class="mdi-set mdi-book-remove-outline"
             style="font-size: 3em; margin-bottom: 4px"
@@ -43,29 +30,32 @@
           <br />
           Brak znalezionych publikacji w wybranym obszarze. Wybierz inny obszar.
         </div>
-        <el-scrollbar always v-else v-loading="loading">
-          <!-- TODO: Handle pagination -->
-          <PublicationCard
-            v-for="publication in data"
-            :key="publication.isbn"
-            :publication="publication"
-          />
-        </el-scrollbar>
+        <ul
+          v-else
+          v-infinite-scroll="loadMorePublications"
+          class="infinite-list"
+          style="overflow: auto"
+        >
+          <li v-for="publication in publications" :key="publication.id">
+            <PublicationCard :publication="publication" />
+          </li>
+          <div class="end-of-list" v-if="endOfList">Koniec wyników</div>
+        </ul>
       </div>
     </el-drawer>
   </div>
 </template>
 
 <script lang="ts">
-import Publication from "@/interfaces/Publication";
-import { defineComponent, PropType, ref, watch } from "vue";
+import Publication, { PublicationsPage } from "@/interfaces/Publication";
 import PublicationCard from "./PublicationCard.vue";
+import { defineComponent, PropType, watch, ref, watchEffect } from "vue";
 import SmallTitle from "../layout/SmallTitle.vue";
 import useApi from "@/composables/useApi";
 import { MapArea } from "@/composables/useMap";
 import * as L from "leaflet";
 export default defineComponent({
-  components: { PublicationCard, SmallTitle },
+  components: { SmallTitle, PublicationCard },
   props: {
     visible: {
       type: Boolean,
@@ -79,17 +69,28 @@ export default defineComponent({
       type: Object as PropType<MapArea>,
       requried: false,
     },
+    byYear: {
+      type: Boolean,
+      required: true,
+    },
   },
   setup(props) {
-    const byYear = ref(true);
-    const { fetch, data, loading, err } = useApi<Publication[]>(
+    const scrollComponent = ref<HTMLElement | null>(null);
+    const pageNumber = ref<number>(1);
+    let publications = ref<Publication[]>([]);
+    const tempRefToMakeWatchWork = ref<Publication[]>([]);
+    const endOfList = ref(false);
+
+    const { fetch, data, loading, err } = useApi<PublicationsPage>(
       () => "area",
       () => ({
         params: {
           lat: (props.mapArea?.point as L.LatLng).lat,
           lon: (props.mapArea?.point as L.LatLng).lng,
           r: props.mapArea?.radius,
-          t: byYear.value ? props.year : null,
+          t: props.byYear ? props.year : 0,
+          limit: 5,
+          page: pageNumber.value,
         },
       })
     );
@@ -97,15 +98,51 @@ export default defineComponent({
     watch(
       () => props.mapArea,
       () => {
+        publications.value = [];
+        pageNumber.value = 1;
+        endOfList.value = false;
         fetch();
       }
     );
 
-    watch([() => props.year, byYear], () => {
-      if (byYear.value) fetch();
+    watch([() => props.year], () => {
+      if (props.byYear) fetch();
     });
 
-    return { data, loading, err, byYear };
+    watchEffect(() => {
+      if (data.value?.data) tempRefToMakeWatchWork.value = data.value.data;
+    });
+
+    watch(tempRefToMakeWatchWork, () => {
+      if (data.value?.data) {
+        publications.value = publications.value.concat(data.value.data);
+      }
+    });
+
+    const loadMorePublications = () => {
+      if (pageNumber.value == 1) {
+        pageNumber.value++;
+      } else if (pageNumber.value === data?.value?.pageCount) {
+        fetch();
+        endOfList.value = true;
+        pageNumber.value++;
+      } else if (
+        data?.value?.pageCount &&
+        pageNumber.value < data?.value?.pageCount
+      ) {
+        fetch();
+        pageNumber.value++;
+      }
+    };
+
+    return {
+      publications,
+      loading,
+      err,
+      endOfList,
+      scrollComponent,
+      loadMorePublications,
+    };
   },
 });
 </script>
@@ -116,6 +153,12 @@ h3 {
   margin-top: 0;
   margin-bottom: 0;
 }
+.infinite-list {
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
 .error-msg {
   text-align: center;
 }
@@ -124,5 +167,11 @@ h3 {
     overflow: hidden;
     padding-top: 0;
   }
+}
+.end-of-list {
+  text-align: center;
+  margin: 20px 0;
+  font-size: 20px;
+  font-weight: bold;
 }
 </style>
