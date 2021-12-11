@@ -29,12 +29,11 @@ export class AreaController {
 
     if (!renderFromCache) {
       const validPoints = this.areaService.getValidPoints(options);
-      const validPublications =
-        this.areaService.getValidPublications(validPoints);
+      const validPubs = this.areaService.getValidPublications(validPoints);
 
-      this.areaCache.set(cacheKey, validPublications);
+      this.areaCache.set(cacheKey, validPubs);
 
-      return this.createPage(options, validPublications);
+      return this.createPage(options, validPubs);
     } else {
       return this.createPage(options, renderFromCache);
     }

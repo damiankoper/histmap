@@ -74,6 +74,7 @@ export class MathService {
 
   /**
    * @see https://stackoverflow.com/questions/27928/calculate-distance-between-two-latitude-longitude-points-haversine-formula/27943#27943
+   * @see https://www.movable-type.co.uk/scripts/latlong.html sprawdzić różnice
    */
   public lanLonIntersects(
     centerLon: number,
