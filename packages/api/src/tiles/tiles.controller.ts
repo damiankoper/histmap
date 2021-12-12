@@ -66,7 +66,7 @@ export class TilesController {
 
   private hasFilters(options: TileOptionsDto) {
     return (
-      options.author.length + options.title.length + options.place.length > 0
+      options.author?.length + options.title?.length + options.place?.length > 0
     );
   }
 

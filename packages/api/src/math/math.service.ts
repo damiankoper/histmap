@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Point } from 'pre-processor';
+import { IntersectStatusWithDistance } from 'src/area/models/intersect-status-with-distance.model';
 
 @Injectable()
 export class MathService {
@@ -81,7 +82,7 @@ export class MathService {
     radius: number,
     lon: number,
     lat: number,
-  ): boolean {
+  ): IntersectStatusWithDistance {
     const R = 6371; // 6371 Radius of the earth in km
     const dLat = this.toRadians(centerLat - lat);
     const dLon = this.toRadians(centerLon - lon);
@@ -94,7 +95,7 @@ export class MathService {
 
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     const d = R * c; // Distance in km
-    return d < radius;
+    return new IntersectStatusWithDistance(d < radius, d);
   }
 
   private toRadians(deg: number): number {

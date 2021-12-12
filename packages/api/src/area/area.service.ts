@@ -16,7 +16,7 @@ export class AreaService {
     let validPoints: GeoPoint[] = [];
 
     this.dataService.getGeoPoints().forEach((point) => {
-      const doesIntersect = this.mathService.lanLonIntersects(
+      const IntersectStatus = this.mathService.lanLonIntersects(
         options.lon,
         options.lat,
         options.r,
@@ -24,16 +24,24 @@ export class AreaService {
         point.lat,
       );
 
-      if (doesIntersect) {
+      point.distanceFromAreaCenter = IntersectStatus.distance;
+
+      if (IntersectStatus.intersects) {
         validPoints.push(point);
       }
     });
 
-    if (options.t) {
+    if (options.t || options.t != 0) {
       validPoints = validPoints.filter((point) => point.t == options.t);
     }
 
-    return validPoints;
+    return validPoints.sort((a, b) =>
+      a.distanceFromAreaCenter > b.distanceFromAreaCenter
+        ? 1
+        : b.distanceFromAreaCenter > a.distanceFromAreaCenter
+        ? -1
+        : 0,
+    );
   }
 
   getValidPublications(validPoints: GeoPoint[]) {

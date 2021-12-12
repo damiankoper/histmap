@@ -22,17 +22,36 @@ export class FilterService {
           (pub.title.length &&
             fuzzy(pub.title, options.title, { ignoreCase: true }) > 0.5);
 
-        const author =
-          !options.author.length ||
-          (pub.author.length && fuzzy(pub.author, options.author) > 0.5);
+        let authorBool = !options.author.length || false;
+        this.splitAndTrim(pub.author).forEach((author) => {
+          const authorFuzzy =
+            !options.author.length ||
+            (author.length && fuzzy(author, options.author) > 0.5);
 
-        const place =
-          !options.place.length ||
-          (pub.publicationPlace.length &&
-            fuzzy(pub.publicationPlace, options.place) > 0.5);
+          authorBool = authorBool || authorFuzzy;
+        });
 
-        return title && author && place;
+        let pubPlaceBool = !options.place.length || false;
+        this.splitAndTrim(pub.publicationPlace).forEach((place) => {
+          const pubPlaceFuzzy =
+            !options.place.length ||
+            (place.length && fuzzy(place, options.place) > 0.5);
+
+          pubPlaceBool = pubPlaceBool || pubPlaceFuzzy;
+        });
+
+        return title && authorBool && pubPlaceBool;
       });
     });
+  }
+
+  private splitAndTrim(clause: string): string[] {
+    const words = clause.split(/[,;]+/);
+
+    for (let index = 0; index < words.length; index++) {
+      words[index] = words[index].trim();
+    }
+
+    return words;
   }
 }

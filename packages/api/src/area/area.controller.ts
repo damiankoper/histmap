@@ -20,21 +20,18 @@ export class AreaController {
   async getPublicationsInArea(
     @Query() options: AreaOptionsDto,
   ): Promise<GetManyDefaultResponse<Publication>> {
-    if (options.r > 128) {
-      options.r = 128;
-    }
+    options.r = options.r / 1000;
 
     const cacheKey = this.getCacheKey(options);
     const renderFromCache = this.areaCache.get(cacheKey);
 
     if (!renderFromCache) {
       const validPoints = this.areaService.getValidPoints(options);
-      const validPublications =
-        this.areaService.getValidPublications(validPoints);
+      const validPubs = this.areaService.getValidPublications(validPoints);
 
-      this.areaCache.set(cacheKey, validPublications);
+      this.areaCache.set(cacheKey, validPubs);
 
-      return this.createPage(options, validPublications);
+      return this.createPage(options, validPubs);
     } else {
       return this.createPage(options, renderFromCache);
     }
