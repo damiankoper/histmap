@@ -55,7 +55,7 @@ export class TilesController {
       this.filterService.filter(tile, options);
 
       const stats = this.dataService.getTileStats(coords);
-      const render = this.tileRendererService.render(tile, stats);
+      const render = this.tileRendererService.render(tile, stats, options.c);
 
       response.send(render);
       this.tilesCache.set(cacheKey, render);
@@ -71,8 +71,6 @@ export class TilesController {
   }
 
   private getCacheKey(coords: TileCoordsDto, options: TileOptionsDto): string {
-    return `${coords.t}.${coords.z}.${coords.x}.${coords.y}.${
-      options.author || ''
-    }.${options.place || ''}.${options.title || ''}`;
+    return `${coords.t}.${coords.z}.${coords.x}.${coords.y}.${options.c}`;
   }
 }

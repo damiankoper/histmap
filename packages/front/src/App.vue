@@ -11,6 +11,7 @@ body {
   margin: 0;
   padding: 0;
   font-family: "Lato", sans-serif;
+  color: var(--el-text-color-primary);
 }
 .el-notification {
   z-index: 999999 !important;

@@ -19,7 +19,8 @@
       :disabled="!byYear"
     />
     <el-slider
-      v-model="yearInner"
+      :model-value="yearInner"
+      @update:model-value="(v) => $emit('update:year', v)"
       show-stops
       :min="globalStats?.tMin || 0"
       :max="globalStats?.tMax || 0"
@@ -29,8 +30,8 @@
       class="slider"
       :disabled="!byYear"
     />
-    <span v-if="globalStats">
-      {{ year }}
+    <span v-if="year !== 0">
+      {{ yearInner }}
     </span>
     <span v-else> --- </span>
   </div>
@@ -68,13 +69,17 @@ export default defineComponent({
       required: true,
     },
   },
-  emits: ["byYear", "showAreas", "update:year"],
+  emits: ["showAreas", "update:year"],
   setup(props, { emit }) {
     const yearInner = ref(0);
+    const byYear = ref(true);
 
-    watchEffect(() => {
-      yearInner.value = props.year;
-    });
+    watchEffect(
+      () => {
+        if (byYear.value) yearInner.value = props.year;
+      },
+      { flush: "post" }
+    );
 
     watchEffect(() => {
       emit("update:year", yearInner.value);
@@ -101,7 +106,6 @@ export default defineComponent({
     const isPlaying = ref(false);
     const speed = ref<Speed>(Speed.SLOW);
     const delay = ref(delaySettings[Speed.SLOW]);
-    const byYear = ref(true);
     const showAreas = ref(true);
     let playInterval: ReturnType<typeof setInterval>;
 
@@ -127,7 +131,8 @@ export default defineComponent({
 
     function onTimeButtonClick() {
       byYear.value = !byYear.value;
-      emit("byYear", byYear.value);
+      if (!byYear.value) emit("update:year", 0);
+      else emit("update:year", yearInner.value);
       if (isPlaying.value) {
         toggleIsPlaying();
       }
@@ -196,7 +201,6 @@ export default defineComponent({
 
   :deep(.el-divider--vertical) {
     height: 2em;
-    width: 3px;
   }
 }
 </style>

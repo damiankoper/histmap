@@ -9,7 +9,7 @@
         />
       </div>
       <div class="legend-wrapper">
-        <Legend :year="year" :zoom="zoom" @gradientChanged="onGradientChange" />
+        <Legend :year="year" :zoom="zoom" v-model:gradient="gradient" />
       </div>
       <Map
         class="map"
@@ -21,8 +21,7 @@
         :author="author"
         :title="title"
         :showAreas="areAreasShown"
-        :choosenGradient="choosenGradient"
-        :byYear="isDataShownByYear"
+        :gradient="gradient"
         @dblclick="onMapDblClick"
         @click="onMapClick"
         @zoom="onZoomChange"
@@ -33,7 +32,6 @@
       :global-stats="globalStats"
       :formDialogVisible="formDialogVisible"
       :listDialogVisible="listDialogVisible"
-      @byYear="onByYear"
       @showAreas="onShowAreas"
     />
   </el-container>
@@ -47,7 +45,6 @@
     v-model:visible="listDialogVisible"
     :map-area="mapArea"
     :year="year"
-    :byYear="isDataShownByYear"
   />
   <Footer />
 </template>
@@ -92,12 +89,10 @@ export default defineComponent({
     const mapSearch = ref<MapSearchResult | null>(null);
     const mapArea = ref<MapArea | null>(null);
 
-    // store needed? not the best solution having 2 sources of truth
-    const isDataShownByYear = ref(true);
     const areAreasShown = ref(true);
 
     const { defaultGradient } = useGradients();
-    const choosenGradient = ref<Gradient>(defaultGradient);
+    const gradient = ref<Gradient>(defaultGradient);
 
     const { data: globalStats, fetch } =
       useApi<GlobalStats>("tiles/stats/global");
@@ -120,8 +115,7 @@ export default defineComponent({
       areAreasShown,
       formDialogVisible,
       listDialogVisible,
-      choosenGradient,
-      isDataShownByYear,
+      gradient,
       onMapClick(_e: L.LeafletMouseEvent) {
         mapArea.value = null;
       },
@@ -148,14 +142,8 @@ export default defineComponent({
       onLocation(location: MapSearchResult) {
         mapSearch.value = location;
       },
-      onByYear(byYear: boolean) {
-        isDataShownByYear.value = byYear;
-      },
       onShowAreas(showAreas: boolean) {
         areAreasShown.value = showAreas;
-      },
-      onGradientChange(gradient: Gradient) {
-        choosenGradient.value = gradient;
       },
     };
   },

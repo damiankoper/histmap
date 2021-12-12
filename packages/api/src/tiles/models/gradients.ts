@@ -30,6 +30,8 @@ export const gradients = {
   ],
 };
 
+export type GradientName = keyof typeof gradients;
+
 export interface SingleColorData {
   pos: number;
   color: string;

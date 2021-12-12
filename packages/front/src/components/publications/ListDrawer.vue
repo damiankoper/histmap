@@ -14,10 +14,12 @@
           <span class="mdi-set mdi-book-marker-outline"></span>
           Wyszukiwanie obszarowe
         </h2>
+        <div style="margin-left: 28px" v-if="data?.total > 0">
+          Znaleziono pozycji: {{ data.total }}
+        </div>
       </el-row>
       <hr style="margin: 12px 0" />
       <div style="height: calc(100% - 48px)" v-loading="loading">
-        <!-- publications.length === 0 -->
         <div
           v-if="err || (publications.length === 0 && loading === false)"
           class="error-msg"
@@ -40,6 +42,7 @@
             <PublicationCard :publication="publication" />
           </li>
           <div class="end-of-list" v-if="endOfList">Koniec wyników</div>
+          <div class="end-of-list" v-else-if="!singlePage">Ładowanie...</div>
         </ul>
       </div>
     </el-drawer>
@@ -69,10 +72,6 @@ export default defineComponent({
       type: Object as PropType<MapArea>,
       requried: false,
     },
-    byYear: {
-      type: Boolean,
-      required: true,
-    },
   },
   setup(props) {
     const scrollComponent = ref<HTMLElement | null>(null);
@@ -80,6 +79,7 @@ export default defineComponent({
     let publications = ref<Publication[]>([]);
     const tempRefToMakeWatchWork = ref<Publication[]>([]);
     const endOfList = ref(false);
+    const singlePage = ref(false);
 
     const { fetch, data, loading, err } = useApi<PublicationsPage>(
       () => "area",
@@ -88,7 +88,7 @@ export default defineComponent({
           lat: (props.mapArea?.point as L.LatLng).lat,
           lon: (props.mapArea?.point as L.LatLng).lng,
           r: props.mapArea?.radius,
-          t: props.byYear ? props.year : 0,
+          t: props.year,
           limit: 5,
           page: pageNumber.value,
         },
@@ -101,13 +101,10 @@ export default defineComponent({
         publications.value = [];
         pageNumber.value = 1;
         endOfList.value = false;
+        singlePage.value = pageNumber.value === data?.value?.pageCount;
         fetch();
       }
     );
-
-    watch([() => props.year], () => {
-      if (props.byYear) fetch();
-    });
 
     watchEffect(() => {
       if (data.value?.data) tempRefToMakeWatchWork.value = data.value.data;
@@ -139,7 +136,9 @@ export default defineComponent({
       publications,
       loading,
       err,
+      data,
       endOfList,
+      singlePage,
       scrollComponent,
       loadMorePublications,
     };
@@ -154,7 +153,7 @@ h3 {
   margin-bottom: 0;
 }
 .infinite-list {
-  height: 100%;
+  height: calc(100% - 24px);
   padding: 0;
   margin: 0;
   list-style: none;

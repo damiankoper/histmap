@@ -1,28 +1,41 @@
 import { Injectable } from '@nestjs/common';
 import { Point, TileStats } from 'pre-processor';
-import { RendererService, Tile as RenderTile } from 'renderer';
+import { Config, RendererService, Tile as RenderTile } from 'renderer';
 import { gradients } from 'src/export';
+import { GradientName } from './models/gradients';
 import { Tile } from './models/tile.model';
 
 @Injectable()
 export class TileRendererService {
-  private renderer: RendererService;
+  readonly commonOptions: Partial<Config> = {
+    blur: 20,
+    radius: 30,
+    minOpacity: 0.3,
+  };
 
-  constructor() {
-    this.renderer = new RendererService({
-      blur: 20,
-      radius: 30,
-      minOpacity: 0.3,
+  private renderers: Record<GradientName, RendererService> = {
+    default: new RendererService({
+      ...this.commonOptions,
+      gradient: gradients.default,
+    }),
+    heat: new RendererService({
+      ...this.commonOptions,
       gradient: gradients.heat,
-    });
-  }
+    }),
+    magma: new RendererService({
+      ...this.commonOptions,
+      gradient: gradients.magma,
+    }),
+    viridis: new RendererService({
+      ...this.commonOptions,
+      gradient: gradients.viridis,
+    }),
+  };
 
-  public render(tile: Tile, stats: TileStats) {
-    return this.renderer.render(this.mapToRenderTile(tile.points, stats.max));
-  }
-
-  public renderPoints(points: Point[]) {
-    return this.renderer.render(this.mapToRenderTile(points, 1000));
+  public render(tile: Tile, stats: TileStats, colors?: GradientName) {
+    return this.renderers[colors || 'default'].render(
+      this.mapToRenderTile(tile.points, stats.max),
+    );
   }
 
   private mapToRenderTile(tilePoints: Point[], max: number): RenderTile {

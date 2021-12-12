@@ -32,15 +32,11 @@ export default defineComponent({
       type: String,
       required: true,
     },
-    byYear: {
-      type: Boolean,
-      required: true,
-    },
     showAreas: {
       type: Boolean,
       required: true,
     },
-    choosenGradient: {
+    gradient: {
       type: Object as PropType<Gradient>,
       required: true,
     },
@@ -65,8 +61,7 @@ export default defineComponent({
       toRef(props, "author"),
       toRef(props, "title"),
       toRef(props, "showAreas"),
-      toRef(props, "byYear"),
-      toRef(props, "choosenGradient")
+      toRef(props, "gradient")
     );
 
     onMounted(() => {

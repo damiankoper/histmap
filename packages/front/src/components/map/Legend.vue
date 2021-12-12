@@ -1,10 +1,5 @@
 <template>
-  <el-popover
-    placement="top-start"
-    title="Wybierz paletę kolorów"
-    trigger="hover"
-    width="350"
-  >
+  <el-popover placement="top-start" trigger="hover" :width="350 - 24">
     <template #reference>
       <div class="legend-container">
         <el-row justify="space-between">
@@ -27,27 +22,34 @@
       </div>
     </template>
     <div>
-      <div class="legend-container">
-        <div
-          class="gradient gradient-choice"
-          @click="setGradient(defaultGradient)"
-          :style="{ background: defaultGradient.color }"
-        ></div>
-        <div
-          class="gradient gradient-choice"
-          @click="setGradient(viridisGradient)"
-          :style="{ background: viridisGradient.color }"
-        ></div>
-        <div
-          class="gradient gradient-choice"
-          @click="setGradient(heatGradient)"
-          :style="{ background: heatGradient.color }"
-        ></div>
-        <div
-          class="gradient gradient-choice"
-          @click="setGradient(magmaGradient)"
-          :style="{ background: magmaGradient.color }"
-        ></div>
+      <div class="title">Wybierz paletę kolorów</div>
+      <div
+        class="gradient gradient-choice"
+        @click="setGradient(defaultGradient)"
+        :style="{ background: defaultGradient.color, color: 'white' }"
+      >
+        Default
+      </div>
+      <div
+        class="gradient gradient-choice"
+        @click="setGradient(viridisGradient)"
+        :style="{ background: viridisGradient.color }"
+      >
+        Viridis
+      </div>
+      <div
+        class="gradient gradient-choice"
+        @click="setGradient(heatGradient)"
+        :style="{ background: heatGradient.color }"
+      >
+        Heat
+      </div>
+      <div
+        class="gradient gradient-choice"
+        @click="setGradient(magmaGradient)"
+        :style="{ background: magmaGradient.color }"
+      >
+        Magma
       </div>
     </div>
   </el-popover>
@@ -55,7 +57,7 @@
 
 <script lang="ts">
 import useApi from "@/composables/useApi";
-import { defineComponent, onMounted, ref, watch } from "vue";
+import { defineComponent, onMounted, PropType, ref, watch } from "vue";
 import { TileStats } from "pre-processor";
 import { useGradients } from "../../composables/useGradients";
 import { Gradient } from "api";
@@ -70,8 +72,12 @@ export default defineComponent({
       type: Number,
       default: 0,
     },
+    gradient: {
+      type: Object as PropType<Gradient>,
+      required: true,
+    },
   },
-  emits: ["gradientChanged"],
+  emits: ["update:gradient"],
   setup(props, { emit }) {
     const { fetch, data } = useApi<TileStats>(
       () => `tiles/stats/${props.year}/${props.zoom}`
@@ -84,7 +90,7 @@ export default defineComponent({
 
     const setGradient = (gradient: Gradient) => {
       choosenGradient.value = gradient;
-      emit("gradientChanged", choosenGradient.value);
+      emit("update:gradient", choosenGradient.value);
     };
 
     onMounted(fetch);
@@ -102,16 +108,7 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss">
-.el-popover {
-  padding: 0 !important;
-}
-
-.el-popover__title {
-  padding: 8px 8px 0 8px;
-  margin-bottom: 0 !important;
-}
-
+<style scoped lang="scss">
 .legend-container {
   padding: 12px;
   line-height: 1em;
@@ -120,17 +117,30 @@ export default defineComponent({
   box-shadow: 0 2px 4px rgb(0 0 0 / 15%);
   width: 350px;
   box-sizing: border-box;
+}
 
-  .gradient {
-    height: 1em;
-    width: 100%;
-    border-radius: 4px;
-    margin-top: 4px;
-  }
+.title {
+  color: var(--el-text-color-primary);
+  font-size: 16px;
+  font-weight: bold;
+}
 
-  .gradient-choice {
-    margin: 20px 0;
+.gradient {
+  height: 1em;
+  width: 100%;
+  border-radius: 4px;
+  margin-top: 4px;
+
+  &-choice {
+    color: var(--el-text-color-primary);
+    font-weight: bold;
+    box-sizing: border-box;
+    margin-top: 8px;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    height: 1.5em;
+    padding: 0 8px;
   }
 }
 </style>

@@ -1,8 +1,8 @@
 <template>
   <el-card shadow="hover" class="card">
-    <h3>{{ pub.title }}</h3>
-    <div>{{ pub.author }}</div>
-    <div>{{ pub.publicationPlace }} {{ pub.year }}</div>
+    <h3>{{ publication.title }}</h3>
+    <div style="margin-bottom: 4px">{{ publication.author }}</div>
+    <div>{{ publication.publicationPlace }} {{ publication.year }}</div>
   </el-card>
 </template>
 
@@ -17,10 +17,8 @@ export default defineComponent({
       required: true,
     },
   },
-  setup(props) {
-    return {
-      pub: props.publication,
-    };
+  setup() {
+    return {};
   },
 });
 </script>
@@ -29,8 +27,13 @@ export default defineComponent({
 .card {
   margin: 12px 12px 12px 0;
 
-  div {
-    margin-top: 12px;
+  :deep(.el-card__body) {
+    padding: 12px;
+  }
+
+  h3 {
+    margin-top: 0;
+    margin-bottom: 12px;
   }
 }
 </style>
