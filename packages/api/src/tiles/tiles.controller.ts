@@ -6,8 +6,7 @@ import { TileCoordsDto } from './dto/tile-coords.dto';
 import { TileOptionsDto } from './dto/tile-options.dto';
 import { Response } from 'express';
 import { TileRendererService } from './tile-renderer.service';
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
-
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { TileMetaCoords, TileStats } from 'pre-processor';
 import { GlobalStats } from 'src/data/interfaces/global-stats.interface';
 
@@ -24,21 +23,28 @@ export class TilesController {
   ) {}
 
   @Get('/stats/global')
+  @ApiOperation({
+    summary: 'Returns global stats',
+  })
   async getGlobalStats(): Promise<GlobalStats> {
     return this.dataService.globalStats;
   }
 
   @Get('/stats/:t/:z/')
+  @ApiOperation({
+    summary: 'Returns stats for specific tile',
+  })
   async getTileStats(@Param() coords: TileMetaCoords): Promise<TileStats> {
     return this.dataService.getTileStats(coords);
   }
 
   @Get(':t/:z/:x/:y.png')
   @Header('Content-Type', 'image/png')
+  @ApiOperation({
+    summary: 'Returns rendered tile as an image',
+  })
   @ApiResponse({
     status: 201,
-    type: Buffer,
-    description: 'Returns rendered tile as a Buffer.',
   })
   async getTile(
     @Param() coords: TileCoordsDto,

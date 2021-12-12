@@ -42,7 +42,7 @@
             <PublicationCard :publication="publication" />
           </li>
           <div class="end-of-list" v-if="endOfList">Koniec wyników</div>
-          <div class="end-of-list" v-else-if="!singlePage">Ładowanie...</div>
+          <div class="end-of-list" v-else>Ładowanie...</div>
         </ul>
       </div>
     </el-drawer>
@@ -79,7 +79,6 @@ export default defineComponent({
     let publications = ref<Publication[]>([]);
     const tempRefToMakeWatchWork = ref<Publication[]>([]);
     const endOfList = ref(false);
-    const singlePage = ref(false);
 
     const { fetch, data, loading, err } = useApi<PublicationsPage>(
       () => "area",
@@ -97,12 +96,11 @@ export default defineComponent({
 
     watch(
       () => props.mapArea,
-      () => {
+      async () => {
         publications.value = [];
         pageNumber.value = 1;
-        endOfList.value = false;
-        singlePage.value = pageNumber.value === data?.value?.pageCount;
-        fetch();
+        await fetch();
+        endOfList.value = data.value?.pageCount === 1;
       }
     );
 
@@ -119,13 +117,13 @@ export default defineComponent({
     const loadMorePublications = () => {
       if (pageNumber.value == 1) {
         pageNumber.value++;
-      } else if (pageNumber.value === data?.value?.pageCount) {
+      } else if (pageNumber.value === data.value?.pageCount) {
         fetch();
         endOfList.value = true;
         pageNumber.value++;
       } else if (
         data?.value?.pageCount &&
-        pageNumber.value < data?.value?.pageCount
+        pageNumber.value < data.value?.pageCount
       ) {
         fetch();
         pageNumber.value++;
@@ -138,7 +136,6 @@ export default defineComponent({
       err,
       data,
       endOfList,
-      singlePage,
       scrollComponent,
       loadMorePublications,
     };

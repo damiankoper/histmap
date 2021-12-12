@@ -16,7 +16,7 @@ export class AreaService {
     let validPoints: GeoPoint[] = [];
 
     this.dataService.getGeoPoints().forEach((point) => {
-      const IntersectStatus = this.mathService.lanLonIntersects(
+      const intersectStatus = this.mathService.lanLonIntersects(
         options.lon,
         options.lat,
         options.r,
@@ -24,9 +24,9 @@ export class AreaService {
         point.lat,
       );
 
-      point.distanceFromAreaCenter = IntersectStatus.distance;
+      point.distanceFromAreaCenter = intersectStatus.distance;
 
-      if (IntersectStatus.intersects) {
+      if (intersectStatus.intersects) {
         validPoints.push(point);
       }
     });

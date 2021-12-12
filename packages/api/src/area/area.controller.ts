@@ -1,9 +1,9 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AreaOptionsDto } from './dto/area-options.dto';
 import { AreaService } from './area.service';
-import { GetManyDefaultResponse } from 'src/paginate/pagination.options.interface';
 import { Publication } from 'pre-processor';
+import { GetManyDefaultResponse } from 'src/common/interfaces/pagination.options.interface';
 
 @ApiTags('area')
 @Controller('area')
@@ -12,10 +12,12 @@ export class AreaController {
   constructor(private areaService: AreaService) {}
 
   @Get()
+  @ApiOperation({
+    summary: 'Returns list of publications in area and pagination info',
+  })
   @ApiResponse({
     status: 201,
     type: GetManyDefaultResponse,
-    description: 'Returns list of publications in area and pagination info',
   })
   async getPublicationsInArea(
     @Query() options: AreaOptionsDto,
@@ -23,9 +25,9 @@ export class AreaController {
     options.r = options.r / 1000;
 
     const cacheKey = this.getCacheKey(options);
-    const renderFromCache = this.areaCache.get(cacheKey);
+    const pubsFromCache = this.areaCache.get(cacheKey);
 
-    if (!renderFromCache) {
+    if (!pubsFromCache) {
       const validPoints = this.areaService.getValidPoints(options);
       const validPubs = this.areaService.getValidPublications(validPoints);
 
@@ -33,7 +35,7 @@ export class AreaController {
 
       return this.createPage(options, validPubs);
     } else {
-      return this.createPage(options, renderFromCache);
+      return this.createPage(options, pubsFromCache);
     }
   }
 
