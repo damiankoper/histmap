@@ -24,4 +24,10 @@ export class AreaOptionsDto extends GetManyDefaultRequest {
   @Type(() => Number)
   @IsNumber()
   t: number;
+
+  @ApiProperty({ required: true })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  z: number;
 }

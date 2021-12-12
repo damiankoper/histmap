@@ -68,6 +68,10 @@ export default defineComponent({
       type: Number,
       required: true,
     },
+    zoom: {
+      type: Number,
+      required: true,
+    },
     mapArea: {
       type: Object as PropType<MapArea>,
       requried: false,
@@ -88,6 +92,7 @@ export default defineComponent({
           lon: (props.mapArea?.point as L.LatLng).lng,
           r: props.mapArea?.radius,
           t: props.year,
+          z: props.zoom,
           limit: 5,
           page: pageNumber.value,
         },

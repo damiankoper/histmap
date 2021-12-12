@@ -45,6 +45,7 @@
     v-model:visible="listDialogVisible"
     :map-area="mapArea"
     :year="year"
+    :zoom="zoom"
   />
   <Footer />
 </template>
