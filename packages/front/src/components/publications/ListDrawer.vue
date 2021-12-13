@@ -52,7 +52,7 @@
 <script lang="ts">
 import Publication, { PublicationsPage } from "@/interfaces/Publication";
 import PublicationCard from "./PublicationCard.vue";
-import { defineComponent, PropType, watch, ref, watchEffect } from "vue";
+import { defineComponent, PropType, watch, ref } from "vue";
 import SmallTitle from "../layout/SmallTitle.vue";
 import useApi from "@/composables/useApi";
 import { MapArea } from "@/composables/useMap";
@@ -81,7 +81,6 @@ export default defineComponent({
     const scrollComponent = ref<HTMLElement | null>(null);
     const pageNumber = ref<number>(1);
     let publications = ref<Publication[]>([]);
-    const tempRefToMakeWatchWork = ref<Publication[]>([]);
     const endOfList = ref(false);
 
     const { fetch, data, loading, err } = useApi<PublicationsPage>(
@@ -105,32 +104,28 @@ export default defineComponent({
         publications.value = [];
         pageNumber.value = 1;
         await fetch();
+        if (data.value) publications.value.push(...data.value.data);
         endOfList.value = data.value?.pageCount === 1;
       }
     );
 
-    watchEffect(() => {
-      if (data.value?.data) tempRefToMakeWatchWork.value = data.value.data;
-    });
-
-    watch(tempRefToMakeWatchWork, () => {
-      if (data.value?.data) {
-        publications.value = publications.value.concat(data.value.data);
-      }
-    });
-
-    const loadMorePublications = () => {
+    const loadMorePublications = async () => {
+      console.log("load more");
       if (pageNumber.value == 1) {
         pageNumber.value++;
+        console.log("jedynka");
       } else if (pageNumber.value === data.value?.pageCount) {
-        fetch();
+        await fetch();
+        publications.value.push(...data.value.data);
         endOfList.value = true;
         pageNumber.value++;
       } else if (
         data?.value?.pageCount &&
         pageNumber.value < data.value?.pageCount
       ) {
-        fetch();
+        console.log("środek");
+        await fetch();
+        publications.value.push(...data.value.data);
         pageNumber.value++;
       }
     };
