@@ -81,6 +81,13 @@ export default defineComponent({
       locationClicked(choosenLocation);
     };
 
+    const hideList = () => {
+      input.value = "";
+      data.value = null;
+      focus.value = 0;
+      initialSearch.value = false;
+    };
+
     useKeypress({
       keyEvent: "keydown",
       keyBinds: [
@@ -88,20 +95,9 @@ export default defineComponent({
           keyCode: "enter",
           success: selectLocation,
         },
-      ],
-    });
-
-    useKeypress({
-      keyEvent: "keydown",
-      keyBinds: [
         {
           keyCode: "esc",
-          success: () => {
-            input.value = "";
-            data.value = null;
-            focus.value = 0;
-            initialSearch.value = false;
-          },
+          success: hideList,
         },
       ],
     });
