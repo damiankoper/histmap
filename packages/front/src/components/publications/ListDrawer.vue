@@ -113,7 +113,6 @@ export default defineComponent({
       console.log("load more");
       if (pageNumber.value == 1) {
         pageNumber.value++;
-        console.log("jedynka");
       } else if (pageNumber.value === data.value?.pageCount) {
         await fetch();
         publications.value.push(...data.value.data);
@@ -123,7 +122,6 @@ export default defineComponent({
         data?.value?.pageCount &&
         pageNumber.value < data.value?.pageCount
       ) {
-        console.log("środek");
         await fetch();
         publications.value.push(...data.value.data);
         pageNumber.value++;
