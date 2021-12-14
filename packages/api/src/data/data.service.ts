@@ -20,7 +20,7 @@ export class DataService {
   private preTileMap: Map<string, PreTile> = new Map();
   private statsMap: Map<string, TileStats> = new Map();
   private publications: Map<number, Publication> = new Map();
-  private geoPoints: GeoPoint[] = [];
+  private geoPoints: Map<string, GeoPoint[]> = new Map();
   public readonly globalStats: GlobalStats = {
     tMin: Infinity,
     tMax: -Infinity,
@@ -52,9 +52,15 @@ export class DataService {
             preTile.x + point.x / 256,
             preTile.z,
           );
-          this.geoPoints.push(
-            new GeoPoint(lon, lat, preTile.t, point.publications),
-          );
+          if (!this.geoPoints.get(this.getPretileSimpleKey(preTile))) {
+            this.geoPoints.set(
+              this.getPretileSimpleKey(preTile),
+              new Array<GeoPoint>(),
+            );
+          }
+          this.geoPoints
+            .get(this.getPretileSimpleKey(preTile))
+            .push(new GeoPoint(lon, lat, preTile.t, point.publications));
         });
       });
 
@@ -77,8 +83,8 @@ export class DataService {
     return this.publications.get(id);
   }
 
-  public getGeoPoints(): GeoPoint[] {
-    return this.geoPoints;
+  public getGeoPoints(t: Number, z: Number): GeoPoint[] {
+    return this.geoPoints.get(`${t}.${z}`);
   }
 
   computeGlobalStats(tileStats: TileStats): void {
@@ -137,6 +143,10 @@ export class DataService {
   }
 
   private getTileStatsKey(coords: TileMetaCoords): string {
+    return `${coords.t}.${coords.z}`;
+  }
+
+  private getPretileSimpleKey(coords: PreTile): string {
     return `${coords.t}.${coords.z}`;
   }
 }

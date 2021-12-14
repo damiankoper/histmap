@@ -15,7 +15,7 @@ export class AreaService {
   getValidPoints(options: AreaOptionsDto): GeoPoint[] {
     let validPoints: GeoPoint[] = [];
 
-    this.dataService.getGeoPoints().forEach((point) => {
+    this.dataService.getGeoPoints(options.t, options.z).forEach((point) => {
       const intersectStatus = this.mathService.lanLonIntersects(
         options.lon,
         options.lat,
