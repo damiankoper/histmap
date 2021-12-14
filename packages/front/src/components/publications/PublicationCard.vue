@@ -8,7 +8,7 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from "vue";
-import Publication from "../../interfaces/Publication";
+import { Publication } from "pre-processor";
 
 export default defineComponent({
   props: {

@@ -50,7 +50,8 @@
 </template>
 
 <script lang="ts">
-import Publication, { PublicationsPage } from "@/interfaces/Publication";
+import { Publication } from "pre-processor";
+import { PublicationsPage } from "@/interfaces/Publication";
 import PublicationCard from "./PublicationCard.vue";
 import { defineComponent, PropType, watch, ref } from "vue";
 import SmallTitle from "../layout/SmallTitle.vue";
@@ -110,7 +111,6 @@ export default defineComponent({
     );
 
     const loadMorePublications = async () => {
-      console.log("load more");
       if (pageNumber.value == 1) {
         pageNumber.value++;
       } else if (pageNumber.value === data.value?.pageCount) {

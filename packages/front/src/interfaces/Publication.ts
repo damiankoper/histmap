@@ -6,5 +6,4 @@ interface PublicationsPage {
   data: Array<Publication>;
 }
 
-export default Publication;
 export { PublicationsPage };
