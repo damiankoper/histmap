@@ -1,5 +1,7 @@
 /places.txt
 /places/*
+/places2/*
 !/places/.gitkeep
+!/places2/.gitkeep
 bn_geos_2.db
 db.json

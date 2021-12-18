@@ -1,86 +1,95 @@
 #include <assert.h>
 #include <inttypes.h>
-#include <immintrin.h>
-#include <math.h>
-#include <stdbool.h>
 #include <stdio.h>
-#include <stdint.h>
 #include <stdlib.h>
-#include <string.h>
 #include <time.h>
 
 #include "data.h"
 #include "sqlite3.h"
+#include "system.h"
 
-#define M_PI 3.14159265358979323846
-#define M_PIf 3.14159265358979323846f
-#define MAX_ZOOM_LEVEL 13
-#define TILE_PIXEL_SIZE 256
+const char *const INPUT_DB_FILEPATH = "../../data/bn_geos_2.db";
+const char *const OUTPUT_DB_FILEPATH = "../../data/db.json";
 
-const char* const INPUT_DB_FILEPATH = "../../data/bn_geos_2.db";
-const char* const OUTPUT_DB_FILEPATH = "../../data/db.json";
+const char *const GEOCODE_INPUT_FILEPATH = "../../data/places.txt";
+const char *const GEOCODE_RESULT_DIR = "../../data/places/";
+const char *const POLYGON_RESULT_DIR = "../../data/places2/";
 
-const char* const GEOCODE_INPUT_FILEPATH = "../../data/places.txt";
-const char* const GEOCODE_RESULT_DIR = "../../data/places/";
+static void LoadGeocodedData();
+static void ExtractPublications();
+static void Precalculate();
+static void Dump();
 
-static int32_t tile_stats[(MAX_ZOOM_LEVEL + 1) * 256];
-static char geocode_json_buffer[24576];
-
-#ifdef _WIN32
-int __stdcall SetConsoleOutputCP(unsigned int wCodePageID);
-int QueryPerformanceFrequency(int64_t* lpFrequency);
-int QueryPerformanceCounter(int64_t* lpPerformanceCount);
-#endif
-
-typedef struct TileCoord {
-	int16_t tileX;
-	int16_t tileY;
-	uint8_t pixelX;
-	uint8_t pixelY;
-} TileCoord;
-
-static TileCoord GeoCoordToTileCoord(float lonDeg, float latDeg, int z)
+int main()
 {
-	float x = (lonDeg + 180.0f) / 360.0f * (1 << z);
-	float latRad = latDeg * M_PIf / 180.0f;
-	float y = (1.0f - asinhf(tanf(latRad)) / M_PIf) / 2.0f * (1 << z);
+	#ifdef _WIN32
+	SetConsoleOutputCP(65001);
+	#endif
+	srand((unsigned int)time(NULL));
+	double start_time = GetTime();
 
-	return (TileCoord){
-		.tileX = (int16_t)floorf(x),
-		.tileY = (int16_t)floorf(y),
-		.pixelX = (uint8_t)floorf(TILE_PIXEL_SIZE * fmodf(fmodf(x, 1.0f) + 1.0f, 1.0f)),
-		.pixelY = (uint8_t)floorf(TILE_PIXEL_SIZE * fmodf(fmodf(y, 1.0f) + 1.0f, 1.0f)),
-	};
+	LoadGeocodedData();
+	ExtractPublications();
+	Precalculate();
+	Dump();
+
+	double end_time = GetTime();
+	double dt = end_time - start_time;
+
+	printf("Time: %.3f s\n", dt);
+	return 0;
 }
 
-static char* ReadFileAlloc(const char* filename)
+// --- PHASE 1: EXTRACTING GEOCODE RESULTS -------------------------------------
+
+static void LoadGeocodedData()
 {
-	FILE* file = fopen(filename, "rb");
+	printf("Loading geocoded places...\n");
 
-	fseek(file, 0L, SEEK_END);
-	size_t length = (size_t)ftell(file);
-	rewind(file);
+	char *geocode_input = ReadFileAlloc(GEOCODE_INPUT_FILEPATH, NULL);
+	char *geocode_input_tok = strtok(geocode_input, "\n");
 
-	char* buf = malloc(length + 1);
-	fread(buf, 1, length, file);
-	buf[length] = '\0';
-
-	fclose(file);
-	return buf;
-}
-
-#ifndef _WIN32
-static void timespec_diff(struct timespec* a, struct timespec* b, struct timespec* result)
-{
-	result->tv_sec = a->tv_sec - b->tv_sec;
-	result->tv_nsec = a->tv_nsec - b->tv_nsec;
-	if (result->tv_nsec < 0)
+	int32_t input_place_id = 0;
+	while (geocode_input_tok)
 	{
-		--result->tv_sec;
-		result->tv_nsec += 1000000000L;
+		char filepath[100];
+		sprintf(filepath, "%s%05d.json", GEOCODE_RESULT_DIR, input_place_id);
+
+		char *geocode_result = ReadFileAlloc(filepath, NULL);
+
+		// Try finding successful geocoding result
+
+		char *location_string = strstr(geocode_result, "\"location\"");
+		if (location_string)
+		{
+			float lat, lon;
+			sscanf(location_string, "%*[^-0123456789]%f%*[^-0123456789]%f", &lat, &lon);
+			Places_Insert(geocode_input_tok, lat, lon);
+
+			sprintf(filepath, "%s%05d.json", POLYGON_RESULT_DIR, input_place_id);
+			char *polygon_result = ReadFileAlloc(filepath, NULL);
+
+			// Try finding successful polygon result
+
+			char *polygon_string = strstr(polygon_result, ",\"geojson\":{\"type\":\"Polygon\",\"coordinates\":[[");
+			if (polygon_string)
+			{
+				// TODO There is a polygon, decode
+			}
+
+			free(polygon_result);
+		}
+
+		free(geocode_result);
+
+		geocode_input_tok = strtok(NULL, "\n");
+		input_place_id += 1;
 	}
+
+	free(geocode_input);
 }
-#endif
+
+// --- PHASE 2: EXTRACTING PUBLICATIONS FROM SQLITE DB -------------------------
 
 static int64_t GetInt64(sqlite3 *db, const char *query)
 {
@@ -94,33 +103,33 @@ static int64_t GetInt64(sqlite3 *db, const char *query)
 	return ret;
 }
 
-static void Extract(const char* intputDbFilename)
+static void ExtractPublications()
 {
-	sqlite3* db;
-	sqlite3_stmt* stmt;
+	sqlite3 *db;
+	sqlite3_stmt *stmt;
 
-	sqlite3_open(intputDbFilename, &db);
+	sqlite3_open(INPUT_DB_FILEPATH, &db);
 
 	printf("Counting publications...\n");
 	int64_t bookCount = GetInt64(db, "SELECT COUNT(*) FROM BOOKS WHERE GEOGRAPHIC_NAMES != ''");
 	printf("There are %" PRId64 " publications with geographic names.\n", bookCount);
 
-	sqlite3_prepare_v2(db, "SELECT TITLE, AUTHORS, YEAR, GEOGRAPHIC_NAMES, PUBLICATION_PLACES FROM BOOKS WHERE GEOGRAPHIC_NAMES != ''", -1, &stmt, NULL);
+	sqlite3_prepare_v2(db, "SELECT TITLE, AUTHORS, PUBLICATION_PLACES, YEAR, GEOGRAPHIC_NAMES FROM BOOKS WHERE GEOGRAPHIC_NAMES != ''", -1, &stmt, NULL);
 
 	printf("Extracting publications and places...\n");
 	while (sqlite3_step(stmt) == SQLITE_ROW)
 	{
-		const char* title = (const char*)sqlite3_column_text(stmt, 0);
-		const char* author = (const char*)sqlite3_column_text(stmt, 1);
-		const char* publication_place = (const char*)sqlite3_column_text(stmt, 4);
-		int16_t year = (int16_t)sqlite3_column_int(stmt, 2);
+		const char *title = (const char*)sqlite3_column_text(stmt, 0);
+		const char *author = (const char*)sqlite3_column_text(stmt, 1);
+		const char *publication_place = (const char*)sqlite3_column_text(stmt, 2);
+		int16_t year = (int16_t)sqlite3_column_int(stmt, 3);
 
-		int32_t publication_id = PublicationInsert(title, author, publication_place, year);
+		int32_t publication_id = Publications_Insert(title, author, publication_place, year);
 
-		const char* geoNames = (const char*)sqlite3_column_text(stmt, 3);
+		const char *geoNames = (const char*)sqlite3_column_text(stmt, 4);
 		while (true)
 		{
-			const char* sep = strstr(geoNames, " , ");
+			const char *sep = strstr(geoNames, " , ");
 			size_t len = sep ? (size_t)(sep - geoNames) : strlen(geoNames);
 
 			char name[1000];
@@ -129,9 +138,9 @@ static void Extract(const char* intputDbFilename)
 			name[len] = 0;
 
 			int32_t place_id;
-			if (PlaceTryGet(name, &place_id))
+			if (Places_TryGet(name, &place_id))
 			{
-				PublicationPlaceInsert(publication_id, place_id);
+				PublicationPlaces_Insert(publication_id, place_id);
 			}
 
 			if (!sep) break;
@@ -142,62 +151,28 @@ static void Extract(const char* intputDbFilename)
 	sqlite3_close(db);
 }
 
-static void LoadGeocodedData()
-{
-	printf("Loading geocoded data...\n");
-
-	char* places_file_content = ReadFileAlloc(GEOCODE_INPUT_FILEPATH);
-
-	FILE* file;
-
-	char* tok = strtok(places_file_content, "\n");
-	int place_input_id = 0;
-	while (tok)
-	{
-		char geocode_result_filepath[100];
-		sprintf(geocode_result_filepath, "%s%05d.json", GEOCODE_RESULT_DIR, place_input_id);
-
-		file = fopen(geocode_result_filepath, "rb");
-		size_t len = fread(geocode_json_buffer, 1, sizeof(geocode_json_buffer), file);
-		geocode_json_buffer[len] = '\0';
-
-		char* loc = strstr(geocode_json_buffer, "\"location\"");
-		if (loc)
-		{
-			float lat, lon;
-			sscanf(loc, "%*[^-0123456789]%f%*[^-0123456789]%f", &lat, &lon);
-			PlaceInsert(tok, lat, lon);
-		}
-
-		fclose(file);
-
-		tok = strtok(NULL, "\n");
-		place_input_id += 1;
-	}
-}
+// --- PHASE 3: PRECALCULATION -------------------------------------------------
 
 static void Precalculate()
 {
-	printf("There are %" PRId32 " publication-place entries.\nCalculating tile points...\n", publicationPlaces.count);
+	printf("There are %zu publication-place entries.\nCalculating tile points...\n", publication_places.len);
 
-	for (int32_t rowid = 0; rowid < publicationPlaces.count; ++rowid)
+	for (size_t rowid = 0; rowid < publication_places.len; ++rowid)
 	{
-		int32_t publication_id = publicationPlaces.publication_id[rowid];
-		int32_t place_id = publicationPlaces.place_id[rowid];
-		float lat = places.lat[place_id];
-		float lon = places.lon[place_id];
-		int16_t t = publications.year[publication_id];
+		PublicationPlace *pp = &publication_places.items[rowid];
+		Place *pl = &places.items[pp->place_id];
+		Publication *pub = &publications.items[pp->publication_id];
 
 		for (int z = 0; z <= MAX_ZOOM_LEVEL; ++z)
 		{
-			TileCoord tc = GeoCoordToTileCoord(lon, lat, z);
-			uint64_t tile_id = MAKE_TILE_ID(tc.tileX, tc.tileY, z, t);
-			TilePointInsert(tile_id, (uint8_t)tc.pixelX, (uint8_t)tc.pixelY, publication_id);
+			TileCoord tc = MercatorToTileCoord(pl->pos, z);
+			uint64_t tile_id = MAKE_TILE_ID(tc.tileX, tc.tileY, z, pub->year);
+			TilePoints_Insert(tile_id, pp->publication_id, tc.pixelX, tc.pixelY);
 		}
 	}
 
-	printf("Grouping tile points...\n");
-	TilePointGroup();
+	printf("Sorting tile points...\n");
+	TilePoints_Sort();
 
 	printf("Calculating tile stats...\n");
 
@@ -205,10 +180,12 @@ static void Precalculate()
 	int32_t current_count = 0;
 	uint64_t last_tile_id;
 	uint16_t last_tile_point;
-	for (int32_t rowid = 0; rowid < tilePoints.count; ++rowid)
+	for (size_t rowid = 0; rowid < tile_points.len; ++rowid)
 	{
-		uint64_t tile_id = tilePoints.tile_id[rowid];
-		uint16_t tile_point = ((uint16_t)tilePoints.x[rowid] << 8) | tilePoints.y[rowid];
+		TilePoint *tp = &tile_points.items[rowid];
+
+		uint64_t tile_id = tp->tile_id;
+		uint16_t tile_point = ((uint16_t)tp->x) | tp->y;
 
 		if (first_tile || tile_id != last_tile_id || tile_point != last_tile_point)
 		{
@@ -218,7 +195,7 @@ static void Precalculate()
 				int16_t zoom = (int16_t)(last_tile_id >> 16 & 0xFFFF);
 				int16_t year = (int16_t)(last_tile_id & 0xFFFF);
 
-				int32_t tile_stat_id = zoom * 256 + (year - 1800);
+				int32_t tile_stat_id = MAKE_STAT_ID(zoom, year);
 				if (current_count > tile_stats[tile_stat_id]) tile_stats[tile_stat_id] = current_count;
 			}
 
@@ -232,33 +209,16 @@ static void Precalculate()
 	int16_t zoom = (int16_t)(last_tile_id >> 16 & 0xFFFF);
 	int16_t year = (int16_t)(last_tile_id & 0xFFFF);
 
-	int32_t tile_stat_id = zoom * 256 + (year - 1800);
+	int32_t tile_stat_id = MAKE_STAT_ID(zoom, year);
 	if (current_count > tile_stats[tile_stat_id]) tile_stats[tile_stat_id] = current_count;
 }
 
-static void PrintJsonString(FILE* out, const char* str)
+// --- PHASE 4: DUMP PRECALCULATION --------------------------------------------
+
+static void Dump()
 {
-	fprintf(out, "\"");
-	while (*str)
-	{
-		char c = *str;
+	FILE *out = fopen(OUTPUT_DB_FILEPATH, "wb");
 
-		if (c == '\\' || c == '"' || (c >= 0x00 && c <= 0x1F))
-		{
-			fprintf(out, "\\u%04X", c);
-		}
-		else
-		{
-			fwrite(&c, 1, 1, out);
-		}
-
-		str += 1;
-	}
-	fprintf(out, "\"");
-}
-
-static void Dump(FILE* out)
-{
 	fprintf(out, "{");
 
 	// --- DUMPING PUBLICATIONS ---
@@ -267,23 +227,20 @@ static void Dump(FILE* out)
 	fprintf(out, "\"publications\":[\n");
 
 	bool firstPublication = true;
-	for (int32_t rowid = 0; rowid < publications.count; ++rowid)
+	for (size_t rowid = 0; rowid < publications.len; ++rowid)
 	{
 		if (firstPublication) firstPublication = false;
 		else fprintf(out, ",\n");
 
-		const char* title = publications.title[rowid];
-		const char* author = publications.author[rowid];
-		const char* publication_place = publications.publication_place[rowid];
-		int16_t year = publications.year[rowid];
+		const Publication *pub = &publications.items[rowid];
 
-		fprintf(out, "{\"id\":%" PRId32 ",\"title\":", rowid);
-		PrintJsonString(out, title);
+		fprintf(out, "{\"id\":%zu,\"title\":", rowid);
+		PrintJsonString(out, pub->title);
 		fprintf(out, ",\"author\":");
-		PrintJsonString(out, author);
+		PrintJsonString(out, pub->author);
 		fprintf(out, ",\"publicationPlace\":");
-		PrintJsonString(out, publication_place);
-		fprintf(out, ",\"places\":[],\"year\":%d}", year); // TODO Places for debug data.
+		PrintJsonString(out, pub->publication_place);
+		fprintf(out, ",\"year\":%d}", pub->year);
 	}
 
 	fprintf(out, "],\n");
@@ -298,9 +255,10 @@ static void Dump(FILE* out)
 	bool first_publication = true;
 	uint64_t last_tile_id;
 	uint8_t last_x, last_y;
-	for (int32_t rowid = 0; rowid < tilePoints.count; ++rowid)
+	for (size_t rowid = 0; rowid < tile_points.len; ++rowid)
 	{
-		uint64_t tile_id = tilePoints.tile_id[rowid];
+		const TilePoint *tp = &tile_points.items[rowid];
+		uint64_t tile_id = tp->tile_id;
 
 		if (first_tile || tile_id != last_tile_id)
 		{
@@ -317,8 +275,8 @@ static void Dump(FILE* out)
 			first_point = true;
 		}
 
-		uint8_t pixel_x = tilePoints.x[rowid];
-		uint8_t pixel_y = tilePoints.y[rowid];
+		uint8_t pixel_x = tp->x;
+		uint8_t pixel_y = tp->y;
 		if (first_point || last_x != pixel_x || last_y != pixel_y)
 		{
 			if (first_point) first_point = false;
@@ -334,7 +292,7 @@ static void Dump(FILE* out)
 		if (first_publication) first_publication = false;
 		else fprintf(out, ",");
 
-		int32_t publication_id = tilePoints.publication_id[rowid];
+		int32_t publication_id = tp->publication_id;
 		fprintf(out, "%d", publication_id);
 	}
 	fprintf(out, "]}]}],\n");
@@ -361,51 +319,6 @@ static void Dump(FILE* out)
 	fprintf(out, "]");
 
 	fprintf(out, "}");
-}
 
-void DumpPlaces(FILE* out)
-{
-	printf("Dumping places...\n");
-
-	for (int32_t rowid = 0; rowid < places.count; ++rowid)
-	{
-		fprintf(out, "%s\n", places.name[rowid]);
-	}
-}
-
-int main()
-{
-	#ifdef _WIN32
-		int64_t counterFreq, counterStart;
-		QueryPerformanceFrequency(&counterFreq);
-		QueryPerformanceCounter(&counterStart);
-		SetConsoleOutputCP(65001);
-	#else
-		struct timespec counterStart;
-		clock_gettime(CLOCK_MONOTONIC_RAW, &counterStart);
-	#endif
-	srand((unsigned int)time(NULL));
-
-	LoadGeocodedData();
-	Extract(INPUT_DB_FILEPATH);
-	Precalculate();
-	FILE* fout = fopen(OUTPUT_DB_FILEPATH, "wb");
-	Dump(fout);
-	fclose(fout);
-	//FILE* fplaces = fopen("places.txt", "wb");
-	//DumpPlaces(fplaces);
-	//fclose(fplaces);
-
-	#ifdef _WIN32
-		int64_t counterEnd;
-		QueryPerformanceCounter(&counterEnd);
-		double dt = (double)(counterEnd - counterStart) / counterFreq;
-	#else
-		struct timespec counterEnd, counterDiff;
-		clock_gettime(CLOCK_MONOTONIC_RAW, &counterEnd);
-		timespec_diff(&counterEnd, &counterStart, &counterDiff);
-		double dt = counterDiff.tv_sec + 0.000000001 * counterDiff.tv_nsec;
-	#endif
-	printf("Time: %.3f ms\n", 1000.0 * dt);
-	return 0;
+	fclose(out);
 }

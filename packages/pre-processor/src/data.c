@@ -1,214 +1,126 @@
+#include "data.h"
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
-#include "data.h"
+// --- TABLE DEFINITIONS ---
 
 Publications publications;
 Places places;
-PublicationPlaces publicationPlaces;
-TilePoints tilePoints;
+PublicationPlaces publication_places;
+TilePoints tile_points;
+int32_t tile_stats[(MAX_ZOOM_LEVEL + 1) * 256];
 
-static float RandFloat() { return (float)rand() / (RAND_MAX + 1.0f); }
-static float RandFloatRange(float a, float b) { return a + RandFloat() * (b - a); }
+// --- TABLE FUNCTION DEFINITIONS ---
 
-#define EC_H(tbl) do { \
-	if (desired_capacity < tbl.capacity) return; \
-	if (tbl.capacity < 4) tbl.capacity = 4; \
-	while (tbl.capacity < desired_capacity) tbl.capacity *= 2; \
-} while (0)
-#define EC_I(tbl, col) tbl.col = realloc(tbl.col, tbl.capacity * sizeof(tbl.col[0]))
+#define DEFINE_ENSURE_CAPACITY(table_name, name) void name(size_t desired_capacity) { \
+	if (desired_capacity < table_name.capacity) return; \
+	if (table_name.capacity < 4) table_name.capacity = 4; \
+	while (table_name.capacity < desired_capacity) table_name.capacity *= 2; \
+	table_name.items = realloc(table_name.items, table_name.capacity * sizeof(table_name.items[0])); \
+} \
 
-void PublicationsEnsureCapacity(int32_t desired_capacity)
+DEFINE_ENSURE_CAPACITY(publications, Publications_EnsureCapacity)
+DEFINE_ENSURE_CAPACITY(places, Places_EnsureCapacity)
+DEFINE_ENSURE_CAPACITY(publication_places, PublicationPlaces_EnsureCapacity)
+DEFINE_ENSURE_CAPACITY(tile_points, TilePoints_EnsureCapacity)
+
+int32_t Publications_Insert(const char *title, const char *author, const char *publication_place, int16_t year)
 {
-	EC_H(publications);
-	EC_I(publications, title);
-	EC_I(publications, author);
-	EC_I(publications, year);
-	EC_I(publications, publication_place);
+	Publications_EnsureCapacity(publications.len + 1);
+
+	int32_t rowid = (int32_t)publications.len;
+	Publication *p = &publications.items[rowid];
+
+	p->title = CloneString(title);
+	p->author = CloneString(author);
+	p->publication_place = CloneString(publication_place);
+	p->year = year;
+
+	publications.len += 1;
+	return rowid;
 }
 
-void PlacesEnsureCapacity(int32_t desired_capacity)
+int32_t Places_Insert(const char *name, float lat, float lon)
 {
-	EC_H(places);
-	EC_I(places, name);
-	EC_I(places, lat);
-	EC_I(places, lon);
+	Places_EnsureCapacity(places.len + 1);
+
+	int32_t rowid = (int32_t)places.len;
+	Place *p = &places.items[rowid];
+
+	p->name = CloneString(name);
+	p->pos = GeoCoordToMercator(lon, lat);
+	p->polygon = NULL;
+
+	places.len += 1;
+	return rowid;
 }
 
-void PublicationPlacesEnsureCapacity(int32_t desired_capacity)
+bool Places_TryGet(const char *name, int32_t *res)
 {
-	EC_H(publicationPlaces);
-	EC_I(publicationPlaces, publication_id);
-	EC_I(publicationPlaces, place_id);
-}
-
-void TilePointsEnsureCapacity(int32_t desired_capacity)
-{
-	EC_H(tilePoints);
-	EC_I(tilePoints, tile_id);
-	EC_I(tilePoints, x);
-	EC_I(tilePoints, y);
-	EC_I(tilePoints, publication_id);
-}
-
-#undef EC_H
-#undef EC_I
-
-int32_t PublicationInsert(const char* title, const char* author, const char* publication_place, int16_t year)
-{
-	PublicationsEnsureCapacity(publications.count + 1);
-
-	size_t title_len = strlen(title);
-	size_t author_len = strlen(author);
-	size_t publication_place_len = strlen(publication_place);
-
-	char* title_copy = malloc(title_len + 1);
-	char* author_copy = malloc(author_len + 1);
-	char* publication_place_copy = malloc(publication_place_len + 1);
-
-	strcpy(title_copy, title);
-	strcpy(author_copy, author);
-	strcpy(publication_place_copy, publication_place);
-
-	publications.title[publications.count] = title_copy;
-	publications.author[publications.count] = author_copy;
-	publications.publication_place[publications.count] = publication_place_copy;
-	publications.year[publications.count] = year;
-
-	return publications.count++;
-}
-
-void PlaceInsert(char* name, float lat, float lon)
-{
-	PlacesEnsureCapacity(places.count + 1);
-
-	places.name[places.count] = name;
-	places.lat[places.count] = lat;
-	places.lon[places.count] = lon;
-
-	places.count += 1;
-}
-
-bool PlaceTryGet(const char* name, int32_t* res)
-{
-	for (int32_t rowid = 0; rowid < places.count; ++rowid)
+	for (size_t rowid = 0; rowid < places.len; ++rowid)
 	{
-		if (strcmp(name, places.name[rowid]) == 0)
-		{
-			*res = rowid;
-			return true;
-		}
+		if (strcmp(name, places.items[rowid].name) != 0) continue;
+
+		*res = (int32_t)rowid;
+		return true;
 	}
 
 	return false;
 }
 
-int32_t PlaceGetOrInsert(const char* name)
+int32_t PublicationPlaces_Insert(int32_t publication_id, int32_t place_id)
 {
-	for (int32_t rowid = 0; rowid < places.count; ++rowid)
-	{
-		if (strcmp(name, places.name[rowid]) == 0) return rowid;
-	}
+	PublicationPlaces_EnsureCapacity(publication_places.len + 1);
 
-	PlacesEnsureCapacity(places.count + 1);
+	int32_t rowid = (int32_t)publication_places.len;
+	PublicationPlace *p = &publication_places.items[rowid];
 
-	size_t name_len = strlen(name);
-	char* name_copy = malloc(name_len + 1);
-	strcpy(name_copy, name);
+	p->publication_id = publication_id;
+	p->place_id = place_id;
 
-	places.name[places.count] = name_copy;
-	places.lat[places.count] = RandFloatRange(-85.0f, 85.0f);
-	places.lon[places.count] = RandFloatRange(-179.95f, 179.95f);
-
-	return places.count++;
+	publication_places.len += 1;
+	return rowid;
 }
 
-void PublicationPlaceInsert(int32_t publication_id, int32_t place_id)
+int32_t TilePoints_Insert(uint64_t tile_id, int32_t publication_id, uint8_t x, uint8_t y)
 {
-	PublicationPlacesEnsureCapacity(publicationPlaces.count + 1);
+	TilePoints_EnsureCapacity(tile_points.len + 1);
 
-	publicationPlaces.publication_id[publicationPlaces.count] = publication_id;
-	publicationPlaces.place_id[publicationPlaces.count] = place_id;
+	int32_t rowid = (int32_t)tile_points.len;
+	TilePoint *t = &tile_points.items[rowid];
 
-	publicationPlaces.count++;
+	t->tile_id = tile_id;
+	t->publication_id = publication_id;
+	t->x = x;
+	t->y = y;
+
+	tile_points.len += 1;
+	return rowid;
 }
 
-void TilePointInsert(uint64_t tile_id, uint8_t x, uint8_t y, int32_t publication_id)
+static int CmpTilePoints(const void *a, const void *b)
 {
-	TilePointsEnsureCapacity(tilePoints.count + 1);
+	const TilePoint *tpA = a;
+	const TilePoint *tpB = b;
 
-	tilePoints.tile_id[tilePoints.count] = tile_id;
-	tilePoints.x[tilePoints.count] = x;
-	tilePoints.y[tilePoints.count] = y;
-	tilePoints.publication_id[tilePoints.count] = publication_id;
-
-	tilePoints.count++;
-}
-
-static int CmpTilePoints(uint64_t a_id, uint8_t a_x, uint8_t a_y, uint64_t b_id, uint8_t b_x, uint8_t b_y)
-{
-	if (a_id < b_id) return -1;
-	if (a_id > b_id) return 1;
-	if (a_y < b_y) return -1;
-	if (a_y > b_y) return 1;
-	if (a_x < b_x) return -1;
-	if (a_x > b_x) return 1;
+	if (tpA->tile_id < tpB->tile_id) return -1;
+	if (tpA->tile_id > tpB->tile_id) return 1;
+	if (tpA->y < tpB->y) return -1;
+	if (tpA->y > tpB->y) return 1;
+	if (tpA->x < tpB->x) return -1;
+	if (tpA->y > tpB->y) return 1;
 	return 0;
 }
 
-static void SwapTilePoints(int32_t i, int32_t j)
+void TilePoints_Sort()
 {
-	uint64_t tmp_tile_id = tilePoints.tile_id[i];
-	tilePoints.tile_id[i] = tilePoints.tile_id[j];
-	tilePoints.tile_id[j] = tmp_tile_id;
-
-	uint8_t tmp_x = tilePoints.x[i];
-	tilePoints.x[i] = tilePoints.x[j];
-	tilePoints.x[j] = tmp_x;
-
-	uint8_t tmp_y = tilePoints.y[i];
-	tilePoints.y[i] = tilePoints.y[j];
-	tilePoints.y[j] = tmp_y;
-
-	int32_t tmp_publication_id = tilePoints.publication_id[i];
-	tilePoints.publication_id[i] = tilePoints.publication_id[j];
-	tilePoints.publication_id[j] = tmp_publication_id;
+	qsort(tile_points.items, tile_points.len, sizeof(tile_points.items[0]), CmpTilePoints);
 }
 
-static void SortTilePoints(int32_t a, int32_t b)
-{
-	if (b - a < 2) return;
+// --- INLINE FUNCTIONS ---
 
-	uint64_t* tile_id = tilePoints.tile_id;
-	uint8_t* x = tilePoints.x;
-	uint8_t* y = tilePoints.y;
-
-	int32_t pivot_rowid = a;
-
-	uint64_t pivot_tile_id = tile_id[pivot_rowid];
-	uint8_t pivot_x = x[pivot_rowid];
-	uint8_t pivot_y = y[pivot_rowid];
-
-	int32_t i = a;
-	int32_t j = b - 1;
-	while(i < j)
-	{
-		while (CmpTilePoints(tile_id[i], x[i], y[i], pivot_tile_id, pivot_x, pivot_y) <= 0 && i < b - 1) i += 1;
-		while (CmpTilePoints(tile_id[j], x[j], y[j], pivot_tile_id, pivot_x, pivot_y) > 0) j -= 1;
-
-		if (i >= j) continue;
-
-		SwapTilePoints(i, j);
-	}
-
-	SwapTilePoints(j, pivot_rowid);
-
-	SortTilePoints(a, j);
-	SortTilePoints(j + 1, b);
-}
-
-void TilePointGroup()
-{
-	SortTilePoints(0, tilePoints.count);
-}
+char *CloneString(const char *str);
+Vector2 GeoCoordToMercator(float lonDeg, float latDeg);
+TileCoord MercatorToTileCoord(Vector2 coords, int z);
+TileCoord GeoCoordToTileCoord(float lonDeg, float latDeg, int z);
