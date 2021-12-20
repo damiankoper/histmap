@@ -44,6 +44,7 @@ export class DataService {
         const key = this.getPreTileKey(preTile);
         this.preTileMap.set(key, preTile);
         preTile.points.forEach((point) => {
+          const key = this.getTileMetaKey(preTile);
           const lat = this.mathService.tile2lat(
             preTile.y + point.y / 256,
             preTile.z,
@@ -52,20 +53,17 @@ export class DataService {
             preTile.x + point.x / 256,
             preTile.z,
           );
-          if (!this.geoPoints.get(this.getPretileSimpleKey(preTile))) {
-            this.geoPoints.set(
-              this.getPretileSimpleKey(preTile),
-              new Array<GeoPoint>(),
-            );
+          if (!this.geoPoints.get(key)) {
+            this.geoPoints.set(key, []);
           }
           this.geoPoints
-            .get(this.getPretileSimpleKey(preTile))
+            .get(key)
             .push(new GeoPoint(lon, lat, preTile.t, point.publications));
         });
       });
 
       preData.stats.forEach((tileStats) => {
-        const key = this.getTileStatsKey(tileStats);
+        const key = this.getTileMetaKey(tileStats);
         this.statsMap.set(key, tileStats);
         this.computeGlobalStats(tileStats);
       });
@@ -83,8 +81,9 @@ export class DataService {
     return this.publications.get(id);
   }
 
-  public getGeoPoints(t: Number, z: Number): GeoPoint[] {
-    return this.geoPoints.get(`${t}.${z}`);
+  public getGeoPoints(coords: TileMetaCoords): GeoPoint[] {
+    const key = this.getTileMetaKey(coords);
+    return this.geoPoints.get(key) || [];
   }
 
   computeGlobalStats(tileStats: TileStats): void {
@@ -109,7 +108,7 @@ export class DataService {
   }
 
   public getTileStats(coords: TileMetaCoords): TileStats {
-    const key = this.getTileStatsKey(coords);
+    const key = this.getTileMetaKey(coords);
     const stats = this.statsMap.get(key);
     return stats || this.getEmptyTileStats(coords);
   }
@@ -142,11 +141,7 @@ export class DataService {
     return `${coords.t}.${coords.z}.${coords.x}.${coords.y}`;
   }
 
-  private getTileStatsKey(coords: TileMetaCoords): string {
-    return `${coords.t}.${coords.z}`;
-  }
-
-  private getPretileSimpleKey(coords: PreTile): string {
+  private getTileMetaKey(coords: TileMetaCoords): string {
     return `${coords.t}.${coords.z}`;
   }
 }

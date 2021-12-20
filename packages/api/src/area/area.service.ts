@@ -15,7 +15,7 @@ export class AreaService {
   getValidPoints(options: AreaOptionsDto): GeoPoint[] {
     let validPoints: GeoPoint[] = [];
 
-    this.dataService.getGeoPoints(options.t, options.z).forEach((point) => {
+    this.dataService.getGeoPoints(options).forEach((point) => {
       const intersectStatus = this.mathService.lanLonIntersects(
         options.lon,
         options.lat,
@@ -45,16 +45,15 @@ export class AreaService {
   }
 
   getValidPublications(validPoints: GeoPoint[]) {
-    const validPublicationIds: number[] = [];
+    const uniqPubs = new Set<number>();
     validPoints.forEach((point) => {
       point.publications.forEach((publication) => {
-        validPublicationIds.push(publication);
+        uniqPubs.add(publication);
       });
     });
 
-    const uniq = [...new Set(validPublicationIds)];
     const publications: Publication[] = [];
-    uniq.forEach((pubId) => {
+    uniqPubs.forEach((pubId) => {
       publications.push(this.dataService.getPublication(pubId));
     });
 

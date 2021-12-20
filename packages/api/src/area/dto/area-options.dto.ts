@@ -1,9 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsNumber, IsOptional } from 'class-validator';
+import { TileMetaCoords } from 'pre-processor';
 import { GetManyDefaultRequest } from 'src/common/interfaces/pagination.options.interface';
 
-export class AreaOptionsDto extends GetManyDefaultRequest {
+export class AreaOptionsDto
+  extends GetManyDefaultRequest
+  implements TileMetaCoords
+{
   @ApiProperty({ required: true })
   @Type(() => Number)
   @IsNumber()
