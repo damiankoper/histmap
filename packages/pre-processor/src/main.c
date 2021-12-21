@@ -15,6 +15,8 @@ const char *const GEOCODE_INPUT_FILEPATH = "../../data/places.txt";
 const char *const GEOCODE_RESULT_DIR = "../../data/places/";
 const char *const POLYGON_RESULT_DIR = "../../data/places2/";
 
+const char GEOJSON_MATCH_STRING[] = ",\"geojson\":{\"type\":\"Polygon\",\"coordinates\":[[";
+
 static void LoadGeocodedData();
 static void ExtractPublications();
 static void Precalculate();
@@ -44,16 +46,19 @@ int main()
 
 static void LoadGeocodedData()
 {
-	printf("Loading geocoded places...\n");
+	printf("Loading geocoded places... %5d", 0);
 
 	char *geocode_input = ReadFileAlloc(GEOCODE_INPUT_FILEPATH, NULL);
 	char *geocode_input_tok = strtok(geocode_input, "\n");
+
+	int32_t polygon_count = 0;
 
 	int32_t input_place_id = 0;
 	while (geocode_input_tok)
 	{
 		char filepath[100];
 		sprintf(filepath, "%s%05d.json", GEOCODE_RESULT_DIR, input_place_id);
+		/*if ((input_place_id + 1) % 100 == 0)*/ printf("\rLoading geocoded places... %5d", input_place_id + 1);
 
 		char *geocode_result = ReadFileAlloc(filepath, NULL);
 
@@ -64,17 +69,59 @@ static void LoadGeocodedData()
 		{
 			float lat, lon;
 			sscanf(location_string, "%*[^-0123456789]%f%*[^-0123456789]%f", &lat, &lon);
-			Places_Insert(geocode_input_tok, lat, lon);
+			int32_t place_id = Places_Insert(geocode_input_tok, lat, lon);
 
 			sprintf(filepath, "%s%05d.json", POLYGON_RESULT_DIR, input_place_id);
 			char *polygon_result = ReadFileAlloc(filepath, NULL);
 
 			// Try finding successful polygon result
 
-			char *polygon_string = strstr(polygon_result, ",\"geojson\":{\"type\":\"Polygon\",\"coordinates\":[[");
+			char *polygon_string = strstr(polygon_result, GEOJSON_MATCH_STRING);
 			if (polygon_string)
 			{
-				// TODO There is a polygon, decode
+				polygon_string += sizeof(GEOJSON_MATCH_STRING);
+				size_t point_count = 1;
+
+				char* str = polygon_string;
+				while (true)
+				{
+					strtof(str, &str);
+					str += 1; // skip comma
+					strtof(str, &str);
+					str += 1; // skip closing bracket
+
+					if (str[0] == ']') break;
+					str += 2; // skip ",["
+					point_count += 1;
+				}
+
+				Polygon *p = NewPolygon(point_count);
+				places.items[place_id].polygon = p;
+
+				str = polygon_string;
+				size_t i = 0;
+				while (true)
+				{
+					lon = strtof(str, &str);
+					str += 1; // skip comma
+					lat = strtof(str, &str);
+					str += 1; // skip closing bracket
+
+					Vector2 point = GeoCoordToMercator(lon, lat);
+
+					if (str[0] == ']') break;
+					str += 2; // skip ",["
+
+					if (point.x > p->max.x) p->max.x = point.x;
+					if (point.x < p->min.x) p->min.x = point.x;
+					if (point.y > p->max.y) p->max.y = point.y;
+					if (point.y < p->min.y) p->min.y = point.y;
+
+					p->points[i] = point;
+					i += 1;
+				}
+
+				polygon_count += 1;
 			}
 
 			free(polygon_result);
@@ -85,6 +132,7 @@ static void LoadGeocodedData()
 		geocode_input_tok = strtok(NULL, "\n");
 		input_place_id += 1;
 	}
+	printf("\nThere are %d places with defined polygon.\n", polygon_count);
 
 	free(geocode_input);
 }
@@ -167,7 +215,9 @@ static void Precalculate()
 		{
 			TileCoord tc = MercatorToTileCoord(pl->pos, z);
 			uint64_t tile_id = MAKE_TILE_ID(tc.tileX, tc.tileY, z, pub->year);
+			uint64_t tile_id_anytime = MAKE_TILE_ID(tc.tileX, tc.tileY, z, 0);
 			TilePoints_Insert(tile_id, pp->publication_id, tc.pixelX, tc.pixelY);
+			TilePoints_Insert(tile_id_anytime, pp->publication_id, tc.pixelX, tc.pixelY);
 		}
 	}
 
@@ -185,7 +235,7 @@ static void Precalculate()
 		TilePoint *tp = &tile_points.items[rowid];
 
 		uint64_t tile_id = tp->tile_id;
-		uint16_t tile_point = ((uint16_t)tp->x) | tp->y;
+		uint16_t tile_point = ((uint16_t)tp->x << 8) | tp->y;
 
 		if (first_tile || tile_id != last_tile_id || tile_point != last_tile_point)
 		{
@@ -312,11 +362,14 @@ static void Dump()
 		else fprintf(out, ",\n");
 
 		int16_t tile_z = (int16_t)(stat_id / 256);
-		int16_t tile_t = stat_id % 256 + 1800;
+		int16_t tile_t = stat_id % 256;
+		if (tile_t > 0) tile_t += 1800;
 
 		fprintf(out, "{\"z\":%d,\"t\":%d,\"max\":%d}", tile_z, tile_t, max);
 	}
 	fprintf(out, "]");
+
+	fprintf(out, ",\"areas\":[],\"areaStats\":[]"); // TODO
 
 	fprintf(out, "}");
 

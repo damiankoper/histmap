@@ -31,6 +31,8 @@ typedef struct TileCoord {
 
 typedef struct Polygon {
 	size_t len;
+	Vector2 min;
+	Vector2 max;
 	Vector2 points[];
 } Polygon;
 
@@ -88,7 +90,19 @@ void TilePoints_Sort();
 // --- INLINE FUNCTIONS/MACROS ---
 
 #define MAKE_TILE_ID(x, y, z, t) ((uint64_t)x << 48 | (uint64_t)y << 32 | (uint64_t)z << 16 | t)
-#define MAKE_STAT_ID(z, t) ((uint16_t)z << 8 | (uint16_t)(year - 1800))
+#define MAKE_STAT_ID(z, t) ((uint16_t)z << 8 | (t == 0 ? 0 : (uint16_t)(t - 1800)))
+
+inline Polygon* NewPolygon(size_t len)
+{
+	size_t base_size = sizeof(Polygon);
+	size_t array_size = len * sizeof(Vector2);
+
+	Polygon *p = malloc(base_size + array_size);
+	p->len = len;
+	p->max.x = p->max.y = -INFINITY;
+	p->min.x = p->min.y = INFINITY;
+	return p;
+}
 
 inline char *CloneString(const char *str)
 {

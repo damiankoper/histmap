@@ -109,7 +109,7 @@ static int CmpTilePoints(const void *a, const void *b)
 	if (tpA->y < tpB->y) return -1;
 	if (tpA->y > tpB->y) return 1;
 	if (tpA->x < tpB->x) return -1;
-	if (tpA->y > tpB->y) return 1;
+	if (tpA->x > tpB->x) return 1;
 	return 0;
 }
 
@@ -120,6 +120,7 @@ void TilePoints_Sort()
 
 // --- INLINE FUNCTIONS ---
 
+Polygon* NewPolygon(size_t len);
 char *CloneString(const char *str);
 Vector2 GeoCoordToMercator(float lonDeg, float latDeg);
 TileCoord MercatorToTileCoord(Vector2 coords, int z);
