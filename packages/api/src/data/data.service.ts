@@ -112,7 +112,8 @@ export class DataService {
 
   computeGlobalStats(tileStats: TileStats): void {
     this.globalStats.tMax = Math.max(this.globalStats.tMax, tileStats.t);
-    this.globalStats.tMin = Math.min(this.globalStats.tMin, tileStats.t);
+    if (tileStats.t > 0)
+      this.globalStats.tMin = Math.min(this.globalStats.tMin, tileStats.t);
     this.globalStats.zMax = Math.max(this.globalStats.zMax, tileStats.z);
     this.globalStats.zMin = Math.min(this.globalStats.zMin, tileStats.z);
   }
