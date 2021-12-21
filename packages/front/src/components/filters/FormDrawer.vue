@@ -21,21 +21,21 @@
           <el-form-item label="Tytul">
             <el-input
               v-model="titleInner"
-              @keypress.enter="onSubmit"
+              @keydown.space.stop
               placeholder="Tytuł publikacji lub jego część"
             />
           </el-form-item>
           <el-form-item label="Miejsce">
             <el-input
               v-model="placeInner"
-              @keypress.enter="onSubmit"
+              @keydown.space.stop
               placeholder="Miejsce publikacji"
             />
           </el-form-item>
           <el-form-item label="Autor">
             <el-input
               v-model="authorInner"
-              @keypress.enter="onSubmit"
+              @keydown.space.stop
               placeholder="Autor publikacji"
             />
           </el-form-item>
