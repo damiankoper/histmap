@@ -93,6 +93,6 @@ export class AreaService {
       options,
     );
 
-    return publications.length / areaStats.pointCount;
+    return Math.ceil(publications.length / areaStats.pointCount);
   }
 }
