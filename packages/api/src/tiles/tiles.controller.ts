@@ -53,18 +53,24 @@ export class TilesController {
   ): Promise<void> {
     const cacheKey = this.getCacheKey(coords, options);
     const renderFromCache = this.tilesCache.get(cacheKey);
+    const hasFilters = this.hasFilters(options);
 
-    if (!renderFromCache || this.hasFilters(options)) {
+    if (!renderFromCache || hasFilters) {
       const mainPreTile = this.dataService.getPreTile(coords);
       const tile = this.tilesService.calculateTile(mainPreTile);
 
       this.filterService.filter(tile, options);
 
       const stats = this.dataService.getTileStats(coords);
-      const render = this.tileRendererService.render(tile, stats, options.c);
+      const render = this.tileRendererService.render(
+        tile,
+        stats,
+        coords,
+        options,
+      );
 
       response.send(render);
-      this.tilesCache.set(cacheKey, render);
+      if (!hasFilters) this.tilesCache.set(cacheKey, render);
     } else {
       response.send(renderFromCache);
     }
@@ -77,6 +83,6 @@ export class TilesController {
   }
 
   private getCacheKey(coords: TileCoordsDto, options: TileOptionsDto): string {
-    return `${coords.t}.${coords.z}.${coords.x}.${coords.y}.${options.c}`;
+    return `${coords.t}.${coords.z}.${coords.x}.${coords.y}.${options.c}.${options.areas}`;
   }
 }

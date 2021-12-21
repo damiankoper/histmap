@@ -32,7 +32,7 @@
       :global-stats="globalStats"
       :formDialogVisible="formDialogVisible"
       :listDialogVisible="listDialogVisible"
-      @showAreas="onShowAreas"
+      v-model:showAreas="areAreasShown"
     />
   </el-container>
   <FormDrawer
@@ -128,7 +128,10 @@ export default defineComponent({
         };
         listDialogVisible.value = true;
 
-        if ((title.value + author.value + place.value).length)
+        if (
+          (title.value + author.value + place.value).length ||
+          !areAreasShown.value
+        )
           ElNotification({
             title: "Wyszyszczono filtry",
             type: "info",
@@ -136,15 +139,13 @@ export default defineComponent({
         title.value = "";
         author.value = "";
         place.value = "";
+        areAreasShown.value = true;
       },
       onZoomChange(z: number) {
         zoom.value = z;
       },
       onLocation(location: MapSearchResult) {
         mapSearch.value = location;
-      },
-      onShowAreas(showAreas: boolean) {
-        areAreasShown.value = showAreas;
       },
     };
   },

@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsOptional, IsString } from 'class-validator';
+import { IsBooleanString, IsOptional, IsString } from 'class-validator';
 import { GradientName } from '../models/gradients';
 
 export class TileOptionsDto {
@@ -12,19 +12,25 @@ export class TileOptionsDto {
 
   @ApiProperty({ required: false })
   @IsOptional()
-  @Type(() => String)
-  @IsString()
-  author: string;
+  @Type(() => Boolean)
+  @IsBooleanString()
+  areas: boolean;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @Type(() => String)
   @IsString()
-  title: string;
+  author = '';
 
   @ApiProperty({ required: false })
   @IsOptional()
   @Type(() => String)
   @IsString()
-  place: string;
+  title = '';
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @Type(() => String)
+  @IsString()
+  place = '';
 }

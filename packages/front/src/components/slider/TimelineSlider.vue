@@ -5,7 +5,10 @@
     align="middle"
     v-loading="!globalStats"
   >
-    <SliderAreaButton :showAreas="showAreas" @click="onAreaButtonClick" />
+    <SliderAreaButton
+      :showAreas="showAreas"
+      @click="$emit('update:showAreas', !showAreas)"
+    />
     <SliderTimeButton :byYear="byYear" @click="onTimeButtonClick" />
     <el-divider direction="vertical" />
     <SliderSpeedButton
@@ -68,8 +71,12 @@ export default defineComponent({
       type: Boolean,
       required: true,
     },
+    showAreas: {
+      type: Boolean,
+      required: true,
+    },
   },
-  emits: ["showAreas", "update:year"],
+  emits: ["update:showAreas", "update:year"],
   setup(props, { emit }) {
     const yearInner = ref(0);
     const byYear = ref(true);
@@ -106,7 +113,6 @@ export default defineComponent({
     const isPlaying = ref(false);
     const speed = ref<Speed>(Speed.SLOW);
     const delay = ref(delaySettings[Speed.SLOW]);
-    const showAreas = ref(true);
     let playInterval: ReturnType<typeof setInterval>;
 
     function setPlayingInterval() {
@@ -138,11 +144,6 @@ export default defineComponent({
       }
     }
 
-    function onAreaButtonClick() {
-      showAreas.value = !showAreas.value;
-      emit("showAreas", showAreas.value);
-    }
-
     const nextSpeed = computed(() => {
       switch (speed.value) {
         default:
@@ -168,10 +169,8 @@ export default defineComponent({
       speed,
       byYear,
       isPlaying,
-      showAreas,
       onTimeButtonClick,
       onSpeedButtonClick,
-      onAreaButtonClick,
       toggleIsPlaying,
     };
   },

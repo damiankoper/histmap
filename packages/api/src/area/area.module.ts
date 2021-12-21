@@ -9,5 +9,6 @@ import { AreaService } from './area.service';
   imports: [DataModule, MathModule, FilterModule],
   controllers: [AreaController],
   providers: [AreaService],
+  exports: [AreaService],
 })
 export class AreaModule {}

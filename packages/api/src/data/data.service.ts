@@ -2,6 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 import {
+  Area,
+  AreaStats,
   Data,
   PreTile,
   Publication,
@@ -17,10 +19,15 @@ import { MathService } from 'src/math/math.service';
 @Injectable()
 export class DataService {
   private readonly logger = new Logger(DataService.name);
-  private preTileMap: Map<string, PreTile> = new Map();
-  private statsMap: Map<string, TileStats> = new Map();
+
+  private preTile: Map<string, PreTile> = new Map();
+  private stats: Map<string, TileStats> = new Map();
   private publications: Map<number, Publication> = new Map();
   private geoPoints: Map<string, GeoPoint[]> = new Map();
+
+  private areas: Map<number, Area> = new Map();
+  private areaStats: Map<string, AreaStats> = new Map();
+
   public readonly globalStats: GlobalStats = {
     tMin: Infinity,
     tMax: -Infinity,
@@ -42,7 +49,7 @@ export class DataService {
 
       preData.preTiles.forEach((preTile) => {
         const key = this.getPreTileKey(preTile);
-        this.preTileMap.set(key, preTile);
+        this.preTile.set(key, preTile);
         preTile.points.forEach((point) => {
           const key = this.getTileMetaKey(preTile);
           const lat = this.mathService.tile2lat(
@@ -58,18 +65,35 @@ export class DataService {
           }
           this.geoPoints
             .get(key)
-            .push(new GeoPoint(lon, lat, preTile.t, point.publications));
+            .push(
+              new GeoPoint(
+                lon,
+                lat,
+                preTile.t,
+                point.publications,
+                point.areas || [],
+              ),
+            );
         });
-      });
-
-      preData.stats.forEach((tileStats) => {
-        const key = this.getTileMetaKey(tileStats);
-        this.statsMap.set(key, tileStats);
-        this.computeGlobalStats(tileStats);
       });
 
       preData.publications.forEach((publication) => {
         this.publications.set(publication.id, publication);
+      });
+
+      preData.stats.forEach((tileStats) => {
+        const key = this.getTileMetaKey(tileStats);
+        this.stats.set(key, tileStats);
+        this.computeGlobalStats(tileStats);
+      });
+
+      preData.areas.forEach((tileArea) => {
+        this.areas.set(tileArea.id, tileArea);
+      });
+
+      preData.areaStats.forEach((areaStats) => {
+        const key = this.getAreaStatsKey(areaStats.id, areaStats);
+        this.areaStats.set(key, areaStats);
       });
     } catch (e) {
       this.logger.error('JSON Tiles file loading error!');
@@ -99,7 +123,7 @@ export class DataService {
 
   public getPreTile(coords: TileCoords): PreTile {
     const key = this.getPreTileKey(coords);
-    const preTile = this.preTileMap.get(key);
+    const preTile = this.preTile.get(key);
     return preTile ? _.cloneDeep(preTile) : this.getEmptyTile(coords);
   }
 
@@ -109,7 +133,7 @@ export class DataService {
 
   public getTileStats(coords: TileMetaCoords): TileStats {
     const key = this.getTileMetaKey(coords);
-    const stats = this.statsMap.get(key);
+    const stats = this.stats.get(key);
     return stats || this.getEmptyTileStats(coords);
   }
 
@@ -137,11 +161,24 @@ export class DataService {
     });
   }
 
+  public getArea(id: number) {
+    return this.areas.get(id) || { id: 0, publications: [] };
+  }
+
+  public getAreaStats(id: number, coords: TileMetaCoords) {
+    const key = this.getAreaStatsKey(id, coords);
+    return this.areaStats.get(key) || { id: 0, t: 0, z: 0, pointCount: 0 };
+  }
+
   private getPreTileKey(coords: TileCoords): string {
     return `${coords.t}.${coords.z}.${coords.x}.${coords.y}`;
   }
 
   private getTileMetaKey(coords: TileMetaCoords): string {
     return `${coords.t}.${coords.z}`;
+  }
+
+  private getAreaStatsKey(id: number, coords: TileMetaCoords): string {
+    return `${coords.t}.${coords.z}.${id}`;
   }
 }
