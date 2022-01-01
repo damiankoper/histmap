@@ -1,118 +1,293 @@
 #pragma once
 
-#include <math.h>
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
+#include <array>
+#include <cassert>
+#include <cstdint>
+#include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 #define M_PI 3.14159265358979323846
 #define M_PIf 3.14159265358979323846f
 
 #define TILE_PIXEL_SIZE 256
-#define MAX_ZOOM_LEVEL 13
+#define MAX_ZOOM_LEVEL 7
 
 // --- COMMON TYPES ---
 
-typedef struct Vector2 {
-	float x;
-	float y;
-} Vector2;
+struct Vector2 {
+	float x, y;
+	Vector2() = default;
+	constexpr Vector2(float x, float y) : x(x), y(y) {}
+};
 
-typedef struct TileCoord {
+struct TileCoord {
 	int16_t tileX;
 	int16_t tileY;
 	uint8_t pixelX;
 	uint8_t pixelY;
-} TileCoord;
+};
+
+// --- TABLE IMPLEMENTATION ---
+
+template <typename T, typename KeyT = T::KeyT>
+struct Table {
+	std::unordered_map<KeyT, size_t> index;
+	std::vector<T> table;
+
+	T* Get(KeyT key)
+	{
+		assert(index.count(key) == 1);
+
+		size_t i = index[key];
+		return &table.data()[i];
+	}
+
+	bool TryGet(KeyT key, T*& out)
+	{
+		if (index.count(key) == 0) return false;
+
+		size_t i = index[key];
+		out = &table.data()[i];
+
+		return true;
+	}
+
+	void Insert(T value)
+	{
+		assert(index.count(value.id) == 0);
+
+		KeyT id = value.id;
+
+		size_t i = table.size();
+		table.push_back(std::move(value));
+		index[id] = i;
+	}
+};
+
+// --- TABLE ID TYPES ---
+
+struct Place_ID {
+	int32_t id;
+	Place_ID() = default;
+	explicit Place_ID(int32_t id) : id(id) {}
+	operator int32_t() const { return id; }
+	bool operator==(const Place_ID& other) const { return id == other.id; }
+};
+
+struct Publication_ID {
+	int32_t id;
+	Publication_ID() = default;
+	explicit Publication_ID(int32_t id) : id(id) {}
+	operator int32_t() const { return id; }
+	bool operator==(const Publication_ID& other) const { return id == other.id; }
+};
+
+struct Area_ID {
+	Place_ID id;
+	int16_t t;
+	Area_ID() = default;
+	Area_ID(Place_ID id, int16_t t) : id(id), t(t) {}
+	bool operator==(const Area_ID& other) const { return id == other.id && t == other.t; }
+};
+
+struct AreaStat_ID {
+	Place_ID id;
+	int16_t z;
+	AreaStat_ID() = default;
+	AreaStat_ID(int32_t id, int16_t z) : id(id), z(z) {}
+	bool operator==(const AreaStat_ID& other) const { return id == other.id && z == other.z; }
+};
+
+struct PreTile_ID {
+	int16_t x;
+	int16_t y;
+	int16_t z;
+	int16_t t;
+	PreTile_ID() = default;
+	PreTile_ID(int16_t x, int16_t y, int16_t z, int16_t t) : x(x), y(y), z(z), t(t) {}
+	bool operator==(const PreTile_ID& other) const { return x == other.x && y == other.y && z == other.z && t == other.t; }
+};
+
+struct TileStat_ID {
+	int16_t t;
+	int16_t z;
+	TileStat_ID() = default;
+	TileStat_ID(int16_t t, int16_t z) : t(t), z(z) {}
+	bool operator==(const TileStat_ID& other) const { return t == other.t && z == other.z; }
+};
+
+struct Point_ID {
+	uint8_t x;
+	uint8_t y;
+	Point_ID() = default;
+	explicit Point_ID(uint8_t x, uint8_t y) : x(x), y(y) {}
+	bool operator==(const Point_ID& other) const { return x == other.x && y == other.y; }
+};
+
+namespace std {
+	template <>
+	struct hash<Place_ID> {
+		size_t operator()(const Place_ID& key) const
+		{
+			return hash<int32_t>()(key.id);
+		}
+	};
+
+	template <>
+	struct hash<Publication_ID> {
+		size_t operator()(const Publication_ID& key) const
+		{
+			return hash<int32_t>()(key.id);
+		}
+	};
+
+	template <>
+	struct hash<Area_ID> {
+		size_t operator()(const Area_ID& key) const
+		{
+			size_t ret = 17;
+			ret = ret * 31 + hash<int32_t>()(key.id);
+			ret = ret * 31 + hash<int16_t>()(key.t);
+			return ret;
+		}
+	};
+
+	template <>
+	struct hash<AreaStat_ID> {
+		size_t operator()(const AreaStat_ID& key) const
+		{
+			size_t ret = 17;
+			ret = ret * 31 + hash<int32_t>()(key.id);
+			ret = ret * 31 + hash<int16_t>()(key.z);
+			return ret;
+		}
+	};
+
+	template <>
+	struct hash<PreTile_ID> {
+		size_t operator()(const PreTile_ID& key) const
+		{
+			size_t ret = 17;
+			ret = ret * 31 + hash<int16_t>()(key.x);
+			ret = ret * 31 + hash<int16_t>()(key.y);
+			ret = ret * 31 + hash<int16_t>()(key.z);
+			ret = ret * 31 + hash<int16_t>()(key.t);
+			return ret;
+		}
+	};
+
+	template <>
+	struct hash<TileStat_ID> {
+		size_t operator()(const TileStat_ID& key) const
+		{
+			size_t ret = 17;
+			ret = ret * 31 + hash<int16_t>()(key.t);
+			ret = ret * 31 + hash<int16_t>()(key.z);
+			return ret;
+		}
+	};
+
+	template <>
+	struct hash<Point_ID> {
+		size_t operator()(const Point_ID& key) const
+		{
+			size_t ret = 17;
+			ret = ret * 31 + hash<uint8_t>()(key.x);
+			ret = ret * 31 + hash<uint8_t>()(key.y);
+			return ret;
+		}
+	};
+}
 
 // --- TABLE TYPES ---
 
-typedef struct Polygon {
-	size_t len;
-	Vector2 min;
-	Vector2 max;
-	Vector2 points[];
-} Polygon;
+struct Place {
+	typedef Place_ID KeyT;
+	Place_ID id;
+	std::string name;
+	Vector2 mercatorPoint;
+	Place(Place_ID id, std::string name, Vector2 mercatorPoint) : id(id), name(std::move(name)), mercatorPoint(mercatorPoint) {}
+};
 
-typedef struct Publication {
-	char *title;
-	char *author;
-	char *publication_place;
+struct Polygon {
+	typedef Place_ID KeyT;
+	Place_ID id;
+	std::vector<Vector2> points;
+	std::array<std::vector<Vector2>, MAX_ZOOM_LEVEL + 1> expansions;
+	explicit Polygon(Place_ID id) : id(id) {}
+};
+
+struct Publication {
+	typedef Publication_ID KeyT;
+	Publication_ID id;
+	std::string title;
+	std::string author;
+	std::string publicationPlace;
 	int16_t year;
-} Publication;
+	std::vector<Place_ID> places;
+	Publication(Publication_ID id, std::string title, std::string author, std::string publicationPlace, int16_t year, std::vector<Place_ID> places)
+		: id(id), title(std::move(title)), author(std::move(author)), publicationPlace(std::move(publicationPlace)), year(year), places(places) {}
+};
 
-typedef struct Place {
-	char *name;
-	Vector2 pos;
-	Polygon *polygon; // optional
-} Place;
+struct Area {
+	typedef Area_ID KeyT;
+	Area_ID id;
+	std::vector<Publication_ID> publications;
+	Area(Area_ID id, Publication_ID publication_id) : id(id), publications{publication_id} {}
+};
 
-typedef struct PublicationPlace {
-	int32_t publication_id;
-	int32_t place_id;
-} PublicationPlace;
+struct AreaStat {
+	typedef AreaStat_ID KeyT;
+	AreaStat_ID id;
+	int32_t pointCount;
+	AreaStat(AreaStat_ID id, int32_t pointCount) : id(id), pointCount(pointCount) {}
+};
 
-typedef struct TilePoint {
-	uint64_t tile_id; // x, y, z, t
-	int32_t publication_id;
-	uint8_t x;
-	uint8_t y;
-} TilePoint;
+struct Point {
+	typedef Point_ID KeyT;
+	Point_ID id;
+	std::vector<Place_ID> areas;
+	std::vector<Publication_ID> publications;
+	explicit Point(Point_ID id) : id(id) {}
+};
 
-// --- TABLE DECLARATIONS ---
+struct PreTile {
+	typedef PreTile_ID KeyT;
+	PreTile_ID id;
+	Table<Point> points;
+	explicit PreTile(PreTile_ID id) : id(id) {}
+};
 
-#define DECLARE_TABLE(typename, inner_type, name) typedef struct typename { inner_type *items; size_t len; size_t capacity; } typename; extern typename name;
+struct TileStat {
+	typedef TileStat_ID KeyT;
+	TileStat_ID id;
+	double max;
+	explicit TileStat(TileStat_ID id) : id(id), max(-INFINITY) {}
+};
 
-DECLARE_TABLE(Publications, Publication, publications)
-DECLARE_TABLE(Places, Place, places)
-DECLARE_TABLE(PublicationPlaces, PublicationPlace, publication_places)
-DECLARE_TABLE(TilePoints, TilePoint, tile_points)
-extern int32_t tile_stats[(MAX_ZOOM_LEVEL + 1) * 256];
+struct Data {
+	Table<Publication> publications;
+	Table<Area> areas;
+	Table<AreaStat> areaStats;
+	Table<PreTile> preTiles;
+	Table<TileStat> tileStats;
+	
+	Table<Place> places;
+	Table<Polygon> polygons;
 
-// --- TABLE FUNCTION DECLARATIONS ---
+	std::unordered_map<std::string, Place_ID> placeNameIndex;
 
-void Publications_EnsureCapacity(size_t desired_capacity);
-int32_t Publications_Insert(const char *title, const char* author, const char* publication_place, int16_t year);
+	void MakePlaceNameIndex();
+	bool TryGetPlaceByName(const std::string& name, Place*& out);
+};
 
-void Places_EnsureCapacity(size_t desired_capacity);
-int32_t Places_Insert(const char *name, float lat, float lon);
-bool Places_TryGet(const char *name, int32_t *res);
+extern Data gData;
 
-void PublicationPlaces_EnsureCapacity(size_t desired_capacity);
-int32_t PublicationPlaces_Insert(int32_t publication_id, int32_t place_id);
+// --- OTHER FUNCTION DECLARATIONS ---
 
-void TilePoints_EnsureCapacity(size_t desired_capacity);
-int32_t TilePoints_Insert(uint64_t tile_id, int32_t publication_id, uint8_t x, uint8_t y);
-void TilePoints_Sort();
-
-// --- INLINE FUNCTIONS/MACROS ---
-
-#define MAKE_TILE_ID(x, y, z, t) ((uint64_t)x << 48 | (uint64_t)y << 32 | (uint64_t)z << 16 | t)
-#define MAKE_STAT_ID(z, t) ((uint16_t)z << 8 | (t == 0 ? 0 : (uint16_t)(t - 1800)))
-
-inline Polygon* NewPolygon(size_t len)
-{
-	size_t base_size = sizeof(Polygon);
-	size_t array_size = len * sizeof(Vector2);
-
-	Polygon *p = malloc(base_size + array_size);
-	p->len = len;
-	p->max.x = p->max.y = -INFINITY;
-	p->min.x = p->min.y = INFINITY;
-	return p;
-}
-
-inline char *CloneString(const char *str)
-{
-	size_t length = strlen(str);
-
-	char *buf = malloc(length + 1);
-	memcpy(buf, str, length + 1); // copying with null terminator
-
-	return buf;
-}
+bool PointInPolygon(Vector2 point, const std::vector<Vector2>& points);
 
 inline Vector2 GeoCoordToMercator(float lonDeg, float latDeg)
 {
@@ -120,22 +295,38 @@ inline Vector2 GeoCoordToMercator(float lonDeg, float latDeg)
 	float latRad = latDeg * M_PIf / 180.0f;
 	float y = (1.0f - asinhf(tanf(latRad)) / M_PIf) / 2.0f;
 
-	return (Vector2){.x = x, .y = y};
+	return Vector2(x, y);
 }
 
 inline TileCoord MercatorToTileCoord(Vector2 coords, int z)
 {
 	coords.x *= 1 << z;
 	coords.y *= 1 << z;
-	return (TileCoord){
-		.tileX = (int16_t)floorf(coords.x),
-		.tileY = (int16_t)floorf(coords.y),
-		.pixelX = (uint8_t)floorf(TILE_PIXEL_SIZE * fmodf(fmodf(coords.x, 1.0f) + 1.0f, 1.0f)),
-		.pixelY = (uint8_t)floorf(TILE_PIXEL_SIZE * fmodf(fmodf(coords.y, 1.0f) + 1.0f, 1.0f)),
+	return {
+		(int16_t)floorf(coords.x),
+		(int16_t)floorf(coords.y),
+		(uint8_t)floorf(TILE_PIXEL_SIZE * fmodf(fmodf(coords.x, 1.0f) + 1.0f, 1.0f)),
+		(uint8_t)floorf(TILE_PIXEL_SIZE * fmodf(fmodf(coords.y, 1.0f) + 1.0f, 1.0f)),
 	};
 }
 
 inline TileCoord GeoCoordToTileCoord(float lonDeg, float latDeg, int z)
 {
 	return MercatorToTileCoord(GeoCoordToMercator(lonDeg, latDeg), z);
+}
+
+inline int RaycastEdge(Vector2 point, Vector2 a, Vector2 b)
+{
+	float ax = a.x - point.x;
+	float ay = a.y - point.y;
+	float bx = b.x - point.x;
+	float by = b.y - point.y;
+
+	if ((ay > 0.0f) & (by > 0.0f) | (ay <= 0.0f) & (by <= 0.0f)) return 0;
+
+	float dy = by - ay;
+	float cross = ax * by - bx * ay;
+	float sgn = cross * dy;
+
+	return sgn >= 0.0f ? 1 : 0;
 }

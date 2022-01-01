@@ -1,25 +1,28 @@
 #include "system.h"
 
-#include <stdint.h>
-#include <stdlib.h>
-#include <time.h>
+#include <cstdint>
+#include <cstdlib>
+#include <ctime>
 
-char *ReadFileAlloc(const char *filename, size_t *len)
+static char *arena_base;
+static size_t arena_len;
+static size_t arena_cap;
+
+std::string ReadFile(const char *filename, size_t *len)
 {
 	FILE *file = fopen(filename, "rb");
-	if (!file) return NULL;
+	if (!file) abort();
 
 	fseek(file, 0L, SEEK_END);
 	size_t length = (size_t)ftell(file);
 	rewind(file);
 
-	char *buf = malloc(length + 1);
-	size_t read = fread(buf, 1, length, file);
-	buf[length] = '\0';
+	std::string buf(length, '\0');
+	size_t read = fread((void*)buf.data(), 1, length, file);
 
 	fclose(file);
 
-	if (read != length) return NULL;
+	if (read != length) abort();
 
 	if (len) *len = length;
 	return buf;
@@ -47,8 +50,8 @@ void PrintJsonString(FILE *out, const char *str)
 }
 
 #ifdef _WIN32
-int QueryPerformanceFrequency(int64_t *lpFrequency);
-int QueryPerformanceCounter(int64_t *lpPerformanceCount);
+extern "C" int QueryPerformanceFrequency(int64_t *lpFrequency);
+extern "C" int QueryPerformanceCounter(int64_t *lpPerformanceCount);
 
 static int64_t counter_freq;
 

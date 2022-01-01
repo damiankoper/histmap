@@ -1,12 +1,13 @@
 #pragma once
 
-#include <stddef.h>
-#include <stdio.h>
+#include <cstddef>
+#include <cstdio>
+#include <string>
 
 #ifdef _WIN32
-int __stdcall SetConsoleOutputCP(unsigned int wCodePageID);
+extern "C" int __stdcall SetConsoleOutputCP(unsigned int wCodePageID);
 #endif
 
-char *ReadFileAlloc(const char *filename, size_t *len); // len is optional
+std::string ReadFile(const char *filename, size_t *len); // len is optional
 void PrintJsonString(FILE *out, const char *str);
 double GetTime();

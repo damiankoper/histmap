@@ -3,5 +3,7 @@
 /places2/*
 !/places/.gitkeep
 !/places2/.gitkeep
-bn_geos_2.db
-db.json
+/bn_geos_2.db
+/data.json
+/data.bin
+/places.bin
