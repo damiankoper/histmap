@@ -1,52 +1,48 @@
 export interface Data {
-  publications: Publication[]
-  preTiles: PreTile[]
-  stats: TileStats[]
-  areas: Area[]
-  areaStats: AreaStats[]
+    publications: Publication[]
+    areas: Area[]
+    areaStats: AreaStats[]
+    preTiles: PreTile[]
+    stats: TileStats[]
 }
 
 export interface Publication {
-  id: number
-  title: string
-  author: string
-  publicationPlace: string
-  year: number
-}
-
-export interface TilePositionCoords {
-  x: number
-  y: number
-}
-
-export interface TileMetaCoords {
-  z: number
-  t: number
-}
-
-export interface TileCoords extends TileMetaCoords, TilePositionCoords { }
-
-export interface TileStats extends TileMetaCoords {
-  max: number
-}
-
-export interface AreaStats extends TileMetaCoords {
-  id: number
-  pointCount: number
+    id: number
+    title: string
+    author: string
+    publicationPlace: string
+    year: number
 }
 
 export interface Area {
-  id: number,
-  publications: number[]
+    id: number
+    t: number
+    publications: number[]
 }
 
-export interface PreTile extends TileCoords {
-  points: Point[]
+export interface AreaStats {
+    id: number
+    z: number
+    pointCount: number
+}
+
+export interface PreTile {
+    x: number
+    y: number
+    z: number
+    t: number
+    points: Point[]
 }
 
 export interface Point {
-  x: number
-  y: number
-  areas: number[],
-  publications: number[]
+    x: number
+    y: number
+    areas: number[]
+    publications: number[]
+}
+
+export interface TileStats {
+    t: number
+    z: number
+    max: number
 }
