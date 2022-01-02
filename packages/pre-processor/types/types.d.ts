@@ -30,8 +30,9 @@ export interface TileStats extends TileMetaCoords {
   max: number
 }
 
-export interface AreaStats extends TileMetaCoords {
+export interface AreaStats {
   id: number,
+  z: number
   pointCount: number
 }
 

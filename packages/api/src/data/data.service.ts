@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { readFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import { resolve } from 'path';
 import {
   Area,
@@ -15,7 +15,7 @@ import * as _ from 'lodash';
 import { GlobalStats } from './interfaces/global-stats.interface';
 import { GeoPoint } from 'src/area/models/geo-point.model';
 import { MathService } from 'src/math/math.service';
-
+import { ungzip } from 'node-gzip';
 @Injectable()
 export class DataService {
   private readonly logger = new Logger(DataService.name);
@@ -39,12 +39,31 @@ export class DataService {
     this.initJsonData();
   }
 
-  private initJsonData(): void {
+  private async getData(): Promise<Data> {
+    const compressedPath = resolve(__dirname, '../../../../data/data');
+    const compressedExists = existsSync(compressedPath);
+    if (compressedExists) {
+      const file = readFileSync(compressedPath);
+      return JSON.parse((await ungzip(file)).toString('utf-8'));
+    } else {
+      this.logger.log('Compressed data not found. Trying JSON...');
+      const path = resolve(__dirname, '../../../../data/data.json');
+      const exists = existsSync(path);
+      if (exists) {
+        const file = readFileSync(path, 'utf-8');
+        return JSON.parse(file);
+      } else {
+        throw new Error(
+          'Data not found: `data.json` or gzipped `data` file not found!',
+        );
+      }
+    }
+  }
+
+  private async initJsonData(): Promise<void> {
     this.logger.log('Loading JSON Tiles file');
     try {
-      const preData: Data = JSON.parse(
-        readFileSync(resolve(__dirname, '../../../../data/data.json'), 'utf-8'),
-      );
+      const preData: Data = await this.getData();
       this.logger.log('JSON Tiles file loaded');
 
       preData.preTiles.forEach((preTile) => {
@@ -93,7 +112,7 @@ export class DataService {
       });
 
       preData.areaStats.forEach((areaStats) => {
-        const key = this.getAreaStatsKey(areaStats.id, areaStats);
+        const key = this.getAreaStatsKey(areaStats.id, areaStats.z);
         this.areaStats.set(key, areaStats);
       });
     } catch (e) {
@@ -174,7 +193,7 @@ export class DataService {
   }
 
   public getAreaStats(id: number, coords: TileMetaCoords) {
-    const key = this.getAreaStatsKey(id, coords);
+    const key = this.getAreaStatsKey(id, coords.z);
     return this.areaStats.get(key) || { id: 0, t: 0, z: 0, pointCount: 1 };
   }
 
@@ -190,9 +209,7 @@ export class DataService {
     return `${t}.${id}`;
   }
 
-  private getAreaStatsKey(id: number, coords: TileMetaCoords): string {
-    // TODO fix areaStats key
-    return `undefined.${coords.z}.${id}`;
-    //return `${coords.t}.${coords.z}.${id}`;
+  private getAreaStatsKey(id: number, z: number): string {
+    return `${z}.${id}`;
   }
 }
