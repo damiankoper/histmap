@@ -131,7 +131,7 @@ static void LoadGeocodedData()
 			if (point.x < min.x) min.x = point.x;
 			if (point.y < min.y) min.y = point.y;
 			if (point.x > max.x) max.x = point.x;
-			if (point.x > max.y) max.y = point.y;
+			if (point.y > max.y) max.y = point.y;
 		}
 
 		for (int16_t z = 0; z <= MAX_ZOOM_LEVEL; ++z)
@@ -143,7 +143,7 @@ static void LoadGeocodedData()
 			float pixelsPerUnit = (float)(1 << z) * (float)TILE_PIXEL_SIZE;
 
 			float dx = EXPANSION_PIXEL_HSPACING / pixelsPerUnit;
-			float dy = EXPANSION_PIXEL_HSPACING / pixelsPerUnit;
+			float dy = EXPANSION_PIXEL_VSPACING / pixelsPerUnit;
 
 			bool halfOffset = false;
 
