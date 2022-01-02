@@ -55,8 +55,7 @@ export class TileRendererService {
   ): RenderTile {
     const points = tilePoints.map((point) => {
       let value = point.publications.length;
-      if (options.areas && point.areas) {
-        // TODO: remove || after data.json file handles areas
+      if (options.area && point.areas) {
         value += point.areas.reduce(
           (a, b) => a + this.areaService.getAreaValue(b, coords, options),
           0,

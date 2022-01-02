@@ -65,10 +65,10 @@ export class AreaService {
       });
     });
 
-    areas.forEach((pointCount, area) => {
-      const areaStats = this.dataService.getAreaStats(area, options);
-      if (pointCount / areaStats.pointCount > 0.5) {
-        const areaDetails = this.dataService.getArea(area);
+    areas.forEach((pointCount, areaId) => {
+      const areaStats = this.dataService.getAreaStats(areaId, options);
+      if (pointCount / areaStats.pointCount > 0.33) {
+        const areaDetails = this.dataService.getArea(areaId, options.t);
         areaDetails.publications.forEach((pub) => uniqPubs.add(pub));
       }
     });
@@ -86,7 +86,7 @@ export class AreaService {
     coords: TileMetaCoords,
     options: TileOptionsDto,
   ): number {
-    const area = this.dataService.getArea(id);
+    const area = this.dataService.getArea(id, coords.t);
     const areaStats = this.dataService.getAreaStats(id, coords);
     const publications = this.filterService.filterPublications(
       area.publications,

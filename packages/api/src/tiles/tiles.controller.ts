@@ -83,6 +83,6 @@ export class TilesController {
   }
 
   private getCacheKey(coords: TileCoordsDto, options: TileOptionsDto): string {
-    return `${coords.t}.${coords.z}.${coords.x}.${coords.y}.${options.c}.${options.areas}`;
+    return `${coords.t}.${coords.z}.${coords.x}.${coords.y}.${options.c}.${options.area}`;
   }
 }

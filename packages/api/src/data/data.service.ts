@@ -25,7 +25,7 @@ export class DataService {
   private publications: Map<number, Publication> = new Map();
   private geoPoints: Map<string, GeoPoint[]> = new Map();
 
-  private areas: Map<number, Area> = new Map();
+  private areas: Map<string, Area> = new Map();
   private areaStats: Map<string, AreaStats> = new Map();
 
   public readonly globalStats: GlobalStats = {
@@ -88,7 +88,8 @@ export class DataService {
       });
 
       preData.areas.forEach((tileArea) => {
-        this.areas.set(tileArea.id, tileArea);
+        const key = this.getAreaKey(tileArea.id, tileArea.t);
+        this.areas.set(key, tileArea);
       });
 
       preData.areaStats.forEach((areaStats) => {
@@ -162,13 +163,19 @@ export class DataService {
     });
   }
 
-  public getArea(id: number) {
-    return this.areas.get(id) || { id: 0, publications: [] };
+  public getArea(id: number, t: number) {
+    return (
+      this.areas.get(this.getAreaKey(id, t)) || {
+        id: 0,
+        t: 0,
+        publications: [],
+      }
+    );
   }
 
   public getAreaStats(id: number, coords: TileMetaCoords) {
     const key = this.getAreaStatsKey(id, coords);
-    return this.areaStats.get(key) || { id: 0, t: 0, z: 0, pointCount: 0 };
+    return this.areaStats.get(key) || { id: 0, t: 0, z: 0, pointCount: 1 };
   }
 
   private getPreTileKey(coords: TileCoords): string {
@@ -179,7 +186,13 @@ export class DataService {
     return `${coords.t}.${coords.z}`;
   }
 
+  private getAreaKey(id: number, t: number): string {
+    return `${t}.${id}`;
+  }
+
   private getAreaStatsKey(id: number, coords: TileMetaCoords): string {
-    return `${coords.t}.${coords.z}.${id}`;
+    // TODO fix areaStats key
+    return `undefined.${coords.z}.${id}`;
+    //return `${coords.t}.${coords.z}.${id}`;
   }
 }
