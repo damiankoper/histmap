@@ -247,6 +247,7 @@ static void Precalculate()
 			if (!gData.polygons.TryGet(place_id, polygon)) continue;
 
 			Area_ID area_id(place_id, publication.year);
+			Area_ID area_id_t0(place_id, 0);
 
 			Area *area;
 			if (gData.areas.TryGet(area_id, area))
@@ -256,6 +257,15 @@ static void Precalculate()
 			else
 			{
 				gData.areas.Insert(Area(area_id, publication.id));
+			}
+
+			if (gData.areas.TryGet(area_id_t0, area))
+			{
+				area->publications.push_back(publication.id);
+			}
+			else
+			{
+				gData.areas.Insert(Area(area_id_t0, publication.id));
 			}
 		}
 	}
@@ -267,44 +277,50 @@ static void Precalculate()
 		for (const Place_ID& place_id : publication.places)
 		{
 			Area_ID area_id(place_id, publication.year);
-			Area* area = nullptr;
-			gData.areas.TryGet(area_id, area);
+			Area *area = nullptr;
+			Polygon *polygon = nullptr;
+			if (gData.areas.TryGet(area_id, area))
+			{
+				polygon = gData.polygons.Get(place_id);
+			}
 
 			for (int16_t z = 0; z <= MAX_ZOOM_LEVEL; ++z)
 			{
-				bool isAreaPoint = false;
-
-				if (gData.areas.TryGet(area_id, area))
-				{
-					Polygon *polygon = gData.polygons.Get(place_id);
-					if (polygon->expansions[z].size() > 1)
-					{
-						isAreaPoint = true;
-					}
-				}
-
-				if (isAreaPoint) continue;
+				if (polygon && polygon->expansions[z].size() > 1) continue;
 
 				Place *place = gData.places.Get(place_id);
 				TileCoord tc = MercatorToTileCoord(place->mercatorPoint, z);
 
 				PreTile_ID preTile_id = PreTile_ID(tc.tileX, tc.tileY, z, publication.year);
-				PreTile* preTile;
+				Point_ID point_id = Point_ID(tc.pixelX, tc.pixelY);
+				PreTile_ID preTile_id_t0 = PreTile_ID(tc.tileX, tc.tileY, z, 0);
+
+				PreTile *preTile;
+				Point *point;
+
 				if (!gData.preTiles.TryGet(preTile_id, preTile))
 				{
 					gData.preTiles.Insert(PreTile(preTile_id));
 					preTile = gData.preTiles.Get(preTile_id);
 				}
-
-				Point_ID point_id = Point_ID(tc.pixelX, tc.pixelY);
-
-				Point* point;
 				if (!preTile->points.TryGet(point_id, point))
 				{
 					preTile->points.Insert(Point(point_id));
 					point = preTile->points.Get(point_id);
 				}
+				point->publications.push_back(publication.id);
 
+				if (!gData.preTiles.TryGet(preTile_id_t0, preTile))
+				{
+					gData.preTiles.Insert(PreTile(preTile_id_t0));
+					preTile = gData.preTiles.Get(preTile_id_t0);
+				}
+
+				if (!preTile->points.TryGet(point_id, point))
+				{
+					preTile->points.Insert(Point(point_id));
+					point = preTile->points.Get(point_id);
+				}
 				point->publications.push_back(publication.id);
 			}
 		}
