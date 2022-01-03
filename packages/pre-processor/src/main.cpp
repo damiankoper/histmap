@@ -1,5 +1,6 @@
 #include <cassert>
 #include <cinttypes>
+#include <cstring>
 #include <ctime>
 
 #include "data.h"
@@ -68,7 +69,7 @@ static void LoadGeocodedData()
 		memcpy(&lat, &geocode_result[(size_t)input_place_id * 8], 4);
 		memcpy(&lon, &geocode_result[(size_t)input_place_id * 8 + 4], 4);
 
-		if (!isnan(lat) && !isnan(lon))
+		if (!std::isnan(lat) && !std::isnan(lon))
 		{
 			Place_ID place_id(input_place_id);
 

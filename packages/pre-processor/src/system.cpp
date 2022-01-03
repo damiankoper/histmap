@@ -4,10 +4,6 @@
 #include <cstdlib>
 #include <ctime>
 
-static char *arena_base;
-static size_t arena_len;
-static size_t arena_cap;
-
 std::string ReadFile(const char *filename, size_t *len)
 {
 	FILE *file = fopen(filename, "rb");

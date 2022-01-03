@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cassert>
+#include <cmath>
 #include <cstdint>
 #include <string>
 #include <unordered_map>
@@ -31,7 +32,7 @@ struct TileCoord {
 
 // --- TABLE IMPLEMENTATION ---
 
-template <typename T, typename KeyT = T::KeyT>
+template <typename T, typename KeyT = typename T::KeyT>
 struct Table {
 	std::unordered_map<KeyT, size_t> index;
 	std::vector<T> table;
@@ -322,7 +323,7 @@ inline int RaycastEdge(Vector2 point, Vector2 a, Vector2 b)
 	float bx = b.x - point.x;
 	float by = b.y - point.y;
 
-	if ((ay > 0.0f) & (by > 0.0f) | (ay <= 0.0f) & (by <= 0.0f)) return 0;
+	if (((ay > 0.0f) & (by > 0.0f)) | ((ay <= 0.0f) & (by <= 0.0f))) return 0;
 
 	float dy = by - ay;
 	float cross = ax * by - bx * ay;
