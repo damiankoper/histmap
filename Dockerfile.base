@@ -6,4 +6,4 @@ COPY ./package.json ./
 RUN npm install
 
 COPY ./lerna.json ./
-COPY ./data/data.json ./data/data.json
+COPY ./data/data ./data/data

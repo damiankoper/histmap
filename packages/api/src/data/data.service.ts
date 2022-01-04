@@ -115,6 +115,8 @@ export class DataService {
         const key = this.getAreaStatsKey(areaStats.id, areaStats.z);
         this.areaStats.set(key, areaStats);
       });
+
+      this.logger.log('JSON Tiles file processed');
     } catch (e) {
       this.logger.error('JSON Tiles file loading error!');
       this.logger.error(e);
