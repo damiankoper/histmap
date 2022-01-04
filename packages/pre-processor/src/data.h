@@ -13,7 +13,7 @@
 #define M_PIf 3.14159265358979323846f
 
 #define TILE_PIXEL_SIZE 256
-#define MAX_ZOOM_LEVEL 7
+#define MAX_ZOOM_LEVEL 6
 
 // --- COMMON TYPES ---
 

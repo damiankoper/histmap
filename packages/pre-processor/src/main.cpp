@@ -16,8 +16,8 @@ const char *const POLYGON_RESULT_DIR = "../../data/places2/";
 
 const char GEOJSON_MATCH_STRING[] = ",\"geojson\":{\"type\":\"Polygon\",\"coordinates\":[[";
 
-#define EXPANSION_PIXEL_HSPACING 30
-#define EXPANSION_PIXEL_VSPACING 26
+#define EXPANSION_PIXEL_HSPACING 40
+#define EXPANSION_PIXEL_VSPACING 35
 
 static void LoadGeocodedData();
 static void ExtractPublications();
@@ -138,8 +138,9 @@ static void LoadGeocodedData()
 		for (int16_t z = 0; z <= MAX_ZOOM_LEVEL; ++z)
 		{
 			printf("\rExpanding polygons... %d, z = %" PRIi16, polygon.id.id, z);
+      fflush(stdout);
 
-			std::vector<Vector2>& expansion = polygon.expansions[z];
+      std::vector<Vector2>& expansion = polygon.expansions[z];
 
 			float pixelsPerUnit = (float)(1 << z) * (float)TILE_PIXEL_SIZE;
 
