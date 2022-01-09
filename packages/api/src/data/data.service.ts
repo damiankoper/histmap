@@ -4,7 +4,7 @@ import { resolve } from 'path';
 import {
   Area,
   AreaStats,
-  Data,
+  DataDict,
   PreTile,
   Publication,
   TileCoords,
@@ -39,7 +39,7 @@ export class DataService {
     this.initJsonData();
   }
 
-  private async getData(): Promise<Data> {
+  private async getData(): Promise<DataDict> {
     const compressedPath = resolve(__dirname, '../../../../data/data');
     const compressedExists = existsSync(compressedPath);
     if (compressedExists) {
@@ -63,10 +63,19 @@ export class DataService {
   private async initJsonData(): Promise<void> {
     this.logger.log('Loading JSON Tiles file');
     try {
-      const preData: Data = await this.getData();
+      const preData = await this.getData();
       this.logger.log('JSON Tiles file loaded');
 
-      preData.preTiles.forEach((preTile) => {
+      preData.preTiles.forEach((preTileDict) => {
+        const preTile: PreTile = {
+          ...preTileDict,
+          points: preTileDict.p.map((pointDict) => ({
+            ...pointDict,
+            areas: pointDict.a || [],
+            publications: pointDict.p || [],
+          })),
+        };
+
         const key = this.getPreTileKey(preTile);
         this.preTile.set(key, preTile);
         preTile.points.forEach((point) => {
@@ -96,25 +105,45 @@ export class DataService {
         });
       });
 
-      preData.publications.forEach((publication) => {
+      preData.publications.forEach((publicationDict) => {
+        const publication: Publication = {
+          id: publicationDict.i,
+          author: publicationDict.a,
+          publicationPlace: publicationDict.p,
+          year: publicationDict.y,
+          title: publicationDict.t,
+        };
         this.publications.set(publication.id, publication);
       });
 
-      preData.stats.forEach((tileStats) => {
+      preData.stats.forEach((tileStatsDict) => {
+        const tileStats: TileStats = { ...tileStatsDict, max: tileStatsDict.m };
         const key = this.getTileMetaKey(tileStats);
         this.stats.set(key, tileStats);
         this.computeGlobalStats(tileStats);
       });
 
-      preData.areas.forEach((tileArea) => {
+      preData.areas.forEach((tileAreaDict) => {
+        const tileArea: Area = {
+          ...tileAreaDict,
+          id: tileAreaDict.i,
+          publications: tileAreaDict.p,
+        };
         const key = this.getAreaKey(tileArea.id, tileArea.t);
         this.areas.set(key, tileArea);
       });
 
-      preData.areaStats.forEach((areaStats) => {
+      preData.areaStats.forEach((areaStatsDict) => {
+        const areaStats: AreaStats = {
+          ...areaStatsDict,
+          id: areaStatsDict.i,
+          pointCount: areaStatsDict.p,
+        };
         const key = this.getAreaStatsKey(areaStats.id, areaStats.z);
         this.areaStats.set(key, areaStats);
       });
+
+      this.logger.log('JSON Tiles file processed');
     } catch (e) {
       this.logger.error('JSON Tiles file loading error!');
       this.logger.error(e);

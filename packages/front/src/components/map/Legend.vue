@@ -9,7 +9,7 @@
           </el-col>
           <el-col :span="6" style="text-align: right">
             <div v-if="data">
-              {{ data.max }}
+              {{ Math.ceil(data.max) }}
             </div>
           </el-col>
           <el-col :span="24">

@@ -3,7 +3,7 @@ WORKDIR /app
 COPY ./package.json ./
 RUN npm install
 COPY ./lerna.json ./
-COPY ./data/data.json ./data/data.json
+COPY ./data/data ./data/data
 # Package pre-processor
 FROM base as pre-processor-build
 WORKDIR /app/packages/pre-processor

@@ -16,8 +16,8 @@ const char *const POLYGON_RESULT_DIR = "../../data/places2/";
 
 const char GEOJSON_MATCH_STRING[] = ",\"geojson\":{\"type\":\"Polygon\",\"coordinates\":[[";
 
-#define EXPANSION_PIXEL_HSPACING 30
-#define EXPANSION_PIXEL_VSPACING 26
+#define EXPANSION_PIXEL_HSPACING 40
+#define EXPANSION_PIXEL_VSPACING 35
 
 static void LoadGeocodedData();
 static void ExtractPublications();
@@ -138,8 +138,9 @@ static void LoadGeocodedData()
 		for (int16_t z = 0; z <= MAX_ZOOM_LEVEL; ++z)
 		{
 			printf("\rExpanding polygons... %d, z = %" PRIi16, polygon.id.id, z);
+      fflush(stdout);
 
-			std::vector<Vector2>& expansion = polygon.expansions[z];
+      std::vector<Vector2>& expansion = polygon.expansions[z];
 
 			float pixelsPerUnit = (float)(1 << z) * (float)TILE_PIXEL_SIZE;
 
@@ -433,13 +434,13 @@ static void Dump()
 		if (firstPublication) firstPublication = false;
 		else fprintf(out, ",\n");
 
-		fprintf(out, "{\"id\":%" PRId32 ",\"title\":", publication.id.id);
+		fprintf(out, "{\"i\":%" PRId32 ",\"t\":", publication.id.id);
 		PrintJsonString(out, publication.title.c_str());
-		fprintf(out, ",\"author\":");
+		fprintf(out, ",\"a\":");
 		PrintJsonString(out, publication.author.c_str());
-		fprintf(out, ",\"publicationPlace\":");
+		fprintf(out, ",\"p\":");
 		PrintJsonString(out, publication.publicationPlace.c_str());
-		fprintf(out, ",\"year\":%" PRId16 "}", publication.year);
+		fprintf(out, ",\"y\":%" PRId16 "}", publication.year);
 	}
 
 	fprintf(out, "],\n");
@@ -455,7 +456,7 @@ static void Dump()
 		if (firstArea) firstArea = false;
 		else fprintf(out, ",\n");
 
-		fprintf(out, "{\"id\":%" PRId32 ",\"t\":%" PRId16 ",\"publications\":[", area.id.id.id, area.id.t);
+		fprintf(out, "{\"i\":%" PRId32 ",\"t\":%" PRId16 ",\"p\":[", area.id.id.id, area.id.t);
 
 		firstPublication = true;
 		for (const Publication_ID& publication_id : area.publications)
@@ -484,7 +485,7 @@ static void Dump()
 		if (firstAreaStat) firstAreaStat = false;
 		else fprintf(out, ",\n");
 
-		fprintf(out, "{\"id\":%" PRId32 ",\"z\":%" PRId16 ",\"pointCount\":%" PRId32 "}", areaStat.id.id.id, areaStat.id.z, areaStat.pointCount);
+		fprintf(out, "{\"i\":%" PRId32 ",\"z\":%" PRId16 ",\"p\":%" PRId32 "}", areaStat.id.id.id, areaStat.id.z, areaStat.pointCount);
 	}
 
 	fprintf(out, "],\n");
@@ -500,7 +501,7 @@ static void Dump()
 		if (firstPreTile) firstPreTile = false;
 		else fprintf(out, ",\n");
 
-		fprintf(out, "{\"x\":%" PRId16 ",\"y\":%" PRId16 ",\"z\":%" PRId16 ",\"t\":%" PRId16 ",\"points\":[", preTile.id.x, preTile.id.y, preTile.id.z, preTile.id.t);
+		fprintf(out, "{\"x\":%" PRId16 ",\"y\":%" PRId16 ",\"z\":%" PRId16 ",\"t\":%" PRId16 ",\"p\":[", preTile.id.x, preTile.id.y, preTile.id.z, preTile.id.t);
 
 		bool firstPoint = true;
 		for (const Point& point : preTile.points.table)
@@ -508,29 +509,36 @@ static void Dump()
 			if (firstPoint) firstPoint = false;
 			else fprintf(out, ",\n");
 
-			fprintf(out, "{\"x\":%" PRIu8 ",\"y\":%" PRIu8 ",\"areas\":[", point.id.x, point.id.y);
+			fprintf(out, "{\"x\":%" PRIu8 ",\"y\":%" PRIu8 , point.id.x, point.id.y);
 
-			firstArea = true;
-			for (const Place_ID& place_id : point.areas)
-			{
-				if (firstArea) firstArea = false;
-				else fputc(',', out);
+      if(point.areas.size() > 0)
+      {
+			  fprintf(out, ",\"a\":[");
+        firstArea = true;
+        for (const Place_ID& place_id : point.areas)
+        {
+          if (firstArea) firstArea = false;
+          else fputc(',', out);
 
-				fprintf(out, "%" PRId32, place_id.id);
-			}
+          fprintf(out, "%" PRId32, place_id.id);
+        }
+			  fprintf(out, "]");
+      }
 
-			fprintf(out, "],\"publications\":[");
+      if(point.publications.size() > 0)
+      {
+			  fprintf(out, ",\"p\":[");
+        firstPublication = true;
+        for (const Publication_ID& publication_id : point.publications)
+        {
+          if (firstPublication) firstPublication = false;
+          else fputc(',', out);
 
-			firstPublication = true;
-			for (const Publication_ID& publication_id : point.publications)
-			{
-				if (firstPublication) firstPublication = false;
-				else fputc(',', out);
-
-				fprintf(out, "%" PRId32, publication_id.id);
-			}
-
-			fprintf(out, "]}");
+          fprintf(out, "%" PRId32, publication_id.id);
+        }
+			  fprintf(out, "]");
+      }
+			fprintf(out, "}");
 		}
 
 		fprintf(out, "]}");
@@ -549,7 +557,7 @@ static void Dump()
 		if (firstTileStat) firstTileStat = false;
 		else fprintf(out, ",\n");
 
-		fprintf(out, "{\"t\":%" PRId16 ",\"z\":%" PRId16 ",\"max\":%f}", tileStat.id.t, tileStat.id.z, tileStat.max);
+		fprintf(out, "{\"t\":%" PRId16 ",\"z\":%" PRId16 ",\"m\":%f}", tileStat.id.t, tileStat.id.z, tileStat.max);
 	}
 	fprintf(out, "]");
 
