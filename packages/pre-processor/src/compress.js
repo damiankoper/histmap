@@ -1,15 +1,23 @@
-const fs = require("fs");
-const {gzip, ungzip} = require('node-gzip')
+const {
+  createReadStream,
+  createWriteStream
+} = require('fs');
+const { createGzip } = require('zlib');
+const { pipeline } = require('stream');
+const { promisify } = require('util');
 
 const DATA_DIR = "../../data/";
+const pipe = promisify(pipeline);
+
 
 console.log("Reading data.json...");
-const dataString = fs.readFileSync(`${DATA_DIR}data.json`);
-console.log("Compressing...");
+const gzip = createGzip();
+const source = createReadStream(`${DATA_DIR}data.json`);
+const destination = createWriteStream(`${DATA_DIR}data`);
 
 (async () => {
-    const dataCompressed = await gzip(dataString)
-    console.log("Saving compressed data...");
-    fs.writeFileSync(`${DATA_DIR}data`, dataCompressed);
+  console.log("Compressing...");
+  await pipe(source, gzip, destination);
+  console.log("Done");
 })()
 

@@ -1,5 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { existsSync, readFileSync } from 'fs';
+import fs from 'fs';
+import zlib from 'zlib';
 import { resolve } from 'path';
 import {
   Area,
@@ -15,7 +17,13 @@ import * as _ from 'lodash';
 import { GlobalStats } from './interfaces/global-stats.interface';
 import { GeoPoint } from 'src/area/models/geo-point.model';
 import { MathService } from 'src/math/math.service';
-import { ungzip } from 'node-gzip';
+
+import { chain } from 'stream-chain';
+import progress from 'progress-stream';
+
+import { parser } from 'stream-json';
+import { streamValues } from 'stream-json/streamers/StreamValues';
+
 @Injectable()
 export class DataService {
   private readonly logger = new Logger(DataService.name);
@@ -43,15 +51,41 @@ export class DataService {
     const compressedPath = resolve(__dirname, '../../../../data/data');
     const compressedExists = existsSync(compressedPath);
     if (compressedExists) {
-      const file = readFileSync(compressedPath);
-      return JSON.parse((await ungzip(file)).toString('utf-8'));
+      const stat = fs.statSync(compressedPath);
+      const str = progress({ length: stat.size, time: 1000 });
+      str.on('progress', (p) =>
+        this.logger.log(`JSON file processing: ${p.percentage}%`),
+      );
+
+      return new Promise((resolve, reject) =>
+        chain([
+          fs
+            .createReadStream(compressedPath)
+            .pipe(str)
+            .pipe(zlib.createGunzip()),
+          parser(),
+          streamValues(),
+          (data) => resolve(data.value),
+        ]).on('error', reject),
+      );
     } else {
       this.logger.log('Compressed data not found. Trying JSON...');
       const path = resolve(__dirname, '../../../../data/data.json');
       const exists = existsSync(path);
       if (exists) {
-        const file = readFileSync(path, 'utf-8');
-        return JSON.parse(file);
+        const stat = fs.statSync(path);
+        const str = progress({ length: stat.size, time: 1000 });
+        str.on('progress', (p) =>
+          this.logger.log(`JSON file processing: ${p.percentage}%`),
+        );
+
+        return new Promise((resolve, reject) =>
+          chain([
+            fs.createReadStream(path).pipe(str).pipe(parser()),
+            streamValues(),
+            (data) => resolve(data.value),
+          ]).on('error', reject),
+        );
       } else {
         throw new Error(
           'Data not found: `data.json` or gzipped `data` file not found!',
@@ -147,6 +181,7 @@ export class DataService {
     } catch (e) {
       this.logger.error('JSON Tiles file loading error!');
       this.logger.error(e);
+      console.log(e);
     }
   }
 
