@@ -62,7 +62,7 @@ export class TilesController {
       this.filterService.filter(tile, options);
 
       const stats = this.dataService.getTileStats(coords);
-      const render = this.tileRendererService.render(
+      const render = await this.tileRendererService.render(
         tile,
         stats,
         coords,

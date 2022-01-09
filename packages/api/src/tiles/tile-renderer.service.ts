@@ -1,50 +1,33 @@
 import { Injectable } from '@nestjs/common';
+import { resolve } from 'path';
 import { Point, TileMetaCoords, TileStats } from 'pre-processor';
-import { Config, RendererService, Tile as RenderTile } from 'renderer';
+import { Tile as RenderTile } from 'renderer';
 import { AreaService } from 'src/area/area.service';
-import { gradients } from 'src/export';
+import { pool } from 'workerpool';
 import { TileOptionsDto } from './dto/tile-options.dto';
-import { GradientName } from './models/gradients';
 import { Tile } from './models/tile.model';
 
 @Injectable()
 export class TileRendererService {
-  readonly commonOptions: Partial<Config> = {
-    blur: 20,
-    radius: 30,
-    minOpacity: 0.3,
-  };
-
-  private renderers: Record<GradientName, RendererService> = {
-    default: new RendererService({
-      ...this.commonOptions,
-      gradient: gradients.default,
-    }),
-    heat: new RendererService({
-      ...this.commonOptions,
-      gradient: gradients.heat,
-    }),
-    magma: new RendererService({
-      ...this.commonOptions,
-      gradient: gradients.magma,
-    }),
-    viridis: new RendererService({
-      ...this.commonOptions,
-      gradient: gradients.viridis,
-    }),
-  };
+  private renderPool = pool(
+    // !IMPORTANT: Note that this points to .js file in dist directory
+    resolve(__dirname, './workers/renderer.worker.js'),
+    { workerType: 'process' },
+  );
 
   public constructor(private areaService: AreaService) {}
 
-  public render(
+  public async render(
     tile: Tile,
     stats: TileStats,
     coords: TileMetaCoords,
     options: TileOptionsDto,
   ) {
-    return this.renderers[options.c || 'default'].render(
+    const buffer = await this.renderPool.exec('render', [
+      options.c || 'default',
       this.mapToRenderTile(tile.points, coords, options, stats.max),
-    );
+    ]);
+    return Buffer.from(buffer);
   }
 
   private mapToRenderTile(
