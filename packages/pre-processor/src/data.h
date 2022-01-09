@@ -4,6 +4,7 @@
 #include <cassert>
 #include <cmath>
 #include <cstdint>
+//#include <immintrin.h>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -13,9 +14,15 @@
 #define M_PIf 3.14159265358979323846f
 
 #define TILE_PIXEL_SIZE 256
-#define MAX_ZOOM_LEVEL 8
+#define MAX_ZOOM_LEVEL 13
+#define MAX_EXPANSION_LEVEL 7
 
 // --- COMMON TYPES ---
+
+union Any32 {
+	float f32;
+	uint32_t u32;
+};
 
 struct Vector2 {
 	float x, y;
@@ -215,8 +222,8 @@ struct Place {
 struct Polygon {
 	typedef Place_ID KeyT;
 	Place_ID id;
-	std::vector<Vector2> points;
-	std::array<std::vector<Vector2>, MAX_ZOOM_LEVEL + 1> expansions;
+	std::vector<std::vector<std::vector<Vector2>>> points; // polygons -> loops -> coords
+	std::array<std::vector<Vector2>, MAX_EXPANSION_LEVEL + 1> expansions;
 	explicit Polygon(Place_ID id) : id(id) {}
 };
 
@@ -288,7 +295,7 @@ extern Data gData;
 
 // --- OTHER FUNCTION DECLARATIONS ---
 
-bool PointInPolygon(Vector2 point, const std::vector<Vector2>& points);
+bool PointInPolygon(Vector2 point, const std::vector<std::vector<Vector2>>& loops);
 
 inline Vector2 GeoCoordToMercator(float lonDeg, float latDeg)
 {
@@ -331,3 +338,33 @@ inline int RaycastEdge(Vector2 point, Vector2 a, Vector2 b)
 
 	return sgn >= 0.0f ? 1 : 0;
 }
+
+//inline int RaycastEdge_x4(__m128 px, __m128 py, __m128 ax, __m128 ay, __m128 bx, __m128 by)
+//{
+//	ax = _mm_sub_ps(ax, px);
+//	ay = _mm_sub_ps(ay, py);
+//	bx = _mm_sub_ps(bx, px);
+//	by = _mm_sub_ps(by, py);
+//
+//	__m128 zero = _mm_set1_ps(0.0f);
+//	__m128 r = _mm_and_ps(
+//		_mm_or_ps(
+//			_mm_cmpgt_ps(ay, zero),
+//			_mm_cmpgt_ps(by, zero)
+//		),
+//		_mm_or_ps(
+//			_mm_cmple_ps(ay, zero),
+//			_mm_cmple_ps(by, zero)
+//		)
+//	);
+//
+//	int mask = _mm_movemask_ps(r);
+//	if (mask == 0x3) return 0;
+//
+//	__m128 dy = _mm_sub_ps(by, ay);
+//	__m128 cross = _mm_sub_ps(_mm_mul_ps(ax, by), _mm_mul_ps(bx, ay));
+//	__m128 sgn = _mm_mul_ps(cross, dy);
+//
+//	mask = _mm_movemask_ps(sgn);
+//	return 4 - _mm_popcnt_u32((unsigned int)mask);
+//}
