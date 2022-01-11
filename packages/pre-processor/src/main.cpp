@@ -12,9 +12,7 @@ const char *const OUTPUT_DB_FILEPATH = "../../data/data.json";
 
 const char *const GEOCODE_INPUT_FILEPATH = "../../data/places.txt";
 const char *const GEOCODE_RESULT_FILE = "../../data/places.bin";
-const char *const POLYGON_RESULT_DIR = "../../data/places2/";
-
-const char GEOJSON_MATCH_STRING[] = ",\"geojson\":{\"type\":\"Polygon\",\"coordinates\":[[";
+const char *const POLYGON_RESULT_FILE = "../../data/places2.bin";
 
 #define EXPANSION_PIXEL_HSPACING 40
 #define EXPANSION_PIXEL_VSPACING 35
@@ -47,6 +45,64 @@ int main()
 
 // --- PHASE 1: EXTRACTING GEOCODE RESULTS -------------------------------------
 
+static void SkipPolygons(Any32*& ptr)
+{
+	uint32_t polygon_count = ptr->u32;
+	ptr += 1;
+	for (uint32_t i = 0; i < polygon_count; ++i)
+	{
+		uint32_t loop_count = ptr->u32;
+		ptr += 1;
+		for (uint32_t j = 0; j < loop_count; ++j)
+		{
+			uint32_t coord_count = ptr->u32;
+			ptr += 1 + coord_count * 2;
+		}
+	}
+}
+
+static std::vector<std::vector<std::vector<Vector2>>> DeserializePolygons(Any32*& ptr)
+{
+	uint32_t polygon_count = ptr->u32;
+	ptr += 1;
+
+	std::vector<std::vector<std::vector<Vector2>>> res;
+	res.reserve(polygon_count);
+
+	for (uint32_t i = 0; i < polygon_count; ++i)
+	{
+		uint32_t loop_count = ptr->u32;
+		ptr += 1;
+
+		std::vector<std::vector<Vector2>> polygon;
+		polygon.reserve(loop_count);
+
+		for (uint32_t j = 0; j < loop_count; ++j)
+		{
+			uint32_t coord_count = ptr->u32;
+			ptr += 1;
+
+			std::vector<Vector2> loop;
+			loop.reserve(coord_count);
+
+			for (uint32_t k = 0; k < coord_count; ++k)
+			{
+				float lon = ptr[0].f32;
+				float lat = ptr[1].f32;
+				ptr += 2;
+
+				loop.push_back(GeoCoordToMercator(lon, lat));
+			}
+
+			polygon.emplace_back(std::move(loop));
+		}
+
+		res.emplace_back(std::move(polygon));
+	}
+
+	return res;
+}
+
 static void LoadGeocodedData()
 {
 	printf("Loading geocoded places... %5d", 0);
@@ -55,13 +111,14 @@ static void LoadGeocodedData()
 	char *geocode_input_tok = strtok(geocode_input.data(), "\n");
 
 	std::string geocode_result = ReadFile(GEOCODE_RESULT_FILE, NULL);
-
-	int32_t polygon_count = 0;
+	std::string polygon_result = ReadFile(POLYGON_RESULT_FILE, NULL);
+	Any32 *polygon_result_ptr = (Any32*)polygon_result.data();
 
 	int32_t input_place_id = 0;
 	while (geocode_input_tok)
 	{
 		printf("\rLoading geocoded places... %5d", input_place_id + 1);
+		fflush(stdout);
 
 		// Try finding successful geocoding result
 
@@ -79,102 +136,91 @@ static void LoadGeocodedData()
 				GeoCoordToMercator(lon, lat)
 			));
 
-			char filepath[100];
-			sprintf(filepath, "%s%05d.json", POLYGON_RESULT_DIR, input_place_id);
-			std::string polygon_result = ReadFile(filepath, NULL);
-
 			// Try finding successful polygon result
 
-			char *polygon_string = strstr(polygon_result.data(), GEOJSON_MATCH_STRING);
-			if (polygon_string)
+			std::vector<std::vector<std::vector<Vector2>>> points = DeserializePolygons(polygon_result_ptr);
+			if (points.size() > 0)
 			{
-				polygon_string += sizeof(GEOJSON_MATCH_STRING);
-
 				Polygon polygon(place_id);
-				std::vector<Vector2>& points = polygon.points;
-
-				char* str = polygon_string;
-				while (true)
-				{
-					lon = strtof(str, &str);
-					str += 1; // skip comma
-					lat = strtof(str, &str);
-					str += 1; // skip closing bracket
-
-					Vector2 point = GeoCoordToMercator(lon, lat);
-					points.push_back(point);
-
-					if (str[0] == ']') break;
-					str += 2; // skip ",["
-				}
-
-				polygon_count += 1;
+				polygon.points = std::move(points);
 				gData.polygons.Insert(std::move(polygon));
 			}
+		}
+		else
+		{
+			SkipPolygons(polygon_result_ptr);
 		}
 
 		geocode_input_tok = strtok(NULL, "\n");
 		input_place_id += 1;
 	}
-	printf("\nThere are %d places with defined polygon.\n", polygon_count);
+	printf("\n");
 
 	// --- EXPANDING POLYGONS ---
 
 	for (Polygon& polygon : gData.polygons.table)
 	{
-		const std::vector<Vector2>& points = polygon.points;
+		printf("\rExpanding polygons... (id = %d)", polygon.id.id);
+		fflush(stdout);
 
-		Vector2 min(INFINITY, INFINITY);
-		Vector2 max(-INFINITY, -INFINITY);
-
-		for (const Vector2& point : points)
+		for (const std::vector<std::vector<Vector2>>& poly : polygon.points)
 		{
-			if (point.x < min.x) min.x = point.x;
-			if (point.y < min.y) min.y = point.y;
-			if (point.x > max.x) max.x = point.x;
-			if (point.y > max.y) max.y = point.y;
+			Vector2 min(INFINITY, INFINITY);
+			Vector2 max(-INFINITY, -INFINITY);
+
+			for (const std::vector<Vector2> loop : poly)
+			{
+				for (const Vector2& point : loop)
+				{
+					if (point.x < min.x) min.x = point.x;
+					if (point.y < min.y) min.y = point.y;
+					if (point.x > max.x) max.x = point.x;
+					if (point.y > max.y) max.y = point.y;
+				}
+			}
+
+			for (int16_t z = 0; z <= MAX_EXPANSION_LEVEL; ++z)
+			{
+				std::vector<Vector2>& expansion = polygon.expansions[z];
+
+				float pixelsPerUnit = (float)(1 << z) * (float)TILE_PIXEL_SIZE;
+
+				float dx = EXPANSION_PIXEL_HSPACING / pixelsPerUnit;
+				float dy = EXPANSION_PIXEL_VSPACING / pixelsPerUnit;
+
+				bool halfOffset = false;
+
+				for (float y = min.y; y <= max.y; y += dy)
+				{
+					float offset = halfOffset ? -0.5f * dx : 0.0f;
+					for (float x = min.x + offset; x <= max.x; x += dx)
+					{
+						Vector2 p = Vector2(x, y);
+						if (!PointInPolygon(p, poly)) continue;
+
+						expansion.push_back(p);
+					}
+					halfOffset = !halfOffset;
+				}
+			}
 		}
 
-		for (int16_t z = 0; z <= MAX_ZOOM_LEVEL; ++z)
+		for (int16_t z = 0; z <= MAX_EXPANSION_LEVEL; ++z)
 		{
-			printf("\rExpanding polygons... %d, z = %" PRIi16, polygon.id.id, z);
-      fflush(stdout);
-
-      std::vector<Vector2>& expansion = polygon.expansions[z];
-
-			float pixelsPerUnit = (float)(1 << z) * (float)TILE_PIXEL_SIZE;
-
-			float dx = EXPANSION_PIXEL_HSPACING / pixelsPerUnit;
-			float dy = EXPANSION_PIXEL_VSPACING / pixelsPerUnit;
-
-			bool halfOffset = false;
-
-			for (float y = min.y; y <= max.y; y += dy)
-			{
-				float offset = halfOffset ? -0.5f * dx : 0.0f;
-				for (float x = min.x + offset; x <= max.x; x += dx)
-				{
-					Vector2 p = Vector2(x, y);
-					if (!PointInPolygon(p, points)) continue;
-
-					expansion.push_back(p);
-				}
-				halfOffset = !halfOffset;
-			}
+			std::vector<Vector2>& expansion = polygon.expansions[z];
 
 			if (expansion.size() == 0)
 			{
-				Place *place = gData.places.Get(polygon.id);
+				Place* place = gData.places.Get(polygon.id);
 				expansion.push_back(place->mercatorPoint);
 			}
 			else if (expansion.size() == 1)
 			{
-				Place *place = gData.places.Get(polygon.id);
+				Place* place = gData.places.Get(polygon.id);
 				expansion[0] = place->mercatorPoint;
 			}
 		}
 	}
-
 	printf("\n");
 }
 
@@ -288,7 +334,7 @@ static void Precalculate()
 
 			for (int16_t z = 0; z <= MAX_ZOOM_LEVEL; ++z)
 			{
-				if (polygon && polygon->expansions[z].size() > 1) continue;
+				if (z <= MAX_EXPANSION_LEVEL && polygon && polygon->expansions[z].size() > 1) continue;
 
 				Place *place = gData.places.Get(place_id);
 				TileCoord tc = MercatorToTileCoord(place->mercatorPoint, z);
@@ -334,7 +380,7 @@ static void Precalculate()
 	{
 		Polygon *polygon = gData.polygons.Get(area.id.id);
 
-		for (int16_t z = 0; z <= MAX_ZOOM_LEVEL; ++z)
+		for (int16_t z = 0; z <= MAX_EXPANSION_LEVEL; ++z)
 		{
 			const std::vector<Vector2>& expansion = polygon->expansions[z];
 
@@ -402,7 +448,7 @@ static void Precalculate()
 
 	for (const Polygon& polygon : gData.polygons.table)
 	{
-		for (int16_t z = 0; z <= MAX_ZOOM_LEVEL; ++z)
+		for (int16_t z = 0; z <= MAX_EXPANSION_LEVEL; ++z)
 		{
 			size_t expansion_len = polygon.expansions[z].size();
 
@@ -511,33 +557,33 @@ static void Dump()
 
 			fprintf(out, "{\"x\":%" PRIu8 ",\"y\":%" PRIu8 , point.id.x, point.id.y);
 
-      if(point.areas.size() > 0)
-      {
-			  fprintf(out, ",\"a\":[");
-        firstArea = true;
-        for (const Place_ID& place_id : point.areas)
-        {
-          if (firstArea) firstArea = false;
-          else fputc(',', out);
+			if (point.areas.size() > 0)
+			{
+				fprintf(out, ",\"a\":[");
+				firstArea = true;
+				for (const Place_ID& place_id : point.areas)
+				{
+					if (firstArea) firstArea = false;
+					else fputc(',', out);
 
-          fprintf(out, "%" PRId32, place_id.id);
-        }
-			  fprintf(out, "]");
-      }
+					fprintf(out, "%" PRId32, place_id.id);
+				}
+				fprintf(out, "]");
+			}
 
-      if(point.publications.size() > 0)
-      {
-			  fprintf(out, ",\"p\":[");
-        firstPublication = true;
-        for (const Publication_ID& publication_id : point.publications)
-        {
-          if (firstPublication) firstPublication = false;
-          else fputc(',', out);
+			if (point.publications.size() > 0)
+			{
+				fprintf(out, ",\"p\":[");
+				firstPublication = true;
+				for (const Publication_ID& publication_id : point.publications)
+				{
+					if (firstPublication) firstPublication = false;
+					else fputc(',', out);
 
-          fprintf(out, "%" PRId32, publication_id.id);
-        }
-			  fprintf(out, "]");
-      }
+					fprintf(out, "%" PRId32, publication_id.id);
+				}
+				fprintf(out, "]");
+			}
 			fprintf(out, "}");
 		}
 

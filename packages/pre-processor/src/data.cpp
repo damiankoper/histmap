@@ -22,19 +22,23 @@ bool Data::TryGetPlaceByName(const std::string& name, Place*& out)
 	return true;
 }
 
-bool PointInPolygon(Vector2 point, const std::vector<Vector2>& points)
+bool PointInPolygon(Vector2 point, const std::vector<std::vector<Vector2>>& loops)
 {
-	size_t len = points.size();
-
 	int winding = 0;
-	Vector2 b = points[len - 1];
-	for (size_t i = 0; i < len; ++i)
+
+	for (const std::vector<Vector2>& points : loops)
 	{
-		Vector2 a = points[i];
+		size_t len = points.size();
 
-		winding += RaycastEdge(point, a, b);
+		Vector2 b = points[len - 1];
+		for (size_t i = 0; i < len; ++i)
+		{
+			Vector2 a = points[i];
 
-		b = a;
+			winding += RaycastEdge(point, a, b);
+
+			b = a;
+		}
 	}
 
 	return (winding & 1) != 0;
