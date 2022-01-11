@@ -12,7 +12,7 @@ export class TileRendererService {
   private renderPool = pool(
     // !IMPORTANT: Note that this points to .js file in dist directory
     resolve(__dirname, './workers/renderer.worker.js'),
-    { workerType: 'process' },
+    { workerType: 'process', minWorkers: 4 },
   );
 
   public constructor(private areaService: AreaService) {}

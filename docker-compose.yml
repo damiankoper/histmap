@@ -4,6 +4,8 @@ services:
   api:
     build: .
     image: kopernick/histmap-api:latest
+    environment:
+      - NODE_OPTIONS=--max_old_space_size=32768
     command: 'npx lerna run --scope api --stream start:prod'
     expose:
       - 3000

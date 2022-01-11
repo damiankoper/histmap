@@ -42,6 +42,7 @@ RUN npm run build
 FROM base as api-production
 WORKDIR /app/packages/api
 ENV NODE_ENV=production
+COPY  packages/api/.eslintrc.js ./
 COPY  packages/api/package*.json ./
 WORKDIR /app/
 COPY --from=pre-processor-build /app/packages/pre-processor/package.json /app/packages/pre-processor/

@@ -8,6 +8,7 @@ RUN npm run build
 FROM base as production
 
 ENV NODE_ENV=production
+COPY .eslintrc.js ./
 COPY package*.json ./
 
 RUN npm install --only=production 

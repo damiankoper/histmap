@@ -26,7 +26,7 @@ export class CanvasService {
   }
 
   public getPNGBuffer(): Buffer {
-    return this.canvas.toBuffer("image/png", { compressionLevel: 1 });
+    return this.canvas.toBuffer("image/png", { compressionLevel: 6 });
   }
 
   public renderPoint(point: Point, max: number) {

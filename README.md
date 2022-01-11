@@ -11,7 +11,7 @@ $ docker-compose up -d
 ```
 ## Build images and run
 
-Note that `data/data.json` should be present to have histmap data displayed.
+Note that `data/data.json` `data/data` should be present to have histmap data displayed.
 
 ```sh
 $ docker-compose up -d --build
