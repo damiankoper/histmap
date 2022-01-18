@@ -24,8 +24,8 @@ Naciśnięcie przycisku, który znajduje się w lewym dolnym rogu strony (drugi 
 
 Nacięnięcie przycisku menu w lewym górnym rogu, powoduje dostęp do filtracji widocznych wyników. Czerwony znak przy menu, oznacza, że założony jest filtr.
 
-## Pozycje z danego miejsca na mapie
+## Publikacje z danego miejsca na mapie
 
-Dwuktrotne kliknięcie na mapę, powoduje zaznaczenie pewnego obszaru, oznaczonego niebieskim kołem. Publikacje znajdujące się wewnątrz tego koła ukarzą się na liście z lewej strony ekranu. Dodatkowo, jeśli koło zajmuje więcej niż 1/3 obszaru, to pojawią się również publikacje z tego obszaru.
+Dwuktrotne kliknięcie na mapę, powoduje zaznaczenie pewnego obszaru, oznaczonego niebieskim kołem. Publikacje, których akcja dzieje się wewnątrz tego koła, ukarzą się na liście z lewej strony ekranu. Dodatkowo, jeśli koło zajmuje więcej niż 1/3 obszaru, to pojawią się również publikacje, których akcja dzieje się na terenie danego obszaru.
 
 Duże obszary są ukrywane na większych zbliżeniach. Aby zatem zobaczyć np. obszar Rosji, należy znacznie oddalić mapę.
