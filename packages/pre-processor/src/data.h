@@ -4,7 +4,7 @@
 #include <cassert>
 #include <cmath>
 #include <cstdint>
-//#include <immintrin.h>
+#include <immintrin.h>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -15,7 +15,7 @@
 
 #define TILE_PIXEL_SIZE 256
 #define MAX_ZOOM_LEVEL 13
-#define MAX_EXPANSION_LEVEL 7
+#define MAX_EXPANSION_LEVEL 13
 
 // --- COMMON TYPES ---
 
@@ -295,6 +295,7 @@ extern Data gData;
 
 // --- OTHER FUNCTION DECLARATIONS ---
 
+bool PointInPolygon(Vector2 point, const std::vector<std::vector<Vector2>>& loops, const std::vector<std::pair<uint32_t, uint32_t>>& edges);
 bool PointInPolygon(Vector2 point, const std::vector<std::vector<Vector2>>& loops);
 
 inline Vector2 GeoCoordToMercator(float lonDeg, float latDeg)
@@ -323,48 +324,42 @@ inline TileCoord GeoCoordToTileCoord(float lonDeg, float latDeg, int z)
 	return MercatorToTileCoord(GeoCoordToMercator(lonDeg, latDeg), z);
 }
 
-inline int RaycastEdge(Vector2 point, Vector2 a, Vector2 b)
+inline unsigned int RaycastEdge(Vector2 point, Vector2 a, Vector2 b)
 {
-	float ax = a.x - point.x;
-	float ay = a.y - point.y;
-	float bx = b.x - point.x;
-	float by = b.y - point.y;
+	if ((point.y >= a.y) == (point.y >= b.y)) return 0;
 
-	if (((ay > 0.0f) & (by > 0.0f)) | ((ay <= 0.0f) & (by <= 0.0f))) return 0;
+	float pax = a.x - point.x;
+	float pay = a.y - point.y;
+	float pbx = b.x - point.x;
+	float pby = b.y - point.y;
 
-	float dy = by - ay;
-	float cross = ax * by - bx * ay;
+	float cross = pax * pby - pbx * pay;
+	float dy = b.y - a.y;
+
 	float sgn = cross * dy;
 
 	return sgn >= 0.0f ? 1 : 0;
 }
 
-//inline int RaycastEdge_x4(__m128 px, __m128 py, __m128 ax, __m128 ay, __m128 bx, __m128 by)
-//{
-//	ax = _mm_sub_ps(ax, px);
-//	ay = _mm_sub_ps(ay, py);
-//	bx = _mm_sub_ps(bx, px);
-//	by = _mm_sub_ps(by, py);
-//
-//	__m128 zero = _mm_set1_ps(0.0f);
-//	__m128 r = _mm_and_ps(
-//		_mm_or_ps(
-//			_mm_cmpgt_ps(ay, zero),
-//			_mm_cmpgt_ps(by, zero)
-//		),
-//		_mm_or_ps(
-//			_mm_cmple_ps(ay, zero),
-//			_mm_cmple_ps(by, zero)
-//		)
-//	);
-//
-//	int mask = _mm_movemask_ps(r);
-//	if (mask == 0x3) return 0;
-//
-//	__m128 dy = _mm_sub_ps(by, ay);
-//	__m128 cross = _mm_sub_ps(_mm_mul_ps(ax, by), _mm_mul_ps(bx, ay));
-//	__m128 sgn = _mm_mul_ps(cross, dy);
-//
-//	mask = _mm_movemask_ps(sgn);
-//	return 4 - _mm_popcnt_u32((unsigned int)mask);
-//}
+inline unsigned int RaycastEdge_x8(__m256 px, __m256 py, __m256 ax, __m256 ay, __m256 bx, __m256 by)
+{
+	__m256 a = _mm256_cmp_ps(py, ay, _CMP_GE_OQ);
+	__m256 b = _mm256_cmp_ps(py, by, _CMP_GE_OQ);
+	__m256 r = _mm256_xor_ps(a, b);
+
+	uint8_t mask = (uint8_t)_mm256_movemask_ps(r);
+
+	if (mask == 0) return 0;
+
+	__m256 pax = _mm256_sub_ps(ax, px);
+	__m256 pay = _mm256_sub_ps(ay, py);
+	__m256 pbx = _mm256_sub_ps(bx, px);
+	__m256 pby = _mm256_sub_ps(by, py);
+
+	__m256 cross = _mm256_sub_ps(_mm256_mul_ps(pax, pby), _mm256_mul_ps(pbx, pay));
+	__m256 dy = _mm256_sub_ps(by, ay);
+
+	__m256 sgn = _mm256_mul_ps(cross, dy);
+	mask &= ~(uint8_t)_mm256_movemask_ps(sgn);
+	return 8U - (unsigned int)_mm_popcnt_u32(mask);
+}

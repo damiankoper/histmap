@@ -1,7 +1,10 @@
+#include <atomic>
 #include <cassert>
 #include <cinttypes>
 #include <cstring>
 #include <ctime>
+#include <utility>
+#include <thread>
 
 #include "data.h"
 #include "sqlite3.h"
@@ -16,6 +19,7 @@ const char *const POLYGON_RESULT_FILE = "../../data/places2.bin";
 
 #define EXPANSION_PIXEL_HSPACING 40
 #define EXPANSION_PIXEL_VSPACING 35
+#define MAX_EXPANSION_PIXEL_EXTENT 1024
 
 static void LoadGeocodedData();
 static void ExtractPublications();
@@ -158,70 +162,128 @@ static void LoadGeocodedData()
 
 	// --- EXPANDING POLYGONS ---
 
-	for (Polygon& polygon : gData.polygons.table)
+	printf("There are %zu places with polygon data.\n", gData.polygons.table.size());
+	printf("Expanding polygons...\n");
+
+	const size_t threadCount = std::thread::hardware_concurrency();
+	//const size_t threadCount = 1;
+	const size_t n = gData.polygons.table.size();
+	std::vector<std::thread> threads;
+	std::atomic<size_t> polygonCounter;
+
+	for (size_t i = 0; i < threadCount; ++i)
 	{
-		printf("\rExpanding polygons... (id = %d)", polygon.id.id);
-		fflush(stdout);
-
-		for (const std::vector<std::vector<Vector2>>& poly : polygon.points)
+		threads.emplace_back([n, &polygonCounter]()
 		{
-			Vector2 min(INFINITY, INFINITY);
-			Vector2 max(-INFINITY, -INFINITY);
-
-			for (const std::vector<Vector2> loop : poly)
+			while (true)
 			{
-				for (const Vector2& point : loop)
+				size_t i = polygonCounter.fetch_add(1);
+				if (i >= n) break;
+				Polygon& polygon = gData.polygons.table[i];
+				for (const std::vector<std::vector<Vector2>>& poly : polygon.points)
 				{
-					if (point.x < min.x) min.x = point.x;
-					if (point.y < min.y) min.y = point.y;
-					if (point.x > max.x) max.x = point.x;
-					if (point.y > max.y) max.y = point.y;
-				}
-			}
+					Vector2 min(INFINITY, INFINITY);
+					Vector2 max(-INFINITY, -INFINITY);
 
-			for (int16_t z = 0; z <= MAX_EXPANSION_LEVEL; ++z)
-			{
-				std::vector<Vector2>& expansion = polygon.expansions[z];
-
-				float pixelsPerUnit = (float)(1 << z) * (float)TILE_PIXEL_SIZE;
-
-				float dx = EXPANSION_PIXEL_HSPACING / pixelsPerUnit;
-				float dy = EXPANSION_PIXEL_VSPACING / pixelsPerUnit;
-
-				bool halfOffset = false;
-
-				for (float y = min.y; y <= max.y; y += dy)
-				{
-					float offset = halfOffset ? -0.5f * dx : 0.0f;
-					for (float x = min.x + offset; x <= max.x; x += dx)
+					for (const std::vector<Vector2> loop : poly)
 					{
-						Vector2 p = Vector2(x, y);
-						if (!PointInPolygon(p, poly)) continue;
-
-						expansion.push_back(p);
+						for (const Vector2& point : loop)
+						{
+							if (point.x < min.x) min.x = point.x;
+							if (point.y < min.y) min.y = point.y;
+							if (point.x > max.x) max.x = point.x;
+							if (point.y > max.y) max.y = point.y;
+						}
 					}
-					halfOffset = !halfOffset;
+
+					float longEdge = std::max(max.x - min.x, max.y - min.y);
+
+					for (int16_t z = 0; z <= MAX_EXPANSION_LEVEL; ++z)
+					{
+						std::vector<Vector2>& expansion = polygon.expansions[z];
+
+						float pixelsPerUnit = (float)(1 << z) * (float)TILE_PIXEL_SIZE;
+						if (longEdge * pixelsPerUnit > MAX_EXPANSION_PIXEL_EXTENT)
+						{
+							//Place_ID place_id = polygon.id;
+							//Place* place = gData.places.Get(place_id);
+							//printf("Skipping %s at zoom z = %" PRId16 "\n", place->name.c_str(), z);
+							continue;
+						}
+
+						float dx = EXPANSION_PIXEL_HSPACING / pixelsPerUnit;
+						float dy = EXPANSION_PIXEL_VSPACING / pixelsPerUnit;
+
+						bool halfOffset = false;
+
+						std::vector<float> bandHeight;
+						std::vector<std::vector<std::pair<uint32_t, uint32_t>>> bandEdges;
+
+						for (float y = min.y; y <= max.y; y += dy)
+						{
+							bandHeight.push_back(y);
+							bandEdges.emplace_back();
+						}
+
+						for (uint32_t loopID = 0; loopID < poly.size(); ++loopID)
+						{
+							const std::vector<Vector2>& loop = poly[loopID];
+							for (uint32_t vi = 0; vi < loop.size(); ++vi)
+							{
+								uint32_t vj = vi + 1 >= loop.size() ? 0 : vi + 1;
+
+								float ay = loop[vi].y;
+								float by = loop[vj].y;
+
+								for (size_t bandID = 0; bandID < bandHeight.size(); ++bandID)
+								{
+									float py = bandHeight[bandID];
+									if ((py >= ay) == (py >= by)) continue;
+
+									bandEdges[bandID].push_back(std::make_pair(loopID, vi));
+								}
+							}
+						}
+
+						for (size_t bandID = 0; bandID < bandHeight.size(); ++bandID)
+						{
+							float offset = halfOffset ? -0.5f * dx : 0.0f;
+							float y = bandHeight[bandID];
+							for (float x = min.x + offset; x <= max.x; x += dx)
+							{
+								Vector2 p = Vector2(x, y);
+								if (!PointInPolygon(p, poly, bandEdges[bandID])) continue;
+
+								expansion.push_back(p);
+							}
+							halfOffset = !halfOffset;
+						}
+					}
+				}
+
+				for (int16_t z = 0; z <= MAX_EXPANSION_LEVEL; ++z)
+				{
+					std::vector<Vector2>& expansion = polygon.expansions[z];
+
+					if (expansion.size() == 0)
+					{
+						Place* place = gData.places.Get(polygon.id);
+						expansion.push_back(place->mercatorPoint);
+					}
+					else if (expansion.size() == 1)
+					{
+						Place* place = gData.places.Get(polygon.id);
+						expansion[0] = place->mercatorPoint;
+					}
 				}
 			}
-		}
-
-		for (int16_t z = 0; z <= MAX_EXPANSION_LEVEL; ++z)
-		{
-			std::vector<Vector2>& expansion = polygon.expansions[z];
-
-			if (expansion.size() == 0)
-			{
-				Place* place = gData.places.Get(polygon.id);
-				expansion.push_back(place->mercatorPoint);
-			}
-			else if (expansion.size() == 1)
-			{
-				Place* place = gData.places.Get(polygon.id);
-				expansion[0] = place->mercatorPoint;
-			}
-		}
+		});
 	}
-	printf("\n");
+
+	for (std::thread& thread : threads)
+	{
+		thread.join();
+	}
 }
 
 // --- PHASE 2: EXTRACTING PUBLICATIONS FROM SQLITE DB -------------------------
