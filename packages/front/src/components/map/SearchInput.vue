@@ -78,7 +78,7 @@ export default defineComponent({
 
     const selectLocation = () => {
       const choosenLocation = locationsList.value[focus.value];
-      locationClicked(choosenLocation);
+      if (choosenLocation) locationClicked(choosenLocation);
     };
 
     const hideList = () => {

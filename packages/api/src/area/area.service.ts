@@ -81,14 +81,14 @@ export class AreaService {
     return publications;
   }
 
-  public getAreaValue(
+  public async getAreaValue(
     id: number,
     coords: TileMetaCoords,
     options: TileOptionsDto,
-  ): number {
+  ): Promise<number> {
     const area = this.dataService.getArea(id, coords.t);
     const areaStats = this.dataService.getAreaStats(id, coords);
-    const publications = this.filterService.filterPublications(
+    const publications = await this.filterService.filterPublications(
       area.publications,
       options,
     );

@@ -3,52 +3,40 @@ import { DataService } from 'src/data/data.service';
 import { TileOptionsDto } from 'src/tiles/dto/tile-options.dto';
 import { Tile } from 'src/tiles/models/tile.model';
 import { fuzzy } from 'fast-fuzzy';
+import { pool } from 'workerpool';
+import { resolve } from 'path';
 
 @Injectable()
 export class FilterService {
+  private filterPool = pool(
+    // !IMPORTANT: Note that this points to .js file in dist directory
+    resolve(__dirname, './workers/filter.worker.js'),
+    { minWorkers: 4 },
+  );
+
   constructor(private dataService: DataService) {}
 
-  public filter(tile: Tile, options: TileOptionsDto) {
-    tile.points.forEach((point) => {
-      point.publications = this.filterPublications(point.publications, options);
-    });
+  public async filter(tile: Tile, options: TileOptionsDto) {
+    for (const point of tile.points) {
+      point.publications = await this.filterPublications(
+        point.publications,
+        options,
+      );
+    }
+
+    tile.points = tile.points.filter(
+      (p) => p.publications.length || p.areas.length,
+    );
   }
 
-  public  filterPublications(publications: number[], options: TileOptionsDto) {
-    return publications.filter((id) => {
-      const pub = this.dataService.getPublication(id);
-
-      const title =
-        !options.title.length ||
-        (pub.title.length &&
-          fuzzy(pub.title, options.title, { ignoreCase: true }) > 0.5);
-
-      let authorBool = !options.author.length || false;
-      this.splitAndTrim(pub.author).forEach((author) => {
-        const authorFuzzy =
-          !options.author.length ||
-          (author.length && fuzzy(author, options.author) > 0.5);
-
-        authorBool = authorBool || authorFuzzy;
-      });
-
-      let pubPlaceBool = !options.place.length || false;
-      this.splitAndTrim(pub.publicationPlace).forEach((place) => {
-        const pubPlaceFuzzy =
-          !options.place.length ||
-          (place.length && fuzzy(place, options.place) > 0.5);
-
-        pubPlaceBool = pubPlaceBool || pubPlaceFuzzy;
-      });
-
-      return title && authorBool && pubPlaceBool;
-    });
-  }
-
-  private splitAndTrim(clause: string): string[] {
-    return clause
-      .split(/[,;]+/)
-      .map((s) => s.trim())
-      .filter((s) => s.length);
+  public async filterPublications(
+    publications: number[],
+    options: TileOptionsDto,
+  ) {
+    return await this.filterPool.exec('filterPublications', [
+      publications,
+      publications.map((id) => this.dataService.getPublication(id)),
+      options,
+    ]);
   }
 }

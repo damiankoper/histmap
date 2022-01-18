@@ -25,27 +25,31 @@ export class TileRendererService {
   ) {
     const buffer = await this.renderPool.exec('render', [
       options.c || 'default',
-      this.mapToRenderTile(tile.points, coords, options, stats.max),
+      await this.mapToRenderTile(tile.points, coords, options, stats.max),
     ]);
     return Buffer.from(buffer);
   }
 
-  private mapToRenderTile(
+  private async mapToRenderTile(
     tilePoints: Point[],
     coords: TileMetaCoords,
     options: TileOptionsDto,
     max: number,
-  ): RenderTile {
-    const points = tilePoints.map((point) => {
-      let value = point.publications.length;
-      if (options.area && point.areas) {
-        value += point.areas.reduce(
-          (a, b) => a + this.areaService.getAreaValue(b, coords, options),
-          0,
-        );
-      }
-      return { ...point, value };
-    });
+  ): Promise<RenderTile> {
+    const points = await Promise.all(
+      tilePoints.map(async (point) => {
+        let value = point.publications.length;
+        if (options.area && point.areas) {
+          const areaValues = await Promise.all(
+            point.areas.map(async (area) =>
+              this.areaService.getAreaValue(area, coords, options),
+            ),
+          );
+          value += areaValues.reduce((a, b) => a + b, 0);
+        }
+        return { ...point, value };
+      }),
+    );
 
     const notEmptyPoints = points.filter((p) => p.value > 0);
 

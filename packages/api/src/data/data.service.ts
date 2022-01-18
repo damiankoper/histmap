@@ -54,7 +54,7 @@ export class DataService {
       const stat = fs.statSync(compressedPath);
       const str = progress({ length: stat.size, time: 1000 });
       str.on('progress', (p) =>
-        this.logger.log(`JSON file processing: ${p.percentage}%`),
+        this.logger.log(`JSON file processing: ${p.percentage.toFixed(2)}%`),
       );
 
       return new Promise((resolve, reject) =>
@@ -76,7 +76,7 @@ export class DataService {
         const stat = fs.statSync(path);
         const str = progress({ length: stat.size, time: 1000 });
         str.on('progress', (p) =>
-          this.logger.log(`JSON file processing: ${p.percentage}%`),
+          this.logger.log(`JSON file processing: ${p.percentage.toFixed(2)}%`),
         );
 
         return new Promise((resolve, reject) =>

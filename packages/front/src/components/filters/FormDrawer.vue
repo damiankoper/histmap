@@ -42,12 +42,8 @@
         </el-form>
 
         <el-row justify="end">
-          <el-button :loading="loading" @click="clearForm">
-            Usuń filtry
-          </el-button>
-          <el-button type="primary" :loading="loading" @click="onSubmit">
-            Filtruj
-          </el-button>
+          <el-button @click="clearForm"> Usuń filtry </el-button>
+          <el-button type="primary" @click="onSubmit"> Filtruj </el-button>
         </el-row>
       </div>
       <el-row justify="end">

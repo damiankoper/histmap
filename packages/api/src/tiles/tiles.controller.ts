@@ -59,7 +59,7 @@ export class TilesController {
       const mainPreTile = this.dataService.getPreTile(coords);
       const tile = this.tilesService.calculateTile(mainPreTile);
 
-      this.filterService.filter(tile, options);
+      await this.filterService.filter(tile, options);
 
       const stats = this.dataService.getTileStats(coords);
       const render = await this.tileRendererService.render(
