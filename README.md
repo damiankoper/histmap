@@ -21,7 +21,7 @@ $ docker-compose up -d --build
   If you want to change or create polygon for wrongly determined zone execute steps listed below.
   
   Useful sites: 
-    https://www.keene.edu/campus/maps/tool/
+    https://www.keene.edu/campus/maps/tool/,
     https://www.browserling.com/tools/remove-all-whitespace
   
   1. Search for file named places.txt inside pre-process project.
