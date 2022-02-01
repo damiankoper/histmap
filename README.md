@@ -18,18 +18,25 @@ $ docker-compose up -d --build
 ```
 
 ## Adjust generated areas
+
+  ### Obtaining GeoJSON
+
+  If you want to change or create polygon for wrongly determined areas, you have to get coordinates of the area in the first place. One way of obtaining them is listed below.
+
+  1. Go to https://www.keene.edu/campus/maps/tool/
+  2. Insert points by right-clicking on the map.
+  3. Click `Close Shape` button.
+  4. Copy generated JSON. `Polygon` and `MultiPolygon` are supported.
+
+  ![image](https://user-images.githubusercontent.com/28621467/151938412-70e9ab83-56d6-4a03-9632-986729ae8f6a.png)
   
-  If you want to change or create polygon for wrongly determined areas, execute steps listed below.
-  
+  ### Editing data files
+
+  Each area is described by its name, point in `{workspaceRoot}/data/places` and area in `{workspaceRoot}/data/places2`. Points and areas are obtained from web API. Coordinates of ares are expressed in GeoJSON `Polygon` or `MultiPolygon` format.
+
   1. Go to file `{workspaceRoot}/data/places.txt`.
   2. Note the line number `n` of the place you want to edit polygon.
   3. Go to `{workspaceRoot}/data/places2` directory and find file named `{n-1}.json` (file with the name corresponding to line number `n` but enumerated from `0`).
-  4. To edit polygon edit the `geojson` field. You may get desired coordinates in the following way:
-     1. Pretty-print the JSON if you want.
-     2. Go to https://www.keene.edu/campus/maps/tool/
-     3. Insert points by right-clicking on the map.
-     4. Click `Close Shape` button.
-     5. Copy generated JSON into the `geojson` field. `Polygon` and `MultiPolygon` are supported.
-     ![image](https://user-images.githubusercontent.com/28621467/151938412-70e9ab83-56d6-4a03-9632-986729ae8f6a.png)
+  4. Paste generated JSON (described above) into the `geojson` field.
   5. Run pre-processing: `lerna run --scope pre-processor all`.
-  6. Rebuild images or reload app.
+  6. Rebuild images or reload the app.
