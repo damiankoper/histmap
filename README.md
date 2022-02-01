@@ -2,7 +2,7 @@
 
 ## Run from prebuilt images
 
-Edit `docker-compose.yml` to run proxy on port different than `80`.
+Edit `docker-compose.yml` to run proxy on port other than `80`.
 
 ```sh
 $ docker pull kopernick/histmap-api:latest         # 566MB
@@ -11,10 +11,49 @@ $ docker-compose up -d
 ```
 ## Build images and run
 
-Note that `data/data.json` `data/data` should be present to have histmap data displayed.
+This step assumes that `data/data.json` or `data/data` file is present.
+If not, check the "Data pre-processing" section.
 
 ```sh 
 $ docker-compose up -d --build
+```
+
+## Run locally
+
+We use [lerna](https://github.com/lerna/lerna) to manage multiple packages in the monorepo.
+
+This steps assume that `data/data.json` or `data/data` file is present.
+If not, check the "Data pre-processing" section.
+
+To install dependencies in all packages run:
+```sh
+$ lerna bootstrap
+```
+
+Dependency graph is shown in the following Figure.
+
+![lerna](./docs/graph.png)
+
+### Production
+
+To build and run project in production environment execute following commands:
+```sh
+$ lerna run --scope api --scope front --include-filtered-dependencies --stream build 
+$ lerna run --scope api start
+```
+To run front you have to host static files from  `packages/front/dist` directory.
+
+### Development
+Commands can be executed though lerna or directly using `npm` from package directory.
+
+To run `api` in development environment:
+```sh
+$ lerna run --scope api --stream start:debug 
+```
+
+To run `front` in development environment:
+```sh
+$ lerna run --scope front --stream serve
 ```
 
 ## Data pre-processing
@@ -76,6 +115,9 @@ pre-processor, you need Node.js, npm, CMake and a C++ compiler.
    `data/data`.
 
 You can also run `npm run all` to run steps 2 to 4 in sequence.
+
+If you use [lerna](https://github.com/lerna/lerna) you can run these commands directly
+from the workspace root e.g. `lerna run --scope pre-processor all`
 
 ### Updating data
 
