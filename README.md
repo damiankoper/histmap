@@ -102,7 +102,7 @@ You can also run `npm run all` to run steps 2 to 4 in sequence.
 Main part of pre-processor (the one writen in C++) contains some constants that
 can be experimented with. These are:
 
-* [`EXPANSION_PIXEL_HSPACING and EXPANSION_PIXEL_VSPACING`](packages/pre-processor/src/main.cpp#L20-L21)
+* [`EXPANSION_PIXEL_HSPACING` and `EXPANSION_PIXEL_VSPACING`](packages/pre-processor/src/main.cpp#L20-L21)
   affect horizontal and vertical spacing of single points that, when placed near
   each other, make up an interior of a polygon. The pattern tries to make a
   triangular grid, with every other row shifted by half its spacing. Therefore,
